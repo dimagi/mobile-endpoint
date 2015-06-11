@@ -8,14 +8,7 @@ CREATE TABLE formdata(
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   domain text NOT NULL,
   received_on timestamp without time zone,
-  time_start timestamp without time zone,
-  time_end timestamp without time zone,
-  duration bigint,
-  device_id text,
   user_id uuid NOT NULL,
-  username text,
-  app_id uuid,
-  xmlns text NOT NULL,
   form_json text NOT NULL
 );
 
@@ -25,20 +18,9 @@ DROP TABLE IF EXISTS casedata CASCADE;
 CREATE TABLE casedata(
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   domain text NOT NULL,
-  version text,
-  type text,
   closed boolean DEFAULT FALSE,
-  user_id uuid,
   owner_id uuid NOT NULL,
-  opened_on timestamp without time zone,
-  opened_by uuid,
-  closed_on timestamp without time zone,
-  closed_by uuid,
-  modified_on timestamp without time zone,
-  modified_by uuid,
   server_modified_on timestamp without time zone,
-  name text,
-  external_id text,
   case_json text NOT NULL
 );
 
@@ -48,10 +30,7 @@ CREATE INDEX casedata_open_modified_domain on casedata(domain, closed, server_mo
 
 DROP TABLE IF EXISTS caseindex CASCADE;
 CREATE TABLE caseindex(
-  id bigserial PRIMARY KEY,
   case_id uuid NOT NULL REFERENCES casedata(id),
-  identifier text,
-  referenced_type text,
   referenced_id uuid NOT NULL REFERENCES casedata(id)
 );
 
