@@ -40,4 +40,20 @@ CREATE TABLE case_form(
   form_id uuid NOT NULL REFERENCES formdata(id)
 );
 
+DROP TABLE IF EXISTS synclog CASCADE;
+CREATE TABLE synclog(
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  previous_log_id uuid,
+  hash text,
+  owner_ids_on_phone uuid[]
+);
+
+DROP TABLE IF EXISTS synclog_cases CASCADE;
+CREATE TABLE synclog_cases(
+  synclog_id uuid NOT NULL REFERENCES synclog(id),
+  case_id uuid NOT NULL,
+  is_dependent BOOLEAN
+);
+
 COMMIT;
