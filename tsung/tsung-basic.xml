@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/src/tsung/tsung-1.0.dtd" [
+    <!ENTITY validation SYSTEM "transactions/validation.xml">
+    <!ENTITY save_form SYSTEM "transactions/save_form.xml">
+    <!ENTITY authentication SYSTEM "transactions/authentication.xml">
+    <!ENTITY new_case SYSTEM "transactions/new_case.xml">
+    <!ENTITY update_cases SYSTEM "transactions/update_cases.xml">
+    <!ENTITY update_sync_record SYSTEM "transactions/update_sync_record.xml">
+]>
+<tsung loglevel="info">
+    <clients>
+        <client host="localhost" use_controller_vm="true"/>
+    </clients>
+
+    <servers>
+        <server host="10.10.1.28" port="5432" type="tcp"></server>
+    </servers>
+
+    <sessions>
+        <!-- Form submission broken down in primitives based on: https://docs.google.com/document/d/1MzQSjIyWhICRxnyEdGuW9eigD0N0Ka6p7DWcLP81204/edit#heading=h.ckpofgcu6eec -->
+        <session probability="30" name="form-submission-new-case" type="ts_pgsql">
+            <!-- Set the case -->
+            <setdynvars sourcetype="file" fileid="casedb-new" delimiter="," order="iter">
+                <var name="case_id" />
+                <var name="case_json" />
+            </setdynvars>
+
+            <!-- Set the form -->
+            <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="iter">
+                <var name="user_id" />
+                <var name="domain" />
+                <var name="form_json" />
+            </setdynvars>
+
+            <!-- Each transaction gets its own statistics and reports -->
+            <transaction name="connection">
+                <request>
+                    <pgsql type="connect" database="bench" username="postgres" />
+                </request>
+            </transaction>
+
+            &authentication;
+
+            &validation;
+
+            &save_form;
+
+            &new_case;
+
+            &update_sync_record;
+
+            <transaction>
+                <request><pgsql type="close"></pgsql></request>
+            </transaction>
+        </session>
+
+        <session probability="70" name="form-submission-new-case" type="ts_pgsql">
+            <!-- Set the case -->
+            <setdynvars sourcetype="file" fileid="casedb-existing" delimiter="," order="iter">
+                <var name="case_id" />
+                <var name="case_json" />
+            </setdynvars>
+
+            <!-- Set the form -->
+            <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="iter">
+                <var name="user_id" />
+                <var name="domain" />
+                <var name="form_json" />
+            </setdynvars>
+
+            <!-- Each transaction gets its own statistics and reports -->
+            <transaction name="connection">
+                <request>
+                    <pgsql type="connect" database="bench" username="postgres" />
+                </request>
+            </transaction>
+
+            &authentication;
+
+            &validation;
+
+            &save_form;
+
+            &update_cases;
+
+            &update_sync_record;
+
+            <transaction>
+                <request><pgsql type="close"></pgsql></request>
+            </transaction>
+
+        </session>
+
+    </sessions>
+
+</tsung>
+

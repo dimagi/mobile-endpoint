@@ -1,0 +1,7 @@
+<transaction name="authentication">
+    <request>
+        <pgsql type="sql">
+            <!-- Currently no tables for this -->
+        </pgsql>
+    </request>
+</transaction>

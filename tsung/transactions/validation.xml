@@ -1,0 +1,14 @@
+<transaction name="validation">
+    <!-- get_case_domain, get_case_owner -->
+    <request subst="true">
+        <dyn_variable name="random_num"></dyn_variable>
+        <pgsql type="sql">
+            SELECT owner_id, domain FROM casedata where id = '%%_case_id%%'
+
+            <!-- Validate that user and domain exist -->
+            SELECT id FROM users where ?.user_id = '%%_user_id%%';
+            SELECT id FROM domains where ?.domain = '%%_domain%%';
+        </pgsql>
+    </request>
+
+</transaction>

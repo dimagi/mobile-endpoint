@@ -1,0 +1,10 @@
+<transaction name="save-form">
+    <request>
+        <pgsql type="sql">
+            INSERT INTO formdata
+                COLUMNS (domain, received_on, user_id, form_json)
+                VALUES (%%_domain%%, [can generate this via erlang], %%_user_id%%, %%_form_json%%);
+        </pgsql>
+    </request>
+
+</transaction>

@@ -1,0 +1,9 @@
+<transaction name="connection">
+    <request subst="true">
+        <pgsql type="sql">
+            INSERT INTO casedata (domain, owner_id, case_json)
+            VALUES (%%_domain%%, %%_user_id%%, %%_case_json%%);
+        </pgsql>
+    </request>
+</transaction>
+
