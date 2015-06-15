@@ -1,8 +1,0 @@
-<transaction name="update-sync-record">
-    <request subst="true">
-        <pgsql type="sql">
-            Not sure
-        </pgsql>
-    </request>
-</transaction>
-

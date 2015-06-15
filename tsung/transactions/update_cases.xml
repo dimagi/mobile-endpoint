@@ -1,9 +1,8 @@
-<transaction name="update-cases">
-    <request>
+<transaction name="update_cases">
+    <request subst="true">
         <pgsql type="sql">
             UPDATE casedata
             SET case_json='%%_case_json%%'
-                owner_id='%%_user_id%%'
             WHERE id = '%%_case_id%%';
         </pgsql>
     </request>
