@@ -9,6 +9,12 @@ from load_db import load_data
 
 
 @task
+def tsung_hammer():
+    tsung_build()
+    tsung_erl_build()
+
+
+@task
 def tsung_build():
     from jinja2 import Environment, PackageLoader
     env = Environment(loader=PackageLoader('tsung', 'templates'))
