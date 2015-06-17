@@ -13,7 +13,7 @@ class RowToCSV(object):
         self.limit = limit
 
     def copy(self):
-        sql = "COPY (SELECT {columns} FROM {table} ORDER BY random() LIMIT {limit}) TO '{dest}' WITH CSV;".format(
+        sql = "\COPY (SELECT {columns} FROM {table} ORDER BY random() LIMIT {limit}) TO '{dest}' WITH CSV".format(
             table=self.table,
             columns=','.join(self.columns),
             dest=self.dest,
@@ -23,6 +23,7 @@ class RowToCSV(object):
         if cmd.stderr:
             print(cmd.stderr)
         else:
+            print(cmd.stdout)
             print("Successfully copied {limit} rows to {dest}".format(
                 limit=self.limit,
                 dest=self.dest,
