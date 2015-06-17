@@ -6,12 +6,14 @@ import sh
 from utils import execute_file, confirm
 import settings
 from load_db import load_data
+from db_to_csv import load_csv
 
 
 @task
 def tsung_hammer():
     tsung_build()
     tsung_erl_build()
+    tsung_db()
 
 
 @task
@@ -72,6 +74,12 @@ def tsung_erl_build():
     tsung_erl_clean()
     tsung_erl_compile()
     tsung_erl_link()
+
+
+@task
+def tsung_db(limit=10):
+    """Builds the casedb.csv and formdb.cvs for tsung to reference using existing data in the database"""
+    load_csv(limit)
 
 
 @task

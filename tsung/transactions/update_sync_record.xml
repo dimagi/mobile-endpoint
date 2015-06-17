@@ -9,17 +9,11 @@
 
     <!-- Insert new synclog -->
     <request subst="true">
+        <dyn_variable name="synclog_id" pgsql_expr="data_row[1][1]"/>
         <pgsql type="sql">
             INSERT INTO synclog (user_id, previous_log_id, hash, owner_ids_on_phone)
             VALUES ('%%_user_id%%', '%%generator:uuid%%', 'b22c7670ef488a633d337593ce8d4efa', '{"%%_owner_id%%", "%%_user_id%%"}')
-        </pgsql>
-    </request>
-
-    <!-- Extract the id of the new synclog_id -->
-    <request subst="true">
-        <dyn_variable name="synclog_id" pgsql_expr="data_row[1][1]"/>
-        <pgsql type="sql">
-            SELECT id FROM synclog WHERE user_id = '%%_user_id%%' LIMIT 1
+            RETURNING id;
         </pgsql>
     </request>
 

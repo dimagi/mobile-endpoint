@@ -62,3 +62,4 @@ localsettings.py
 tsung/build/
 tsung/erlang_subst/*.beam
 *erl_crash*
+tsung/files/*.csv
