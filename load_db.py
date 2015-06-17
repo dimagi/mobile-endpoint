@@ -151,32 +151,3 @@ def load_data(scale):
 
                     columns = [case_id, form_with_case.domain, 'FALSE', uuid4().hex, datetime.utcnow().isoformat(), case_json]
                     loader.put_case(form_with_case.form_id, columns, parent_id)
-
-
-if __name__ == "__main__":
-    args = sys.argv
-    if len(args) != 2:
-        print("Usage: load_db <scale>")
-        sys.exit()
-
-    try:
-        scale = int(args[1])
-    except ValueError:
-        print("Scale must be an integer")
-
-    forms = settings.SCALE_FACTOR * scale
-    forms_with_cases = forms * settings.FORM_CASE_RATIO
-    new_cases = int(forms_with_cases * settings.NEW_UPDATE_CASE_RATIO)
-    case_updates = int(forms_with_cases * (1 - settings.NEW_UPDATE_CASE_RATIO))
-    case_indexes = int(new_cases * settings.CHILD_CASE_RATIO)
-    print("Loading data. Estimated numbers:")
-    print("  formdata rows:  ", forms)
-    print("  casedata rows:  ", new_cases)
-    print("  caseindex rows: ", case_indexes)
-    print("  case_form rows: ", new_cases + case_updates)
-
-
-    if not confirm("Continue? "):
-        print("Aborting.")
-    else:
-        load_data(scale)
