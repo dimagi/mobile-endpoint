@@ -30,6 +30,7 @@ DOMAIN = 'test_domain'
 TSUNG_DTD_PATH = '/usr/local/src/tsung/tsung-1.0.dtd'
 TSUNG_EBIN = '/usr/local/src/tsung/ebin'
 TSUNG_DURATION = 600  # Test length in seconds
+TSUNG_USERS_PER_SECOND = 15
 
 
 try:
