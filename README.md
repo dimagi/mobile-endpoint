@@ -35,7 +35,7 @@ invoke tsung_hammer
 
 ### Running Tsung on indiacloud6
 ```
-$ su cchq
+$ sudo -iu cchq bash
 $ source ~/.virtualenvs/tsung/bin/activate
 $ pip install -r requirements.txt  # Only necessary if there are new deps
 $ invoke tsung_hammer
