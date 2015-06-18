@@ -33,9 +33,11 @@ If you want to just do this in one step:
 invoke tsung_hammer
 ```
 
-### Running Tsung
-After setting up the config, call the `tsung` executable and specify what configuration it should use:
-
+### Running Tsung on indiacloud6
 ```
-tsung -f tsung/build/<conf.xml>
+$ su cchq
+$ source ~/.virtualenvs/tsung/bin/activate
+$ pip install -r requirements.txt  # Only necessary if there are new deps
+$ invoke tsung_hammer
+$ tsung -f ~/.tsung/mobile-endpoint/tsung/build/<config>
 ```
