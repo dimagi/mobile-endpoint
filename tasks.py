@@ -33,7 +33,6 @@ def tsung_build():
         'pg_port': settings.PG_PORT,
         'pg_database': settings.PG_DATABASE,
         'pg_username': settings.PG_USERNAME,
-        'arrival_rate': settings.TSUNG_USERS_PER_SECOND,
     }
     for filename in os.listdir(os.path.join(tsung_dir, 'templates')):
         if filename.endswith('j2'):

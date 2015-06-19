@@ -10,7 +10,8 @@
 ]>
 <tsung loglevel="info">
     <clients>
-        <client host="localhost" use_controller_vm="true"/>
+        <!-- use_controller_vm="true" when doing this locally -->
+        <client host="localhost" maxusers="30000" cpu="4"/>
     </clients>
 
     <servers>
@@ -19,7 +20,16 @@
 
     <load>
         <arrivalphase phase="1" duration="{{ duration }}" unit="second">
-            <users arrivalrate="{{ arrival_rate }}" unit="second"></users>
+            <users arrivalrate="10" unit="second"></users>
+        </arrivalphase>
+        <arrivalphase phase="2" duration="{{ duration }}" unit="second">
+            <users arrivalrate="50" unit="second"></users>
+        </arrivalphase>
+        <arrivalphase phase="3" duration="{{ duration }}" unit="second">
+            <users arrivalrate="100" unit="second"></users>
+        </arrivalphase>
+        <arrivalphase phase="4" duration="{{ duration }}" unit="second">
+            <users arrivalrate="200" unit="second"></users>
         </arrivalphase>
     </load>
 
@@ -47,8 +57,11 @@
 
 
             &save_form;
+            <thinktime value="2" random="true"></thinktime>
             &new_case;
+            <thinktime value="2" random="true"></thinktime>
             &update_sync_record_new_case;
+            <thinktime value="2" random="true"></thinktime>
 
             <request><pgsql type="close"></pgsql></request>
         </session>
@@ -74,9 +87,13 @@
             </transaction>
 
             &validation;
+            <thinktime value="2" random="true"></thinktime>
             &save_form;
+            <thinktime value="2" random="true"></thinktime>
             &update_cases;
+            <thinktime value="2" random="true"></thinktime>
             &update_sync_record;
+            <thinktime value="2" random="true"></thinktime>
 
             <request><pgsql type="close"></pgsql></request>
         </session>
