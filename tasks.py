@@ -26,6 +26,7 @@ def tsung_build():
     context = {
         'dtd_path': settings.TSUNG_DTD_PATH,
         'duration': settings.TSUNG_DURATION,
+        'arrival_rate': settings.TSUNG_USERS_PER_SECOND,
         'casedb': os.path.join(tsung_dir, 'files', 'casedb.csv'),
         'formdb': os.path.join(tsung_dir, 'files', 'formdb.csv'),
         'transactions_dir': os.path.join(tsung_dir, 'transactions'),

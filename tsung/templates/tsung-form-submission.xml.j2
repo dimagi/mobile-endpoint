@@ -19,16 +19,7 @@
 
     <load>
         <arrivalphase phase="1" duration="{{ duration }}" unit="second">
-            <users arrivalrate="10" unit="second"></users>
-        </arrivalphase>
-        <arrivalphase phase="2" duration="{{ duration }}" unit="second">
-            <users arrivalrate="50" unit="second"></users>
-        </arrivalphase>
-        <arrivalphase phase="3" duration="{{ duration }}" unit="second">
-            <users arrivalrate="100" unit="second"></users>
-        </arrivalphase>
-        <arrivalphase phase="4" duration="{{ duration }}" unit="second">
-            <users arrivalrate="200" unit="second"></users>
+            <users arrivalrate="{{ arrival_rate}}" unit="second"></users>
         </arrivalphase>
     </load>
 
