@@ -100,10 +100,7 @@ def load_db(scale):
     print("  caseindex rows: ", case_indexes)
     print("  case_form rows: ", new_cases + case_updates)
 
-    if not confirm("Continue? "):
-        print("Aborting.")
-    else:
-        load_data(scale)
+    load_data(scale)
 
 
 @task
