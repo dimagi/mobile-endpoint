@@ -9,6 +9,10 @@ PG_PORT = ""
 PG_DATABASE = ""
 PG_USERNAME = ""
 
+HQ_HOST = ""
+HQ_PORT = ""
+HQ_APP_ID = ""
+
 ##### SCALE FACTORS #####
 # see "load_db.py" for how these relate to real numbers of rows
 

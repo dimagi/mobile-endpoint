@@ -34,6 +34,10 @@ def tsung_build():
         'pg_port': settings.PG_PORT,
         'pg_database': settings.PG_DATABASE,
         'pg_username': settings.PG_USERNAME,
+        'hq_host': settings.HQ_HOST,
+        'hq_port': settings.HQ_PORT,
+        'hq_app_id': settings.HQ_APP_ID,
+        'simple_submission': os.path.join(settings.BASEDIR, 'forms', 'simple.xml')
     }
     for filename in os.listdir(os.path.join(tsung_dir, 'templates')):
         if filename.endswith('j2'):
