@@ -39,5 +39,5 @@ $ sudo -iu cchq bash
 $ source ~/.virtualenvs/tsung/bin/activate
 $ pip install -r requirements.txt  # Only necessary if there are new deps
 $ invoke tsung_hammer
-$ tsung -f ~/.tsung/mobile-endpoint/tsung/build/<config>
+$ tsung -f ~/.tsung/mobile-endpoint/tsung/build/<config> start
 ```
