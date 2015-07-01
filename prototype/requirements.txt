@@ -1,0 +1,8 @@
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+Werkzeug
+Flask-Script
+flask-redis
+psycopg2
+pytest
