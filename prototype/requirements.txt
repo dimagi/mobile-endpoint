@@ -6,3 +6,4 @@ Flask-Script
 flask-redis
 psycopg2
 pytest
+lxml
