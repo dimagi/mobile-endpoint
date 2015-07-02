@@ -26,12 +26,14 @@
             <!--
             TODO:
                 - Figure out how to populate the formdb.
-                - use a random form_xml?
+            -->
+            <!-- NOTE:
+                It looks like the form json and case json being submitted was
+                always the same thing. So don't bother getting random from the CSV.
             -->
             <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="random">
                 <var name="username" />
                 <var name="user_id" />
-                <!--<var name="form_xml" />-->
             </setdynvars>
             <setdynvars sourcetype="random_string" length="32">
                 <var name="case_id" />
@@ -40,15 +42,16 @@
                 <var name="form_instance_id" />
             </setdynvars>
 
-
-            <request subst="true">
-                <http
-                    url="/a/foo-proj/receiver/{{ hq_app_id }}/"
-                    method="POST"
-                    version="1.1"
-                    contents_from_file="{{ create_submission }}"
-                ></http>
-            </request>
+            <transaction name="submit_case_creation_form">
+                <request subst="true">
+                    <http
+                        url="/a/foo-proj/receiver/{{ hq_app_id }}/"
+                        method="POST"
+                        version="1.1"
+                        contents_from_file="{{ create_submission }}"
+                    ></http>
+                </request>
+            </transaction>
         </session>
 
         <session probability="50" name="form-submission-update-case" type="ts_http">
@@ -65,14 +68,16 @@
                 <var name="form_instance_id" />
             </setdynvars>
 
-            <request subst="true">
-                <http
-                    url="/a/foo-proj/receiver/{{ hq_app_id }}/"
-                    method="POST"
-                    version="1.1"
-                    contents_from_file="{{ update_submission }}"
-                ></http>
-            </request>
+            <transaction name="submit_case_update_form">
+                <request subst="true">
+                    <http
+                        url="/a/foo-proj/receiver/{{ hq_app_id }}/"
+                        method="POST"
+                        version="1.1"
+                        contents_from_file="{{ update_submission }}"
+                    ></http>
+                </request>
+            </transaction>
         </session>
 
         <!-- TODO: QUESTION: Will these form trigger the sync log updates?-->
