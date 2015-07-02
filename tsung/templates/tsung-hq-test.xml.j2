@@ -15,6 +15,11 @@
         </arrivalphase>
     </load>
 
+    <options>
+        <option name="file_server" id="casedb" value="{{ casedb }}"></option>
+        <option name="file_server" id="formdb" value="{{ formdb }}"></option>
+    </options>
+
     <sessions>
 
         <session probability="50" name="form-submission-new-case" type="ts_http">

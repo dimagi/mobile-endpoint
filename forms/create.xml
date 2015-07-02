@@ -1,10 +1,10 @@
 <data xmlns:jrm="http://dev.commcarehq.org/jr/xforms" xmlns="http://openrosa.org/formdesigner/E3F73906-B398-452E-B8F3-CF29022A020E" uiVersion="1" version="20" name="create case">
     <question1>foo</question1>
     <question2>bar</question2>
-    <n0:case xmlns:n0="http://commcarehq.org/case/transaction/v2" case_id="%%case_id%%" date_modified="2015-07-02T13:20:21.117-04" user_id="%%user_id%%">
+    <n0:case xmlns:n0="http://commcarehq.org/case/transaction/v2" case_id="%%_case_id%%" date_modified="2015-07-02T13:20:21.117-04" user_id="%%_user_id%%">
         <n0:create>
             <n0:case_name>super secret name</n0:case_name>
-            <n0:owner_id>%%user_id%%</n0:owner_id>
+            <n0:owner_id>%%_user_id%%</n0:owner_id>
             <n0:case_type>my_case_type</n0:case_type>
         </n0:create>
         <n0:update>
@@ -15,9 +15,9 @@
         <n1:deviceID>cloudcare</n1:deviceID>
         <n1:timeStart>2015-07-02T13:20:15.660-04</n1:timeStart>
         <n1:timeEnd>2015-07-02T13:20:21.117-04</n1:timeEnd>
-        <n1:username>%%username</n1:username>
-        <n1:userID>%%user_id%%</n1:userID>
-        <n1:instanceID>%%form_instance_id%%</n1:instanceID>
+        <n1:username>%%_username</n1:username>
+        <n1:userID>%%_user_id%%</n1:userID>
+        <n1:instanceID>%%_form_instance_id%%</n1:instanceID>
         <n2:appVersion xmlns:n2="http://commcarehq.org/xforms">2.0</n2:appVersion>
     </n1:meta>
 </data>
