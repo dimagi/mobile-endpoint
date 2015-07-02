@@ -13,7 +13,8 @@ from db_to_csv import load_csv
 def tsung_hammer():
     tsung_build()
     tsung_erl_build()
-    tsung_db()
+    #tsung_db()
+    # Manually populate casedb.csv and formdb.csv for now.
 
 
 @task
@@ -37,7 +38,8 @@ def tsung_build():
         'hq_host': settings.HQ_HOST,
         'hq_port': settings.HQ_PORT,
         'hq_app_id': settings.HQ_APP_ID,
-        'simple_submission': os.path.join(settings.BASEDIR, 'forms', 'simple.xml')
+        'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
+        'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
     }
     for filename in os.listdir(os.path.join(tsung_dir, 'templates')):
         if filename.endswith('j2'):

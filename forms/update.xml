@@ -1,0 +1,20 @@
+<data xmlns:jrm="http://dev.commcarehq.org/jr/xforms" xmlns="http://openrosa.org/formdesigner/95C7B26A-5910-46D4-B00D-4C61D0E28246" uiVersion="1" version="20" name="update case">
+    <question1>baz</question1>
+    <question2>quuz</question2>
+    <n0:case xmlns:n0="http://commcarehq.org/case/transaction/v2" case_id="%%case_id%%" date_modified="2015-07-02T13:20:59.409-04" user_id="%%user_id%%">
+        <n0:update>
+            <n0:case_name>very update</n0:case_name>
+            <n0:question2>much tsung</n0:question2>
+        </n0:update>
+    </n0:case>
+    <n1:meta xmlns:n1="http://openrosa.org/jr/xforms">
+        <n1:deviceID>cloudcare</n1:deviceID>
+        <n1:timeStart>2015-07-02T13:20:52.454-04</n1:timeStart>
+        <n1:timeEnd>2015-07-02T13:20:59.409-04</n1:timeEnd>
+        <n1:username>%%username%%</n1:username>
+        <n1:userID>%%user_id%%</n1:userID>
+        <n1:instanceID>5%%form_instance_id%%</n1:instanceID>
+        <n2:appVersion xmlns:n2="http://commcarehq.org/xforms">2.0</n2:appVersion>
+    </n1:meta>
+</data>
+<!-- TODO: Randomize instanceID -->

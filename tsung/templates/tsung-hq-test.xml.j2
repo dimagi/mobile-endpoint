@@ -18,28 +18,59 @@
     <sessions>
 
         <session probability="50" name="form-submission-new-case" type="ts_http">
-            <request>
+            <!--
+            TODO:
+                - Figure out how to populate the formdb.
+                - use a random form_xml?
+            -->
+            <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="random">
+                <var name="username" />
+                <var name="user_id" />
+                <!--<var name="form_xml" />-->
+            </setdynvars>
+            <setdynvars sourcetype="random_string" length="32">
+                <var name="case_id" />
+            </setdynvars>
+            <setdynvars sourcetype="random_string" length="32">
+                <var name="form_instance_id" />
+            </setdynvars>
+
+
+            <request subst="true">
                 <http
                     url="/a/foo-proj/receiver/{{ hq_app_id }}/"
                     method="POST"
                     version="1.1"
-                    contents_from_file="{{ simple_submission }}"
+                    contents_from_file="{{ create_submission }}"
                 ></http>
-                <!-- TODO: Submit a form that creates cases instead of a simple form -->
             </request>
         </session>
 
         <session probability="50" name="form-submission-update-case" type="ts_http">
-            <request>
+
+
+            <setdynvars sourcetype="file" fileid="casedb" delimiter="," order="random">
+                <var name="case_id" />
+            </setdynvars>
+            <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="random">
+                <var name="username" />
+                <var name="user_id" />
+            </setdynvars>
+            <setdynvars sourcetype="random_string" length="32">
+                <var name="form_instance_id" />
+            </setdynvars>
+
+            <request subst="true">
                 <http
                     url="/a/foo-proj/receiver/{{ hq_app_id }}/"
                     method="POST"
                     version="1.1"
-                    contents_from_file="{{ simple_submission }}"
+                    contents_from_file="{{ update_submission }}"
                 ></http>
-                <!-- TODO: Submit a form that updates cases instead of a simple form -->
             </request>
         </session>
+
+        <!-- TODO: QUESTION: Will these form trigger the sync log updates?-->
 
     </sessions>
 </tsung>
