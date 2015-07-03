@@ -38,18 +38,16 @@
                 <var name="form_json" />
             </setdynvars>
 
-            <!-- Each transaction gets its own statistics and reports -->
-            <transaction name="connection">
-                <request>
-                    <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
-                </request>
-            </transaction>
+            <request>
+                <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
+            </request>
 
-
-            &save_form;
             <thinktime value="1" random="true"></thinktime>
-            &new_case;
-            &update_sync_record_new_case;
+            <transaction name="new_case_form_submission">
+                &save_form;
+                &new_case;
+                &update_sync_record_new_case;
+            </transaction>
 
             <request><pgsql type="close"></pgsql></request>
         </session>
@@ -67,18 +65,17 @@
                 <var name="form_json" />
             </setdynvars>
 
-            <!-- Each transaction gets its own statistics and reports -->
-            <transaction name="connection">
-                <request>
-                    <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
-                </request>
-            </transaction>
+            <request>
+                <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
+            </request>
 
-            &validation;
-            &save_form;
             <thinktime value="1" random="true"></thinktime>
-            &update_cases;
-            &update_sync_record;
+            <transaction name="update_case_form_submission">
+                &validation;
+                &save_form;
+                &update_cases;
+                &update_sync_record;
+            </transaction>
 
             <request><pgsql type="close"></pgsql></request>
         </session>
