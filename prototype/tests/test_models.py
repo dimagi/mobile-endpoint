@@ -6,6 +6,7 @@ import pytest
 
 from mobile_endpoint.models import db, FormData, CaseData
 
+
 @pytest.mark.usefixtures("testapp")
 class TestModels(object):
     def test_basic(self, testapp):
