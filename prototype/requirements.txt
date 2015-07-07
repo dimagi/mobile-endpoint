@@ -8,3 +8,4 @@ psycopg2
 pytest
 lxml
 Flask-Migrate
+iso8601

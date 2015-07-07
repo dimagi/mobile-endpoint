@@ -1,17 +1,32 @@
 from flask.ext.migrate import Migrate
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
+from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
+
+from mobile_endpoint.form.models import doc_types
+
 
 db = SQLAlchemy()
 
 migrate = Migrate()
 
 
+class ToFromGeneric(object):
+    def to_generic(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_generic(cls, obj_dict, **kwargs):
+        raise NotImplementedError()
+
 
 case_form_link = db.Table('case_form', db.Model.metadata,
     db.Column('case_id', UUID(), db.ForeignKey('case_data.id'), primary_key=True),
     db.Column('form_id', UUID(), db.ForeignKey('form_data.id'), primary_key=True)
 )
+
+
+class FormData(db.Model, ToFromGeneric):
     __tablename__ = 'form_data'
     id = db.Column(UUID(), primary_key=True)
     domain = db.Column(db.Text(), nullable=False, index=True)
@@ -20,8 +35,30 @@ case_form_link = db.Table('case_form', db.Model.metadata,
     type = db.Column(db.Text(), default='XFormInstance')
     form_json = db.Column(JSONB(), nullable=False)
 
+    def to_generic(self):
+        type_ = doc_types().get(self.type)
+        generic = type_.wrap(self.form_json)
+        generic._self = self
+        return generic
 
-class CaseData(db.Model):
+    @classmethod
+    def from_generic(cls, generic, **kwargs):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            self = cls(id=generic.id)
+            new = True
+
+        self.domain = generic.domain
+        self.received_on = generic.received_on
+        self.user_id = generic.metadata.userID
+        self.form_json = generic.to_json()
+        self.type = generic.doc_type
+        return new, self
+
+
+class CaseData(db.Model, ToFromGeneric):
     __tablename__ = 'case_data'
     id = db.Column(UUID(), primary_key=True)
     domain = db.Column(db.Text(), nullable=False)
@@ -32,12 +69,45 @@ class CaseData(db.Model):
 
     forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
 
+    def to_generic(self):
+        if self.case_json:
+            generic = CommCareCase.wrap(self.case_json)
+        else:
+            generic = CommCareCase()
+
+        generic.id = self.id
+        generic.owner_id = self.owner_id
+        generic.closed = self.closed
+        generic.domain = self.domain
+        generic.server_modified_on = self.server_modified_on
+        for index in self.indices:
+            generic.indices.append(index.to_generic())
+        generic._self = self
+        return generic
+
+    @classmethod
+    def from_generic(cls, generic, **kwargs):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            self = cls(id=generic.id)
+            new = True
+
+        json = generic.to_json()
+        self.domain = json.pop('domain')
+        self.server_modified_on = json.pop('server_modified_on')
+        self.owner_id = json.pop('owner_id')
+        self.closed = json.pop('closed')
+        json.pop('indices')  # drop indices since they are stored separately
+        self.case_json = json
+        return new, self
 
 db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
 db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
 
 
-class CaseIndex(db.Model):
+class CaseIndex(db.Model, ToFromGeneric):
     __tablename__ = 'case_index'
     case_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
     identifier = db.Column(db.Text(), primary_key=True)
@@ -47,6 +117,33 @@ class CaseIndex(db.Model):
     case = db.relationship("CaseData", foreign_keys=[case_id], backref=db.backref('indices'))
     referenced_case = db.relationship("CaseData", foreign_keys=[referenced_id], backref='reverse_indices')
 
+    def to_generic(self):
+        index = CommCareCaseIndex.from_case_index_update(self)
+        index._self = self
+        return index
+
+    @classmethod
+    def from_generic(cls, generic, case_id=None):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            self = cls()
+            new = True
+
+        self.identifier = generic.identifier
+        self.referenced_type = generic.referenced_type
+        self.referenced_id = generic.referenced_id
+        if case_id:
+            self.case_id = case_id
+
+        return new, self
+
+    def __unicode__(self):
+        return "%(identifier)s ref: (type: %(ref_type)s, id: %(ref_id)s)" % \
+                {"identifier": self.identifier,
+                 "ref_type": self.referenced_type,
+                 "ref_id": self.referenced_id}
 
 
 db.Index('ix_unique_case_index_case_id_identifier', CaseIndex.case_id, CaseIndex.identifier, unique=True)
