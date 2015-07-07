@@ -1,15 +1,23 @@
+from flask.ext.migrate import Migrate
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 
 db = SQLAlchemy()
 
+migrate = Migrate()
 
-class FormData(db.Model):
+
+
+case_form_link = db.Table('case_form', db.Model.metadata,
+    db.Column('case_id', UUID(), db.ForeignKey('case_data.id'), primary_key=True),
+    db.Column('form_id', UUID(), db.ForeignKey('form_data.id'), primary_key=True)
+)
     __tablename__ = 'form_data'
     id = db.Column(UUID(), primary_key=True)
     domain = db.Column(db.Text(), nullable=False, index=True)
     received_on = db.Column(db.DateTime(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
+    type = db.Column(db.Text(), default='XFormInstance')
     form_json = db.Column(JSONB(), nullable=False)
 
 
@@ -22,7 +30,8 @@ class CaseData(db.Model):
     server_modified_on = db.Column(db.DateTime(), nullable=False)
     case_json = db.Column(JSONB(), nullable=False)
 
-    forms = db.relationship("FormData", secondary='case_form', backref="cases")
+    forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
+
 
 db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
 db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
@@ -31,17 +40,16 @@ db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed
 class CaseIndex(db.Model):
     __tablename__ = 'case_index'
     case_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
-    referenced_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
+    identifier = db.Column(db.Text(), primary_key=True)
+    referenced_id = db.Column(UUID(), db.ForeignKey('case_data.id'))
+    referenced_type = db.Column(db.Text(), nullable=False)
 
-    case = db.relationship("CaseData", foreign_keys=[case_id], backref='indices')
+    case = db.relationship("CaseData", foreign_keys=[case_id], backref=db.backref('indices'))
     referenced_case = db.relationship("CaseData", foreign_keys=[referenced_id], backref='reverse_indices')
 
 
-class CaseForm(db.Model):
-    __tablename__ = 'case_form'
-    case_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
-    form_id = db.Column(UUID(), db.ForeignKey('form_data.id'), primary_key=True)
 
+db.Index('ix_unique_case_index_case_id_identifier', CaseIndex.case_id, CaseIndex.identifier, unique=True)
 
 class Synclog(db.Model):
     __tablename__ = 'synclog'

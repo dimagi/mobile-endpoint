@@ -3,6 +3,8 @@
 import os
 import sys
 
+from flask.ext.migrate import MigrateCommand
+
 
 def _set_source_root_parent(source_root_parent):
     """
@@ -35,7 +37,7 @@ _set_source_root_parent('submodules')
 from flask.ext.script import Manager, Server
 from flask.ext.script.commands import ShowUrls, Clean
 from mobile_endpoint import create_app
-from mobile_endpoint.models import db, FormData
+from mobile_endpoint.models import db, FormData, CaseData, CaseIndex
 
 app = create_app()
 
@@ -43,6 +45,7 @@ manager = Manager(app)
 manager.add_command("server", Server())
 manager.add_command("show-urls", ShowUrls())
 manager.add_command("clean", Clean())
+manager.add_command('db', MigrateCommand)
 
 
 @manager.shell
@@ -51,16 +54,8 @@ def make_shell_context():
         in the context of the app
     """
 
-    return dict(app=app, db=db, FormData=FormData)
+    return dict(app=app, db=db, FormData=FormData, CaseData=CaseData, CaseIndex=CaseIndex)
 
-
-@manager.command
-def createdb():
-    """ Creates a database with all of the tables defined in
-        your SQLAlchemy models
-    """
-
-    db.create_all()
 
 if __name__ == "__main__":
     manager.run()
