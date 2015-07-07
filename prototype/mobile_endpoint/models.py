@@ -57,6 +57,16 @@ class FormData(db.Model, ToFromGeneric):
         self.type = generic.doc_type
         return new, self
 
+    def __repr__(self):
+        return (
+            "FormData("
+                "id='{f.id}', "
+                "domain='{f.domain}', "
+                "received_on='{f.received_on}', "
+                "user_id='{f.user_id}', "
+                "type='{f.type}')"
+        ).format(f=self)
+
 
 class CaseData(db.Model, ToFromGeneric):
     __tablename__ = 'case_data'
@@ -103,6 +113,16 @@ class CaseData(db.Model, ToFromGeneric):
         self.case_json = json
         return new, self
 
+    def __repr__(self):
+        return (
+            "CaseData("
+                "id='{c.id}', "
+                "domain='{c.domain}', "
+                "closed={c.closed}, "
+                "owner_id='{c.owner_id}', "
+                "server_modified_on='{c.server_modified_on}')"
+        ).format(c=self)
+
 db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
 db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
 
@@ -139,12 +159,17 @@ class CaseIndex(db.Model, ToFromGeneric):
 
         return new, self
 
-    def __unicode__(self):
-        return "%(identifier)s ref: (type: %(ref_type)s, id: %(ref_id)s)" % \
-                {"identifier": self.identifier,
-                 "ref_type": self.referenced_type,
-                 "ref_id": self.referenced_id}
-
+    def __repr__(self):
+        return (
+            "CaseIndex("
+                "case_id='{case_id}', "
+                "identifier='{identifier}', "
+                "referenced_type='{ref_type}', "
+                "referenced_id='{ref_id}')").format(
+            case_id=self.case_id,
+            identifier=self.identifier,
+            ref_type=self.referenced_type,
+            ref_id=self.referenced_id)
 
 db.Index('ix_unique_case_index_case_id_identifier', CaseIndex.case_id, CaseIndex.identifier, unique=True)
 

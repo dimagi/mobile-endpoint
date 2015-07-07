@@ -11,7 +11,7 @@ from mobile_endpoint.extensions import redis_store
 
 def create_app():
     # logging.config.dictConfig(json.load(open('logging.json')))
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object('config')

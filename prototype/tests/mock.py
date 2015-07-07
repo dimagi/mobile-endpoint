@@ -366,4 +366,4 @@ class CaseFactory(object):
         )
 
         case_ids = [id for structure in case_structures for id in structure.walk_ids()]
-        return list(SQLDao().iter_cases(case_ids))
+        return list(SQLDao().iter_cases(case_ids, ordered=True))

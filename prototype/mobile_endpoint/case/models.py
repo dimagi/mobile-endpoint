@@ -36,9 +36,6 @@ class CommCareCaseIndex(JsonObject):
     def __cmp__(self, other):
         return cmp(unicode(self), unicode(other))
 
-    def __repr__(self):
-        return str(self)
-
 
 class CommCareCaseAction(JsonObject):
     """
