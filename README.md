@@ -2,13 +2,7 @@
 
 ### Loading the database
 
-To load the database you can use `invoke`. First initialize the DB:
-
-```
-invoke init_db
-```
-
-Next load the DB with some tests data:
+To load the database you can use `invoke`. Load the DB with some tests data:
 
 ```
 invoke load_db <scale_factor>
