@@ -5,12 +5,14 @@ import sh
 
 import settings
 from load_db import load_data
+from db_to_csv import load_csv
 
 
 @task
 def tsung_hammer():
     tsung_build()
     tsung_erl_build()
+    tsung_db()
 
 
 @task
@@ -24,6 +26,7 @@ def tsung_build():
         'dtd_path': settings.TSUNG_DTD_PATH,
         'duration': settings.TSUNG_DURATION,
         'arrival_rate': settings.TSUNG_USERS_PER_SECOND,
+        'casedb': os.path.join(tsung_dir, 'files', 'casedb.csv'),
         'hq_host': settings.HQ_HOST,
         'hq_port': settings.HQ_PORT,
         'hq_app_id': settings.HQ_APP_ID,
@@ -76,6 +79,11 @@ def tsung_erl_build():
     tsung_erl_compile()
     tsung_erl_link()
 
+
+@task
+def tsung_db():
+    """Builds casedb.csv for tsung to reference using existing data in the database"""
+    load_csv(settings.NUM_CASES_TO_UPDATE)
 
 @task
 def load_db(scale):

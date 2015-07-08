@@ -27,6 +27,9 @@ NEW_UPDATE_CASE_RATIO = 0.5
 # of the cases that are created what ratio are child cases
 CHILD_CASE_RATIO = 0.5
 
+# The number of different cases that will updated during the tests.
+NUM_CASES_TO_UPDATE = 10000
+
 ##### TSUNG CONFIG #####
 TSUNG_DTD_PATH = '/usr/local/src/tsung/tsung-1.0.dtd'
 TSUNG_EBIN = '/usr/local/src/tsung/ebin'

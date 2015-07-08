@@ -15,6 +15,10 @@
         </arrivalphase>
     </load>
 
+    <options>
+        <option name="file_server" id="casedb" value="{{ casedb }}"></option>
+    </options>
+
     <sessions>
 
         <session probability="50" name="form-submission-new-case" type="ts_http">
@@ -47,22 +51,9 @@
 
         <session probability="50" name="form-submission-update-case" type="ts_http">
 
-            <!-- TODO: Make this work -->
-            <setdynvars sourcetype="erlang" callback="uuid:random">
-                <var name="my_uuid" />
+            <setdynvars sourcetype="file" fileid="casedb" delimiter="," order="random">
+                <var name="case_id" />
             </setdynvars>
-
-            <request subst="true">
-                <!-- TODO: What happens if no document? -->
-                <!-- TODO: Use setting for couch url, domain -->
-
-                <dyn_variable name="case_id" jsonpath="$.rows[0].id"/>
-                <http
-                    url="http://{{ couch_host }}:{{ couch_port }}/commcarehq/_design/cases_by_server_date/_view/by_server_modified_on?startkey=[%22{{ domain }}%22,%20%22%%_my_uuid%%%22]&amp;endkey=[%22{{ domain }}%22,%20{}]&amp;reduce=false&amp;limit=1"
-                    method="GET"
-                    version="1.1"
-                ></http>
-            </request>
 
             <setdynvars sourcetype="value" value="{{ username }}">
                 <var name="username" />
