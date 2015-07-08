@@ -5,6 +5,12 @@ BASEDIR = os.path.abspath(os.path.dirname(__file__))
 HQ_HOST = ""
 HQ_PORT = ""
 HQ_APP_ID = ""
+DOMAIN = ""
+USER_ID = ""
+USERNAME = ""
+
+COUCH_HOST = ""
+COUCH_PORT = ""
 
 ##### SCALE FACTORS #####
 # see "load_db.py" for how these relate to real numbers of rows
@@ -20,10 +26,6 @@ NEW_UPDATE_CASE_RATIO = 0.5
 
 # of the cases that are created what ratio are child cases
 CHILD_CASE_RATIO = 0.5
-
-DOMAIN = 'test_domain'
-USER_ID = ""
-USERNAME = ""
 
 ##### TSUNG CONFIG #####
 TSUNG_DTD_PATH = '/usr/local/src/tsung/tsung-1.0.dtd'

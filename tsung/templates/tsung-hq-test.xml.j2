@@ -36,7 +36,7 @@
             <transaction name="submit_case_creation_form">
                 <request subst="true">
                     <http
-                        url="/a/foo-proj/receiver/{{ hq_app_id }}/"
+                        url="/a/{{ domain }}/receiver/{{ hq_app_id }}/"
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ create_submission }}"
@@ -58,7 +58,7 @@
 
                 <dyn_variable name="case_id" jsonpath="$.rows[0].id"/>
                 <http
-                    url="http://127.0.0.1:5984/commcarehq/_design/cases_by_server_date/_view/by_server_modified_on?startkey=[%22foo-proj%22,%20%22%%_my_uuid%%%22]&amp;endkey=[%22foo-proj%22,%20{}]&amp;reduce=false&amp;limit=1"
+                    url="http://{{ couch_host }}:{{ couch_port }}/commcarehq/_design/cases_by_server_date/_view/by_server_modified_on?startkey=[%22{{ domain }}%22,%20%22%%_my_uuid%%%22]&amp;endkey=[%22{{ domain }}%22,%20{}]&amp;reduce=false&amp;limit=1"
                     method="GET"
                     version="1.1"
                 ></http>
@@ -76,9 +76,9 @@
 
             <transaction name="submit_case_update_form">
                 <request subst="true">
-                    <!-- TODO: For some reason the couch request above seems to bork the host setting, which is why I need to set the host in the following url explicitly -->
+                    <!-- NOTE: For some reason the couch request above seems to bork the host setting, which is why I need to set the host in the following url explicitly -->
                     <http
-                        url="http://{{ hq_host }}:{{ hq_port }}/a/foo-proj/receiver/{{ hq_app_id }}/"
+                        url="http://{{ hq_host }}:{{ hq_port }}/a/{{ domain }}/receiver/{{ hq_app_id }}/"
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ update_submission }}"

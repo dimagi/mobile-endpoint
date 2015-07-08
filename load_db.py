@@ -6,8 +6,10 @@ from uuid import uuid4
 import settings
 
 
-POST_URL = "{root}/a/foo-proj/receiver/{app_id}/".format(
-    root="http://" + settings.HQ_HOST + ":" + settings.HQ_PORT,
+POST_URL = "http://{host}:{port}/a/{domain}/receiver/{app_id}/".format(
+    host=settings.HQ_HOST,
+    port=settings.HQ_PORT,
+    domain=settings.DOMAIN,
     app_id=settings.HQ_APP_ID
 )
 
@@ -45,7 +47,3 @@ def load_data(scale):
             replace("%%_username%%", settings.USERNAME).\
             replace("%%_form_instance_id%%", uuid4().hex)
         post_form(form)
-
-
-# TODO: use USER_ID setting elsewhere
-# TODO: user USERNAME setting elsewhere
