@@ -1,13 +1,6 @@
 import os
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
-SQLDIR = os.path.join(BASEDIR, "sql")
-JSONDIR = os.path.join(BASEDIR, "json")
-
-PG_HOST = ""
-PG_PORT = ""
-PG_DATABASE = ""
-PG_USERNAME = ""
 
 HQ_HOST = ""
 HQ_PORT = ""
@@ -29,6 +22,8 @@ NEW_UPDATE_CASE_RATIO = 0.5
 CHILD_CASE_RATIO = 0.5
 
 DOMAIN = 'test_domain'
+USER_ID = ""
+USERNAME = ""
 
 ##### TSUNG CONFIG #####
 TSUNG_DTD_PATH = '/usr/local/src/tsung/tsung-1.0.dtd'

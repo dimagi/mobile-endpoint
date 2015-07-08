@@ -15,26 +15,17 @@
         </arrivalphase>
     </load>
 
-    <options>
-        <option name="file_server" id="casedb" value="{{ casedb }}"></option>
-        <option name="file_server" id="formdb" value="{{ formdb }}"></option>
-    </options>
-
     <sessions>
 
         <session probability="50" name="form-submission-new-case" type="ts_http">
-            <!--
-            TODO:
-                - Figure out how to populate the formdb.
-            -->
-            <!-- NOTE:
-                It looks like the form json and case json being submitted was
-                always the same thing. So don't bother getting random form from the CSV.
-            -->
-            <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="random">
+
+            <setdynvars sourcetype="value" value="{{ username }}">
                 <var name="username" />
+            </setdynvars>
+            <setdynvars sourcetype="value" value="{{ user_id }}">
                 <var name="user_id" />
             </setdynvars>
+
             <setdynvars sourcetype="random_string" length="32">
                 <var name="case_id" />
             </setdynvars>
@@ -56,12 +47,27 @@
 
         <session probability="50" name="form-submission-update-case" type="ts_http">
 
-
-            <setdynvars sourcetype="file" fileid="casedb" delimiter="," order="random">
-                <var name="case_id" />
+            <!-- TODO: Make this work -->
+            <setdynvars sourcetype="erlang" callback="uuid:random">
+                <var name="my_uuid" />
             </setdynvars>
-            <setdynvars sourcetype="file" fileid="formdb" delimiter="," order="random">
+
+            <request subst="true">
+                <!-- TODO: What happens if no document? -->
+                <!-- TODO: Use setting for couch url, domain -->
+
+                <dyn_variable name="case_id" jsonpath="$.rows[0].id"/>
+                <http
+                    url="http://127.0.0.1:5984/commcarehq/_design/cases_by_server_date/_view/by_server_modified_on?startkey=[%22foo-proj%22,%20%22%%_my_uuid%%%22]&amp;endkey=[%22foo-proj%22,%20{}]&amp;reduce=false&amp;limit=1"
+                    method="GET"
+                    version="1.1"
+                ></http>
+            </request>
+
+            <setdynvars sourcetype="value" value="{{ username }}">
                 <var name="username" />
+            </setdynvars>
+            <setdynvars sourcetype="value" value="{{ user_id }}">
                 <var name="user_id" />
             </setdynvars>
             <setdynvars sourcetype="random_string" length="32">
@@ -70,8 +76,9 @@
 
             <transaction name="submit_case_update_form">
                 <request subst="true">
+                    <!-- TODO: For some reason the couch request above seems to bork the host setting, which is why I need to set the host in the following url explicitly -->
                     <http
-                        url="/a/foo-proj/receiver/{{ hq_app_id }}/"
+                        url="http://{{ hq_host }}:{{ hq_port }}/a/foo-proj/receiver/{{ hq_app_id }}/"
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ update_submission }}"

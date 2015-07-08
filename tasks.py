@@ -3,18 +3,14 @@ import os
 from invoke import task
 import sh
 
-from utils import execute_file, confirm
 import settings
 from load_db import load_data
-from db_to_csv import load_csv
 
 
 @task
 def tsung_hammer():
     tsung_build()
     tsung_erl_build()
-    #tsung_db()
-    # Manually populate casedb.csv and formdb.csv for now.
 
 
 @task
@@ -28,16 +24,11 @@ def tsung_build():
         'dtd_path': settings.TSUNG_DTD_PATH,
         'duration': settings.TSUNG_DURATION,
         'arrival_rate': settings.TSUNG_USERS_PER_SECOND,
-        'casedb': os.path.join(tsung_dir, 'files', 'casedb.csv'),
-        'formdb': os.path.join(tsung_dir, 'files', 'formdb.csv'),
-        'transactions_dir': os.path.join(tsung_dir, 'transactions'),
-        'pg_host': settings.PG_HOST,
-        'pg_port': settings.PG_PORT,
-        'pg_database': settings.PG_DATABASE,
-        'pg_username': settings.PG_USERNAME,
         'hq_host': settings.HQ_HOST,
         'hq_port': settings.HQ_PORT,
         'hq_app_id': settings.HQ_APP_ID,
+        'username': settings.USERNAME,
+        'user_id': settings.USER_ID,
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
     }
@@ -84,13 +75,9 @@ def tsung_erl_build():
 
 
 @task
-def tsung_db(limit=10):
-    """Builds the casedb.csv and formdb.cvs for tsung to reference using existing data in the database"""
-    load_csv(limit)
-
-
-@task
 def load_db(scale):
+    # TODO: Create the app and form and user
+
     try:
         scale = int(scale)
     except ValueError:
@@ -108,14 +95,3 @@ def load_db(scale):
     print("  case_form rows: ", new_cases + case_updates)
 
     load_data(scale)
-
-
-@task
-def init_db():
-    def get_sql_file_path(name):
-        return os.path.join(settings.SQLDIR, name)
-
-    if not confirm("This will wipe any data in the database. Continue?"):
-        print("Aborting.")
-    else:
-        print execute_file(get_sql_file_path('data_model.sql'))
