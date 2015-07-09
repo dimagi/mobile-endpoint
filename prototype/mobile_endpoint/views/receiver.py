@@ -22,10 +22,10 @@ def form_receiver(domain):
     xform_lock = create_xform(instance, attachments, request_meta, dao)
 
     with xform_lock as xform:
-        cases = []
+        case_result = None
         if xform.doc_type == 'XFormInstance':
-            cases = process_cases_in_form(xform, dao)
+            case_result = process_cases_in_form(xform, dao)
 
-        dao.commit(xform, cases)
+        dao.commit(xform, case_result)
 
     return get_open_rosa_response(xform, None, None)

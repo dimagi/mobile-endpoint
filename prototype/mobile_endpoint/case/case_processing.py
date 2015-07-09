@@ -31,9 +31,15 @@ def process_cases_in_form(xform, dao):
                     pass
 
         # todo: check that cases haven't been modified since we loaded them (why not use locking?)
-        # todo: update synclog
 
-        return case_db.get_changed()
+        if xform.last_sync_token:
+            relevant_log = case_db.dao.get_synclog(xform.last_sync_token)
+            if relevant_log:
+                if relevant_log.update_phone_lists(xform, cases):
+                    case_result.set_synclog(relevant_log)
+
+        case_result.set_cases(case_db.get_changed())
+        return case_result
 
 
 def _get_or_update_cases(xforms, case_db):
@@ -110,6 +116,7 @@ class CaseProcessingResult(object):
         self.cases = cases
         self.dirtiness_flags = dirtiness_flags
         self.track_cleanliness = track_cleanliness
+        self.synclog = None
 
     def get_clean_owner_ids(self):
         dirty_flags = self.get_flags_to_save()
@@ -117,6 +124,9 @@ class CaseProcessingResult(object):
 
     def set_cases(self, cases):
         self.cases = cases
+
+    def set_synclog(self, synclog):
+        self.synclog = synclog
 
     def get_flags_to_save(self):
         return {f.owner_id: f.case_id for f in self.dirtiness_flags}
