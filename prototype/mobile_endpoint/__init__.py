@@ -14,7 +14,7 @@ def create_app():
     logging.basicConfig(level=logging.INFO)
 
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object('config')
+    app.config.from_pyfile('config.py')
     app.config.from_object('localconfig')
     if 'APP_CONFIG_FILE' in os.environ:
         app.config.from_envvar('APP_CONFIG_FILE')
