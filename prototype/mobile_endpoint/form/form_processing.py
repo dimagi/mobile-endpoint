@@ -113,13 +113,18 @@ def handle_duplicate_form(xform_lock, existing_form):
         new_form['id'] = uuid4().hex
         return xform_lock
     else:
-        # do some fancy stuff here by comparing xform md5 hashes etc.
-        # for now assume that the md5's are the same
-        new_form['id'] = uuid4().hex
-        new_form['doc_type'] = 'XFormDuplicate'
-        dupe = XFormDuplicate.wrap(new_form.to_json())
-        dupe['problem'] = "Form is a duplicate of another! (%s)" % conflict_id
-        return LockManager(dupe, lock)
+
+        if existing_form.md5 != new_form.md5:
+            # handle form edit workflow
+            pass
+        else:
+            # for now assume that the md5's are the same
+            new_form['id'] = uuid4().hex
+            new_form['doc_type'] = 'XFormDuplicate'
+            dupe = XFormDuplicate.wrap(new_form.to_json())
+            dupe['problem'] = "Form is a duplicate of another! (%s)" % conflict_id
+            dupe['duplicate_id'] = conflict_id
+            return LockManager(dupe, lock)
 
 
 def _get_xform_json(xml_string):

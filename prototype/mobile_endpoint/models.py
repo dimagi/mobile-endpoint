@@ -3,7 +3,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 
-from mobile_endpoint.form.models import doc_types
+from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
 
 
 db = SQLAlchemy()
@@ -36,9 +36,9 @@ class FormData(db.Model, ToFromGeneric):
     form_json = db.Column(JSONB(), nullable=False)
 
     def to_generic(self):
-        type_ = doc_types().get(self.type)
-        generic = type_.wrap(self.form_json)
+        generic = XFormInstance.wrap(self.form_json)
         generic._self = self
+        generic.md5 = self.md5
         return generic
 
     @classmethod
@@ -63,10 +63,58 @@ class FormData(db.Model, ToFromGeneric):
                 "id='{f.id}', "
                 "domain='{f.domain}', "
                 "received_on='{f.received_on}', "
-                "user_id='{f.user_id}', "
-                "type='{f.type}')"
+                "user_id='{f.user_id}')"
         ).format(f=self)
 
+
+class FormError(db.Model, ToFromGeneric):
+    __tablename__ = 'form_error'
+    id = db.Column(UUID(), primary_key=True)
+    domain = db.Column(db.Text(), nullable=False, index=True)
+    received_on = db.Column(db.DateTime(), nullable=False)
+    user_id = db.Column(UUID(), nullable=False)
+    md5 = db.Column(db.BINARY(), nullable=False)
+    type = db.Column(db.INTEGER(), nullable=False)
+    duplicate_id = db.Column(UUID(), db.ForeignKey('form_data.id'))
+    form_json = db.Column(JSONB(), nullable=False)
+
+    def to_generic(self):
+        type_ = doc_types_compressed().get(self.type)
+        generic = type_.wrap(self.form_json)
+        generic._self = self
+        return generic
+
+    @classmethod
+    def from_generic(cls, generic, **kwargs):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            self = cls(id=generic.id)
+            new = True
+
+        self.domain = generic.domain
+        self.received_on = generic.received_on
+        self.user_id = generic.metadata.userID
+        self.md5 = generic.md5
+        self.problem = generic.problem
+        self.form_json = generic.to_json()
+        self.type = compressed_doc_type[generic.doc_type]
+        self.duplicate_id = getattr(generic, 'duplicate_id', None)
+        return new, self
+
+    def full_type(self):
+        return doc_types_compressed().get(self.type)
+
+    def __repr__(self):
+        return (
+            "FormError("
+                "id='{f.id}', "
+                "domain='{f.domain}', "
+                "received_on='{f.received_on}', "
+                "user_id='{f.user_id}', "
+                "type='{f.full_type}')"
+        ).format(f=self)
 
 class CaseData(db.Model, ToFromGeneric):
     __tablename__ = 'case_data'

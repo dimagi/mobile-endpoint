@@ -24,6 +24,22 @@ def doc_types():
     }
 
 
+def doc_types_compressed():
+    """
+    Mapping of doc_type attributes in CouchDB to the class that should be instantiated.
+    """
+    return {
+        0: XFormInstance,
+        # 1: XFormArchived,
+        # 2: XFormDeprecated,
+        3: XFormDuplicate,
+        4: XFormError,
+        # 5: SubmissionErrorLog,
+    }
+
+compressed_doc_type = {v: k for k, v in doc_types_compressed()}
+
+
 class Metadata(JsonObject):
     """
     Metadata of an xform, from a meta block structured like:
