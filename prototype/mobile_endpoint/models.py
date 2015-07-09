@@ -171,7 +171,7 @@ class CaseIndex(db.Model, ToFromGeneric):
             ref_type=self.referenced_type,
             ref_id=self.referenced_id)
 
-db.Index('ix_unique_case_index_case_id_identifier', CaseIndex.case_id, CaseIndex.identifier, unique=True)
+db.Index('ix_case_index_referenced_id', CaseIndex.referenced_id)
 
 class Synclog(db.Model):
     __tablename__ = 'synclog'
