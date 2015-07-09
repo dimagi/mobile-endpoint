@@ -1,4 +1,5 @@
 from datetime import datetime
+import hashlib
 from uuid import uuid4, UUID
 
 from flask import logging
@@ -76,6 +77,7 @@ def create_xform(instance_xml, attachments, request_meta, dao):
         xmlns=json_form.get('@xmlns'),
         # _attachments=attachments_builder.to_json(),
         received_on=datetime.utcnow(),
+        md5=hashlib.md5(instance_xml).hexdigest()
     )
 
     for key, value in request_meta.items():

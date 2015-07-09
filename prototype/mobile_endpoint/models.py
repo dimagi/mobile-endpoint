@@ -32,7 +32,7 @@ class FormData(db.Model, ToFromGeneric):
     domain = db.Column(db.Text(), nullable=False, index=True)
     received_on = db.Column(db.DateTime(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
-    type = db.Column(db.Text(), default='XFormInstance')
+    md5 = db.Column(db.BINARY(), nullable=False)
     form_json = db.Column(JSONB(), nullable=False)
 
     def to_generic(self):
@@ -53,8 +53,8 @@ class FormData(db.Model, ToFromGeneric):
         self.domain = generic.domain
         self.received_on = generic.received_on
         self.user_id = generic.metadata.userID
+        self.md5 = generic.md5
         self.form_json = generic.to_json()
-        self.type = generic.doc_type
         return new, self
 
     def __repr__(self):
