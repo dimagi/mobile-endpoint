@@ -115,20 +115,18 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def iter_cases(self, case_ids, chunksize=100, ordered=False):
-        for doc_ids in chunked(case_ids, chunksize):
-            cases = CaseData.query.filter(CaseData.id.in_(doc_ids))
-            if ordered:
-                # SQL won't return the rows in any particular order so we need to order them ourselves
-                index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
-                ordered_cases = [None] * len(case_ids)
-                for case in cases:
-                    ordered_cases[index_map.pop(UUID(case.id))] = case
-
-                assert not index_map
-                cases = ordered_cases
-
+        cases = CaseData.query.filter(CaseData.id.in_(case_ids))
+        if ordered:
+            # SQL won't return the rows in any particular order so we need to order them ourselves
+            index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
+            ordered_cases = [None] * len(case_ids)
             for case in cases:
-                yield case
+                ordered_cases[index_map.pop(UUID(case.id))] = case
+
+            assert not index_map
+            cases = ordered_cases
+
+        return cases
 
     @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
