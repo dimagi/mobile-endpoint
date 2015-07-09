@@ -26,19 +26,23 @@ case_form_link = db.Table('case_form', db.Model.metadata,
 )
 
 
+def cls_for_doc_type(doc_type):
+    return FormData if doc_type == 'XFormInstance' else FormError
+
+
 class FormData(db.Model, ToFromGeneric):
     __tablename__ = 'form_data'
     id = db.Column(UUID(), primary_key=True)
     domain = db.Column(db.Text(), nullable=False, index=True)
     received_on = db.Column(db.DateTime(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
-    md5 = db.Column(db.BINARY(), nullable=False)
+    md5 = db.Column(db.LargeBinary(), nullable=False)
     form_json = db.Column(JSONB(), nullable=False)
 
     def to_generic(self):
         generic = XFormInstance.wrap(self.form_json)
         generic._self = self
-        generic.md5 = self.md5
+        generic._md5 = self.md5
         return generic
 
     @classmethod
@@ -53,7 +57,7 @@ class FormData(db.Model, ToFromGeneric):
         self.domain = generic.domain
         self.received_on = generic.received_on
         self.user_id = generic.metadata.userID
-        self.md5 = generic.md5
+        self.md5 = generic._md5
         self.form_json = generic.to_json()
         return new, self
 
@@ -73,8 +77,8 @@ class FormError(db.Model, ToFromGeneric):
     domain = db.Column(db.Text(), nullable=False, index=True)
     received_on = db.Column(db.DateTime(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
-    md5 = db.Column(db.BINARY(), nullable=False)
-    type = db.Column(db.INTEGER(), nullable=False)
+    md5 = db.Column(db.LargeBinary(), nullable=False)
+    type = db.Column(db.Integer(), nullable=False)
     duplicate_id = db.Column(UUID(), db.ForeignKey('form_data.id'))
     form_json = db.Column(JSONB(), nullable=False)
 
@@ -99,7 +103,7 @@ class FormError(db.Model, ToFromGeneric):
         self.md5 = generic.md5
         self.problem = generic.problem
         self.form_json = generic.to_json()
-        self.type = compressed_doc_type[generic.doc_type]
+        self.type = compressed_doc_type()[generic.doc_type]
         self.duplicate_id = getattr(generic, 'duplicate_id', None)
         return new, self
 

@@ -17,7 +17,6 @@ class TestApi(object):
     def _assert_form(self, form_id, user_id):
         sql_form = FormData.query.get(form_id)
         assert sql_form is not None
-        assert sql_form.type == 'XFormInstance'
         assert sql_form.domain == DOMAIN
         assert UUID(sql_form.user_id) == UUID(user_id)
 

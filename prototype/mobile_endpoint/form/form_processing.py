@@ -77,8 +77,9 @@ def create_xform(instance_xml, attachments, request_meta, dao):
         xmlns=json_form.get('@xmlns'),
         # _attachments=attachments_builder.to_json(),
         received_on=datetime.utcnow(),
-        md5=hashlib.md5(instance_xml).hexdigest()
     )
+
+    xform._md5 = hashlib.md5(instance_xml).digest()
 
     for key, value in request_meta.items():
         setattr(xform, key, value)

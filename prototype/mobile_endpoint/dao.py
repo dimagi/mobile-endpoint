@@ -9,7 +9,7 @@ from mobile_endpoint.case.models import CommCareCase
 
 from mobile_endpoint.exceptions import IllegalCaseId
 from mobile_endpoint.form.models import XFormInstance
-from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex
+from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex, cls_for_doc_type
 from mobile_endpoint.utils import chunked, get_with_lock
 
 
@@ -71,7 +71,7 @@ class SQLDao(AbsctractDao):
     def commit(self, xform, cases):
         def to_sql(doc):
             if isinstance(doc, XFormInstance):
-                return FormData.from_generic(doc)
+                return cls_for_doc_type(doc.doc_type).from_generic(doc)
             elif isinstance(doc, CommCareCase):
                 return CaseData.from_generic(doc)
 
