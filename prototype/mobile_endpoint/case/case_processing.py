@@ -8,6 +8,7 @@ from mobile_endpoint.case.models import CommCareCase
 from mobile_endpoint.case.xml.parser import case_update_from_block
 from mobile_endpoint.dao import CaseDbCache
 from mobile_endpoint.exceptions import ReconciliationError
+from mobile_endpoint.form.form_processing import is_deprecation
 from mobile_endpoint.form.models import XFormInstance
 
 
@@ -42,7 +43,8 @@ def _get_or_update_cases(xforms, case_db):
     couch case document objects
     """
     # have to apply the deprecations before the updates
-    for xform in xforms:
+    sorted_forms = sorted(xforms, key=lambda f: 0 if is_deprecation(f) else 1)
+    for xform in sorted_forms:
         for case_update in get_case_updates(xform):
             case_doc = _get_or_update_model(case_update, xform, case_db)
             if case_doc:
@@ -88,7 +90,7 @@ def _get_or_update_cases(xforms, case_db):
     dirtiness_flags = [flag for case in case_db.cache.values() for flag in _validate_indices(case)]
     domain = getattr(case_db, 'domain', None)
     track_cleanliness = True #should_track_cleanliness(domain)
-    if track_cleanliness:
+    if track_cleanliness and touched_cases:
         # only do this extra step if the toggle is enabled since we know we aren't going to
         # care about the dirtiness flags otherwise.
         dirtiness_flags += list(_get_dirtiness_flags_for_child_cases(domain, touched_cases.values()))

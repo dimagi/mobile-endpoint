@@ -41,7 +41,7 @@ def get_request_metadata(request):
     }
 
 
-def get_instance_and_attachment(request):
+def get_instance_and_attachments(request):
     attachments = {}
     if 'multipart/form-data' in request.headers.get('Content-Type'):
         # ODK submission; of the form

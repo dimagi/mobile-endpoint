@@ -120,6 +120,7 @@ class FormError(db.Model, ToFromGeneric):
                 "type='{f.full_type}')"
         ).format(f=self)
 
+
 class CaseData(db.Model, ToFromGeneric):
     __tablename__ = 'case_data'
     id = db.Column(UUID(), primary_key=True)
@@ -182,6 +183,7 @@ db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed
 class CaseIndex(db.Model, ToFromGeneric):
     __tablename__ = 'case_index'
     case_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
+    domain = db.Column(db.Text(), nullable=False)
     identifier = db.Column(db.Text(), primary_key=True)
     referenced_id = db.Column(UUID(), db.ForeignKey('case_data.id'))
     referenced_type = db.Column(db.Text(), nullable=False)
@@ -195,7 +197,7 @@ class CaseIndex(db.Model, ToFromGeneric):
         return index
 
     @classmethod
-    def from_generic(cls, generic, case_id=None):
+    def from_generic(cls, generic, domain, case_id):
         if hasattr(generic, '_self'):
             self = generic._self
             new = False
@@ -206,8 +208,8 @@ class CaseIndex(db.Model, ToFromGeneric):
         self.identifier = generic.identifier
         self.referenced_type = generic.referenced_type
         self.referenced_id = generic.referenced_id
-        if case_id:
-            self.case_id = case_id
+        self.case_id = case_id
+        self.domain = domain
 
         return new, self
 
@@ -215,15 +217,17 @@ class CaseIndex(db.Model, ToFromGeneric):
         return (
             "CaseIndex("
                 "case_id='{case_id}', "
+                "domain='{domain}', "
                 "identifier='{identifier}', "
                 "referenced_type='{ref_type}', "
                 "referenced_id='{ref_id}')").format(
             case_id=self.case_id,
+            domain=self.domain,
             identifier=self.identifier,
             ref_type=self.referenced_type,
             ref_id=self.referenced_id)
 
-db.Index('ix_case_index_referenced_id', CaseIndex.referenced_id)
+db.Index('ix_case_index_referenced_id', CaseIndex.domain, CaseIndex.referenced_id)
 
 class Synclog(db.Model):
     __tablename__ = 'synclog'

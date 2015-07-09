@@ -14,6 +14,10 @@ from mobile_endpoint.utils import chunked, get_with_lock
 
 
 def to_generic(fn):
+    """
+    Helper decorator to convert from a DB type to a generic type by calling 'to_generic'
+    on the db type. e.g. FormData to XFormInstance
+    """
     def _wrap(obj):
         if hasattr(obj, 'to_generic'):
             return obj.to_generic()
@@ -78,7 +82,7 @@ class SQLDao(AbsctractDao):
         def get_indices():
             for case in cases:
                 for index in case.indices:
-                    yield CaseIndex.from_generic(index, case.id)
+                    yield CaseIndex.from_generic(index, case.domain, case.id)
 
         new_form, xform_sql = to_sql(xform)
         case_docs = map(to_sql, cases)
@@ -121,9 +125,8 @@ class SQLDao(AbsctractDao):
             index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
             ordered_cases = [None] * len(case_ids)
             for case in cases:
-                ordered_cases[index_map.pop(UUID(case.id))] = case
+                ordered_cases[index_map[UUID(case.id)]] = case
 
-            assert not index_map
             cases = ordered_cases
 
         return cases
@@ -131,7 +134,7 @@ class SQLDao(AbsctractDao):
     @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
         return CaseData.query.join('indices')\
-            .filter(CaseIndex.referenced_id.in_(case_ids))\
+            .filter(CaseIndex.domain == domain, CaseIndex.referenced_id.in_(case_ids))\
             .options(
                 contains_eager('indices'),
                 defer(CaseData.case_json)
