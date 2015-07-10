@@ -8,6 +8,7 @@ PG_HOST = ""
 PG_PORT = ""
 PG_DATABASE = ""
 PG_USERNAME = ""
+PG_PASSWORD = ""
 
 ##### SCALE FACTORS #####
 # see "load_db.py" for how these relate to real numbers of rows

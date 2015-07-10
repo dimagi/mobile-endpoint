@@ -44,6 +44,9 @@
                     <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
                 </request>
             </transaction>
+            <request>
+                <pgsql type="authenticate" password="{{ pg_password }}"/>
+            </request>
 
 
             &save_form;
@@ -73,6 +76,9 @@
                     <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
                 </request>
             </transaction>
+            <request>
+                <pgsql type="authenticate" password="{{ pg_password }}"/>
+            </request>
 
             &validation;
             &save_form;
