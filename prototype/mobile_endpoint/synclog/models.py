@@ -240,25 +240,25 @@ class SimplifiedSyncLog(AbstractSyncLog):
         logger.debug('case ids before update: {}'.format(', '.join(self.case_ids_on_phone)))
         logger.debug('dependent case ids before update: {}'.format(', '.join(self.dependent_case_ids_on_phone)))
         for case in case_list:
-            actions = case.get_actions_for_form(xform.get_id)
+            actions = case.get_actions_for_form(xform.id)
             for action in actions:
-                logger.debug('{}: {}'.format(case._id, action.action_type))
+                logger.debug('{}: {}'.format(case.id, action.action_type))
                 owner_id = action.updated_known_properties.get("owner_id")
                 phone_owns_case = not owner_id or owner_id in self.owner_ids_on_phone
 
                 if action.action_type == const.CASE_ACTION_CREATE:
                     if phone_owns_case:
-                        self._add_primary_case(case._id)
+                        self._add_primary_case(case.id)
                         made_changes = True
                 elif action.action_type == const.CASE_ACTION_UPDATE:
                     if not phone_owns_case:
                         # we must have just changed the owner_id to something we didn't own
                         # we can try pruning this case since it's no longer relevant
-                        self.prune_case(case._id)
+                        self.prune_case(case.id)
                         made_changes = True
                     else:
-                        if case._id in self.dependent_case_ids_on_phone:
-                            self.dependent_case_ids_on_phone.remove(case._id)
+                        if case.id in self.dependent_case_ids_on_phone:
+                            self.dependent_case_ids_on_phone.remove(case.id)
                             made_changes = True
                 elif action.action_type == const.CASE_ACTION_INDEX:
                     # we should never have to do anything with case IDs here since the
@@ -266,17 +266,17 @@ class SimplifiedSyncLog(AbstractSyncLog):
                     # however, we should update our index tree accordingly
                     for index in action.indices:
                         if index.referenced_id:
-                            self.index_tree.set_index(case._id, index.identifier, index.referenced_id)
+                            self.index_tree.set_index(case.id, index.identifier, index.referenced_id)
                             if index.referenced_id not in self.case_ids_on_phone:
                                 self.case_ids_on_phone.add(index.referenced_id)
                                 self.dependent_case_ids_on_phone.add(index.referenced_id)
                         else:
-                            self.index_tree.delete_index(case._id, index.identifier)
+                            self.index_tree.delete_index(case.id, index.identifier)
                         made_changes = True
                 elif action.action_type == const.CASE_ACTION_CLOSE:
                     # this case is being closed.
                     # we can try pruning this case since it's no longer relevant
-                    self.prune_case(case._id)
+                    self.prune_case(case.id)
                     made_changes = True
 
         logger.debug('case ids after update: {}'.format(', '.join(self.case_ids_on_phone)))
@@ -289,7 +289,7 @@ class SimplifiedSyncLog(AbstractSyncLog):
         #             self.invalidate_cached_payloads()
         #     except ResourceConflict:
         #         logging.exception('doc update conflict saving sync log {id}'.format(
-        #             id=self._id,
+        #             id=self.id,
         #         ))
         #         raise
         return made_changes
