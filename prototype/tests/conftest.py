@@ -36,7 +36,7 @@ from mobile_endpoint.models import db
 
 @pytest.fixture(scope="session")
 def testapp(request):
-    app = create_app()
+    app = create_app('testconfig.py')
 
     db.app = app
     db.create_all()
