@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import base64
 import copy
 from datetime import datetime
-import uuid
+from uuid import uuid4
 from xml.etree import ElementTree
 from flask.templating import render_template_string
 from mobile_endpoint.case.xml import NS_VERSION_MAP, V2
@@ -43,16 +43,16 @@ def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
     form_xml = render_template_string(MOCK_FORM, **{
         'case_block': case_blocks,
         'time': now,
-        'uid': form_extras.get('form_id', uuid.uuid4().hex),
+        'uid': form_extras.get('form_id', str(uuid4())),
         'username': form_extras.get('username', 'bob'),
-        'user_id': form_extras.get('user_id', uuid.uuid4().hex),
+        'user_id': form_extras.get('user_id', str(uuid4())),
     })
 
+    headers = {'Authorization': 'Basic ' + base64.b64encode('admin:secret')}
+    headers.update(form_extras.get('headers', {}))
     result = client.post(
         '/receiver/{}'.format(domain),
-        headers={
-            'Authorization': 'Basic ' + base64.b64encode('admin:secret')
-        },
+        headers=headers,
         data=form_xml
     )
     return result
@@ -261,7 +261,7 @@ class CaseStructure(object):
     """
 
     def __init__(self, case_id=None, relationships=None, attrs=None, walk_related=True):
-        self.case_id = case_id or uuid.uuid4().hex
+        self.case_id = case_id or str(uuid4())
         self.relationships = relationships if relationships is not None else []
         self.attrs = attrs if attrs is not None else {}
         self.walk_related = walk_related  # whether to walk related cases in operations
@@ -336,7 +336,7 @@ class CaseFactory(object):
         Shortcut to create a simple case without needing to make a structure for it.
         """
         kwargs['create'] = True
-        return self.create_or_update_case(CaseStructure(case_id=uuid.uuid4().hex, attrs=kwargs))[0]
+        return self.create_or_update_case(CaseStructure(case_id=str(uuid4()), attrs=kwargs))[0]
 
     def close_case(self, case_id):
         """
