@@ -74,7 +74,7 @@ class AbsctractDao(object):
 class SQLDao(AbsctractDao):
     def commit(self, xform, case_result):
         cases = case_result.cases
-        synlog = case_result.synclog
+        synclog = case_result.synclog
 
         def get_indices():
             for case in cases:
@@ -85,8 +85,8 @@ class SQLDao(AbsctractDao):
         case_docs = map(lambda doc: CaseData.from_generic(doc, xform_sql), cases)
 
         combined = [(new_form, xform_sql)] + case_docs + list(get_indices())
-        if synlog:
-            combined.append(Synclog.from_generic(synlog))
+        if synclog:
+            combined.append(Synclog.from_generic(synclog))
         for is_new, doc in combined:
             if is_new:
                 db.session.add(doc)
