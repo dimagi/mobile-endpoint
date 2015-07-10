@@ -62,6 +62,7 @@ class FormData(db.Model, ToFromGeneric):
         self.received_on = generic.received_on
         self.user_id = generic.metadata.userID
         self.md5 = generic._md5
+        self.synclog_id = generic.last_sync_token
         self.form_json = generic.to_json()
         return new, self
 
@@ -245,7 +246,7 @@ class Synclog(db.Model, ToFromGeneric):
     domain = db.Column(db.Text(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
     previous_log_id = db.Column(UUID(), db.ForeignKey(id))
-    hash = db.Column(db.Text(), nullable=False)
+    hash = db.Column(db.LargeBinary(), nullable=False)
     owner_ids_on_phone = db.Column(ARRAY(UUID))
     case_ids_on_phone = db.Column(ARRAY(UUID))
     dependent_case_ids_on_phone = db.Column(ARRAY(UUID))
@@ -258,10 +259,10 @@ class Synclog(db.Model, ToFromGeneric):
             domain=self.domain,
             user_id=self.user_id,
             previous_log_id=self.previous_log_id,
-            owner_ids_on_phone=set(self.owner_ids_on_phone),
-            case_ids_on_phone=set(self.case_ids_on_phone),
-            dependent_case_ids_on_phone=set(self.dependent_case_ids_on_phone),
-            index_tree=IndexTree(indices=self.index_tree)
+            owner_ids_on_phone=set(self.owner_ids_on_phone or []),
+            case_ids_on_phone=set(self.case_ids_on_phone or []),
+            dependent_case_ids_on_phone=set(self.dependent_case_ids_on_phone or []),
+            index_tree=IndexTree(indices=self.index_tree or {})
         )
         synclog._hash = self.hash
         synclog._self = self
@@ -284,4 +285,5 @@ class Synclog(db.Model, ToFromGeneric):
         self.case_ids_on_phone = generic.case_ids_on_phone
         self.dependent_case_ids_on_phone = generic.dependent_case_ids_on_phone
         self.index_tree = generic.index_tree.indices
+        self.hash = generic.get_state_hash().hash
         return new, self
