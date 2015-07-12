@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 
 from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
+from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
 
 
 db = SQLAlchemy()
@@ -37,7 +38,10 @@ class FormData(db.Model, ToFromGeneric):
     received_on = db.Column(db.DateTime(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
     md5 = db.Column(db.LargeBinary(), nullable=False)
+    synclog_id = db.Column(UUID(), db.ForeignKey('synclog.id'))
     form_json = db.Column(JSONB(), nullable=False)
+
+    synclog = db.relationship("Synclog", foreign_keys=[synclog_id])
 
     def to_generic(self):
         generic = XFormInstance.wrap(self.form_json)
@@ -58,6 +62,7 @@ class FormData(db.Model, ToFromGeneric):
         self.received_on = generic.received_on
         self.user_id = generic.metadata.userID
         self.md5 = generic._md5
+        self.synclog_id = generic.last_sync_token
         self.form_json = generic.to_json()
         return new, self
 
@@ -149,7 +154,7 @@ class CaseData(db.Model, ToFromGeneric):
         return generic
 
     @classmethod
-    def from_generic(cls, generic, **kwargs):
+    def from_generic(cls, generic, xform=None, **kwargs):
         if hasattr(generic, '_self'):
             self = generic._self
             new = False
@@ -164,6 +169,10 @@ class CaseData(db.Model, ToFromGeneric):
         self.closed = json.pop('closed')
         json.pop('indices')  # drop indices since they are stored separately
         self.case_json = json
+
+        if xform:
+            self.forms.append(xform)
+
         return new, self
 
     def __repr__(self):
@@ -197,7 +206,7 @@ class CaseIndex(db.Model, ToFromGeneric):
         return index
 
     @classmethod
-    def from_generic(cls, generic, domain, case_id):
+    def from_generic(cls, generic, domain=None, case_id=None, **kwargs):
         if hasattr(generic, '_self'):
             self = generic._self
             new = False
@@ -229,19 +238,52 @@ class CaseIndex(db.Model, ToFromGeneric):
 
 db.Index('ix_case_index_referenced_id', CaseIndex.domain, CaseIndex.referenced_id)
 
-class Synclog(db.Model):
+
+class Synclog(db.Model, ToFromGeneric):
     __tablename__ = 'synclog'
     id = db.Column(UUID(), primary_key=True)
+    date = db.Column(db.DateTime(), nullable=False)
+    domain = db.Column(db.Text(), nullable=False)
     user_id = db.Column(UUID(), nullable=False)
-    previous_log_id = db.Column(UUID())
-    hash = db.Column(db.Text(), nullable=False)
+    previous_log_id = db.Column(UUID(), db.ForeignKey(id))
+    hash = db.Column(db.LargeBinary(), nullable=False)
     owner_ids_on_phone = db.Column(ARRAY(UUID))
+    case_ids_on_phone = db.Column(ARRAY(UUID))
+    dependent_case_ids_on_phone = db.Column(ARRAY(UUID))
+    index_tree = db.Column(JSONB())
 
+    def to_generic(self):
+        synclog = SimplifiedSyncLog(
+            id=self.id,
+            date=self.date,
+            domain=self.domain,
+            user_id=self.user_id,
+            previous_log_id=self.previous_log_id,
+            owner_ids_on_phone=set(self.owner_ids_on_phone or []),
+            case_ids_on_phone=set(self.case_ids_on_phone or []),
+            dependent_case_ids_on_phone=set(self.dependent_case_ids_on_phone or []),
+            index_tree=IndexTree(indices=self.index_tree or {})
+        )
+        synclog._hash = self.hash
+        synclog._self = self
+        return synclog
 
-class SynclogCases(db.Model):
-    __tablename__ = 'synclog_cases'
-    synclog_id = db.Column(UUID(), db.ForeignKey('synclog.id'), primary_key=True)
-    case_id = db.Column(UUID(), nullable=False)
-    is_dependent = db.Column(db.Boolean(), default=False)
+    @classmethod
+    def from_generic(cls, generic, **kwargs):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            self = cls()
+            new = True
 
-    synclog = db.relationship('Synclog', foreign_keys=[synclog_id], backref='cases')
+        self.date = generic.date
+        self.domain = generic.domain
+        self.user_id = generic.user_id
+        self.previous_log_id = generic.previous_log_id
+        self.owner_ids_on_phone = generic.owner_ids_on_phone
+        self.case_ids_on_phone = generic.case_ids_on_phone
+        self.dependent_case_ids_on_phone = generic.dependent_case_ids_on_phone
+        self.index_tree = generic.index_tree.indices
+        self.hash = generic.get_state_hash().hash
+        return new, self

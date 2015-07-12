@@ -126,11 +126,11 @@ def load_data(scale):
         with FormLoader() as loader:
             for i in range(scale_factor):
                 has_case = random.random() < settings.FORM_CASE_RATIO
-                form_id = uuid4().hex
+                form_id = str(uuid4())
                 domain = settings.DOMAIN
                 if has_case:
                     case_forms.append(FormWithCase(form_id=form_id, domain=domain))
-                columns = [form_id, domain, datetime.utcnow().isoformat(), uuid4().hex, form_json]
+                columns = [form_id, domain, datetime.utcnow().isoformat(), str(uuid4()), form_json]
                 loader.put_row(columns)
 
         case_ids = []
@@ -142,12 +142,12 @@ def load_data(scale):
                     loader.update_case(form_with_case.form_id, case_id)
                 else:
                     is_child_case = random.random() < settings.CHILD_CASE_RATIO
-                    case_id = uuid4().hex
+                    case_id = str(uuid4())
                     parent_id = None
                     if is_child_case and case_ids:
                         parent_id = random.choice(case_ids)
 
                     case_ids.append(case_id)
 
-                    columns = [case_id, form_with_case.domain, 'FALSE', uuid4().hex, datetime.utcnow().isoformat(), case_json]
+                    columns = [case_id, form_with_case.domain, 'FALSE', str(uuid4()), datetime.utcnow().isoformat(), case_json]
                     loader.put_case(form_with_case.form_id, columns, parent_id)

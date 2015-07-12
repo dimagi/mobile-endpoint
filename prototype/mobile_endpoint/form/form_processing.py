@@ -79,13 +79,13 @@ def create_xform(instance_xml, attachments, request_meta, dao):
         received_on=datetime.utcnow(),
     )
 
-    xform._md5 = hashlib.md5(instance_xml).digest()
+    xform._md5 = hashlib.md5(instance_xml).hexdigest()
 
     for key, value in request_meta.items():
         setattr(xform, key, value)
 
     id_from_xml = _extract_meta_field(json_form, ('instanceID', 'uuid'))
-    form_id = id_from_xml or uuid4().hex
+    form_id = id_from_xml or str(uuid4())
     xform['id'] = form_id
     xform_lock = aquire_xform_lock(xform)
     with ReleaseOnError(xform_lock.lock):
@@ -111,7 +111,7 @@ def handle_duplicate_form(xform_lock, existing_form):
     conflict_id = new_form['id']
     if new_form['domain'] != existing_form['domain'] or existing_form['doc_type'] not in doc_types():
         # just change the ID and continue
-        new_form['id'] = uuid4().hex
+        new_form['id'] = str(uuid4())
         return xform_lock
     else:
 
@@ -120,7 +120,7 @@ def handle_duplicate_form(xform_lock, existing_form):
             pass
         else:
             # for now assume that the md5's are the same
-            new_form['id'] = uuid4().hex
+            new_form['id'] = str(uuid4())
             new_form['doc_type'] = 'XFormDuplicate'
             dupe = XFormDuplicate.wrap(new_form.to_json())
             dupe['problem'] = "Form is a duplicate of another! (%s)" % conflict_id
