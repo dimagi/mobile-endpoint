@@ -73,8 +73,8 @@ class AbsctractDao(object):
 
 class SQLDao(AbsctractDao):
     def commit(self, xform, case_result):
-        cases = case_result.cases
-        synclog = case_result.synclog
+        cases = case_result.cases if case_result else []
+        synclog = case_result.synclog if case_result else None
 
         def get_indices():
             for case in cases:

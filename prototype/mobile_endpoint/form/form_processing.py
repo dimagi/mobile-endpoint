@@ -115,7 +115,7 @@ def handle_duplicate_form(xform_lock, existing_form):
         return xform_lock
     else:
 
-        if existing_form.md5 != new_form.md5:
+        if existing_form._md5 != new_form._md5:
             # handle form edit workflow
             pass
         else:
@@ -125,6 +125,7 @@ def handle_duplicate_form(xform_lock, existing_form):
             dupe = XFormDuplicate.wrap(new_form.to_json())
             dupe['problem'] = "Form is a duplicate of another! (%s)" % conflict_id
             dupe['duplicate_id'] = conflict_id
+            dupe['_md5'] = new_form._md5
             return LockManager(dupe, lock)
 
 

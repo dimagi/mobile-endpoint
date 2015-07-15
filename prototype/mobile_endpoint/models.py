@@ -39,12 +39,17 @@ class FormData(db.Model, ToFromGeneric):
     user_id = db.Column(UUID(), nullable=False)
     md5 = db.Column(db.LargeBinary(), nullable=False)
     synclog_id = db.Column(UUID(), db.ForeignKey('synclog.id'))
-    form_json = db.Column(JSONB(), nullable=False)
 
     synclog = db.relationship("Synclog", foreign_keys=[synclog_id])
 
     def to_generic(self):
-        generic = XFormInstance.wrap(self.form_json)
+        generic = XFormInstance(
+            id=self.id,
+            domain=self.domain,
+            received_on=self.received_on,
+            user_id=self.user_id,
+            last_sync_token=self.synclog_id
+        )
         generic._self = self
         generic._md5 = self.md5
         return generic
@@ -61,9 +66,8 @@ class FormData(db.Model, ToFromGeneric):
         self.domain = generic.domain
         self.received_on = generic.received_on
         self.user_id = generic.metadata.userID
-        self.md5 = generic._md5
+        self.md5 = str(generic._md5)
         self.synclog_id = generic.last_sync_token
-        self.form_json = generic.to_json()
         return new, self
 
     def __repr__(self):
@@ -85,11 +89,16 @@ class FormError(db.Model, ToFromGeneric):
     md5 = db.Column(db.LargeBinary(), nullable=False)
     type = db.Column(db.Integer(), nullable=False)
     duplicate_id = db.Column(UUID(), db.ForeignKey('form_data.id'))
-    form_json = db.Column(JSONB(), nullable=False)
 
     def to_generic(self):
-        type_ = doc_types_compressed().get(self.type)
-        generic = type_.wrap(self.form_json)
+        generic = doc_types_compressed().get(self.type)()
+        generic.id = self.id,
+        generic.domain = self.domain,
+        generic.received_on = self.received_on,
+        generic.user_id = self.user_id
+        generic._md5 = self.md5
+        generic.duplicate_id = self.duplicate_id
+        generic.last_sync_token = self.synclog_id
         generic._self = self
         return generic
 
@@ -105,13 +114,13 @@ class FormError(db.Model, ToFromGeneric):
         self.domain = generic.domain
         self.received_on = generic.received_on
         self.user_id = generic.metadata.userID
-        self.md5 = generic.md5
+        self.md5 = str(generic._md5)
         self.problem = generic.problem
-        self.form_json = generic.to_json()
         self.type = compressed_doc_type()[generic.doc_type]
         self.duplicate_id = getattr(generic, 'duplicate_id', None)
         return new, self
 
+    @property
     def full_type(self):
         return doc_types_compressed().get(self.type)
 
@@ -122,7 +131,11 @@ class FormError(db.Model, ToFromGeneric):
                 "domain='{f.domain}', "
                 "received_on='{f.received_on}', "
                 "user_id='{f.user_id}', "
-                "type='{f.full_type}')"
+                "type='{f.full_type}', "
+                "md5='{f.md5}', "
+                "problem='{f.problem}', "
+                "duplicate_id='{f.duplicate_id}', "
+                ")"
         ).format(f=self)
 
 

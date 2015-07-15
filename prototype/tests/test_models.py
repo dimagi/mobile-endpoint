@@ -12,7 +12,7 @@ from mobile_endpoint.models import db, FormData, CaseData
 class TestModels(object):
     def test_basic(self, testapp):
         form = FormData(id=str(uuid4()), domain='test', received_on=datetime.utcnow(),
-                        user_id=str(uuid4()), md5=hashlib.md5('asdf').digest(), form_json={'form': {}})
+                        user_id=str(uuid4()), md5=hashlib.md5('asdf').digest())
 
         case = CaseData(id=str(uuid4()), domain='test', owner_id=str(uuid4()),
                         server_modified_on=datetime.utcnow(), case_json={'a': 'b'})

@@ -37,8 +37,9 @@ def doc_types_compressed():
         # 5: SubmissionErrorLog,
     }
 
+
 def compressed_doc_type():
-    return {v: k for k, v in doc_types_compressed()}
+    return {v.__name__: k for k, v in doc_types_compressed().items()}
 
 
 class Metadata(JsonObject):
