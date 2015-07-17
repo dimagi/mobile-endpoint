@@ -49,3 +49,9 @@ class BadVersionException(CommCareCaseError):
 
 class NotFound(Exception):
     pass
+
+
+class DuplicateFormException(Exception):
+    def __init__(self, existing_form, *args, **kwargs):
+        super(DuplicateFormException, self).__init__(*args, **kwargs)
+        self.existing_form = existing_form
