@@ -45,3 +45,7 @@ class BadVersionException(CommCareCaseError):
     Bad ota version
     """
     message = "Bad version number submitted during sync."
+
+
+class NotFound(Exception):
+    pass

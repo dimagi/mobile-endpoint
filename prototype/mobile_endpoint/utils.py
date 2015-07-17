@@ -6,6 +6,7 @@ import redis
 from mobile_endpoint.extensions import redis_store
 
 ISO_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+ISO_DATE_FORMAT = '%Y-%m-%d'
 
 # this is like jsonobject.api.re_datetime,
 # but without the "time" part being optional
@@ -118,6 +119,10 @@ def json_format_datetime(dt):
     return dt.strftime(ISO_DATETIME_FORMAT)
 
 
+def json_format_date(date_):
+    return date_.strftime(ISO_DATE_FORMAT)
+
+
 def adjust_datetimes(data, parent=None, key=None):
     """
     find all datetime-like strings within data (deserialized json)
@@ -125,7 +130,6 @@ def adjust_datetimes(data, parent=None, key=None):
 
     """
     # this strips the timezone like we've always done
-    # todo: in the future this will convert to UTC
     if isinstance(data, basestring):
         if re_loose_datetime.match(data):
             parent[key] = json_format_datetime(

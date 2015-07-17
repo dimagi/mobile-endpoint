@@ -51,7 +51,7 @@ def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
     headers = {'Authorization': 'Basic ' + base64.b64encode('admin:secret')}
     headers.update(form_extras.get('headers', {}))
     result = client.post(
-        '/receiver/{}'.format(domain),
+        'ota/receiver/{}'.format(domain),
         headers=headers,
         data=form_xml
     )
@@ -136,7 +136,7 @@ class CaseBlock(dict):
 
         """
         super(CaseBlock, self).__init__()
-        self._id = case_id
+        self.id = case_id
         date_modified = date_modified or datetime.utcnow()
         update = copy.copy(update) if update else {}
         index = copy.copy(index) if index else {}
@@ -366,4 +366,4 @@ class CaseFactory(object):
         )
 
         case_ids = [id for structure in case_structures for id in structure.walk_ids()]
-        return list(SQLDao().iter_cases(case_ids, ordered=True))
+        return list(SQLDao().get_cases(case_ids, ordered=True))

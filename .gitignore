@@ -65,3 +65,4 @@ tsung/erlang_subst/*.beam
 tsung/files/*.csv
 
 prototype/localconfig*
+prototype/restore_tmp

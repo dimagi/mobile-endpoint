@@ -2,6 +2,8 @@ from collections import namedtuple
 import copy
 from datetime import datetime
 import logging
+from uuid import UUID
+from sqlalchemy import or_
 
 from mobile_endpoint.case import const
 from mobile_endpoint.case.models import CommCareCase
@@ -10,6 +12,8 @@ from mobile_endpoint.dao import CaseDbCache
 from mobile_endpoint.exceptions import ReconciliationError
 from mobile_endpoint.form.form_processing import is_deprecation
 from mobile_endpoint.form.models import XFormInstance
+from mobile_endpoint.models import OwnershipCleanlinessFlag, db
+from mobile_endpoint.restore.cleanliness import should_create_flags_on_submission
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +34,7 @@ def process_cases_in_form(xform, dao):
                 except ReconciliationError:
                     pass
 
-        # todo: check that cases haven't been modified since we loaded them (why not use locking?)
+        # TODO prototype: check that cases haven't been modified since we loaded them (why not use locking?)
 
         if xform.last_sync_token:
             relevant_log = case_db.dao.get_synclog(xform.last_sync_token)
@@ -54,6 +58,9 @@ def _get_or_update_cases(xforms, case_db):
         for case_update in get_case_updates(xform):
             case_doc = _get_or_update_model(case_update, xform, case_db)
             if case_doc:
+                # normalize UUID format
+                case_doc['owner_id'] = str(UUID(case_doc.owner_id))
+                case_doc['user_id'] = str(UUID(case_doc.user_id))
                 case_db.set(case_doc['id'], case_doc)
 
     # at this point we know which cases we want to update so copy this away
@@ -131,45 +138,50 @@ class CaseProcessingResult(object):
     def get_flags_to_save(self):
         return {f.owner_id: f.case_id for f in self.dirtiness_flags}
 
-    # def commit_dirtiness_flags(self):
-    #     """
-    #     Updates any dirtiness flags in the database.
-    #     """
-    #     if self.track_cleanliness and self.domain:
-    #         flags_to_save = self.get_flags_to_save()
-    #         if should_create_flags_on_submission(self.domain):
-    #             assert settings.UNIT_TESTING  # this is currently only true when unit testing
-    #             all_touched_ids = set(flags_to_save.keys()) | self.get_clean_owner_ids()
-    #             to_update = {f.owner_id: f for f in OwnershipCleanlinessFlag.objects.filter(
-    #                 domain=self.domain,
-    #                 owner_id__in=list(all_touched_ids),
-    #             )}
-    #             for owner_id in all_touched_ids:
-    #                 if owner_id not in to_update:
-    #                     # making from scratch - default to clean, but set to dirty if needed
-    #                     flag = OwnershipCleanlinessFlag(domain=self.domain, owner_id=owner_id, is_clean=True)
-    #                     if owner_id in flags_to_save:
-    #                         flag.is_clean = False
-    #                         flag.hint = flags_to_save[owner_id]
-    #                     flag.save()
-    #                 else:
-    #                     # updating - only save if we are marking dirty or setting a hint
-    #                     flag = to_update[owner_id]
-    #                     if owner_id in flags_to_save and (flag.is_clean or not flag.hint):
-    #                         flag.is_clean = False
-    #                         flag.hint = flags_to_save[owner_id]
-    #                         flag.save()
-    #         else:
-    #             # only update the flags that are already in the database
-    #             flags_to_update = OwnershipCleanlinessFlag.objects.filter(
-    #                 Q(domain=self.domain),
-    #                 Q(owner_id__in=flags_to_save.keys()),
-    #                 Q(is_clean=True) | Q(hint__isnull=True)
-    #             )
-    #             for flag in flags_to_update:
-    #                 flag.is_clean = False
-    #                 flag.hint = flags_to_save[flag.owner_id]
-    #                 flag.save()
+    def commit_dirtiness_flags(self):
+        """
+        Updates any dirtiness flags in the database.
+        """
+        if self.track_cleanliness and self.domain:
+            flags_to_save = self.get_flags_to_save()
+            if should_create_flags_on_submission(self.domain):
+                # assert settings.UNIT_TESTING  # this is currently only true when unit testing
+                all_touched_ids = set(flags_to_save.keys()) | self.get_clean_owner_ids()
+                to_update = {f.owner_id: f for f in OwnershipCleanlinessFlag.query.filter(
+                    OwnershipCleanlinessFlag.domain == self.domain,
+                    OwnershipCleanlinessFlag.owner_id.in_(list(all_touched_ids)),
+                )}
+                for owner_id in all_touched_ids:
+                    if owner_id not in to_update:
+                        print owner_id, to_update
+                        # making from scratch - default to clean, but set to dirty if needed
+                        flag = OwnershipCleanlinessFlag(domain=self.domain, owner_id=owner_id, is_clean=True)
+                        if owner_id in flags_to_save:
+                            flag.is_clean = False
+                            flag.hint = flags_to_save[owner_id]
+                        # flag.save()
+                        db.session.add(flag)
+                    else:
+                        # updating - only save if we are marking dirty or setting a hint
+                        flag = to_update[owner_id]
+                        if owner_id in flags_to_save and (flag.is_clean or not flag.hint):
+                            flag.is_clean = False
+                            flag.hint = flags_to_save[owner_id]
+                            # flag.save()
+            else:
+                # only update the flags that are already in the database
+                flags_to_update = OwnershipCleanlinessFlag.query.filter(
+                    OwnershipCleanlinessFlag.domain == self.domain,
+                    OwnershipCleanlinessFlag.owner_id.in_(flags_to_save.keys()),
+                    or_(
+                        OwnershipCleanlinessFlag.is_clean == True,
+                        OwnershipCleanlinessFlag.hint == None
+                    )
+                )
+                for flag in flags_to_update:
+                    flag.is_clean = False
+                    flag.hint = flags_to_save[flag.owner_id]
+                    # flag.save()
 
 
 def get_case_updates(xform):
