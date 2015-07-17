@@ -1,6 +1,9 @@
+from datetime import datetime
 from flask.ext.migrate import Migrate
 from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy import event
 from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
+from sqlalchemy.orm.session import object_session
 from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 
 from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
@@ -290,6 +293,7 @@ class Synclog(db.Model, ToFromGeneric):
             self = cls()
             new = True
 
+        self.id = generic.id
         self.date = generic.date
         self.domain = generic.domain
         self.user_id = generic.user_id
@@ -300,3 +304,38 @@ class Synclog(db.Model, ToFromGeneric):
         self.index_tree = generic.index_tree.indices
         self.hash = generic.get_state_hash().hash
         return new, self
+
+
+class OwnershipCleanlinessFlag(db.Model):
+    """
+    Stores whether an owner_id is "clean" aka has a case universe only belonging
+    to that ID.
+
+    We use this field to optimize restores.
+    """
+    __tablename__ = 'ownership_cleanliness_flag'
+    domain = db.Column(db.Text(), primary_key=True)
+    owner_id = db.Column(UUID(), primary_key=True)
+    is_clean = db.Column(db.Boolean(), nullable=False, default=False)
+    last_checked = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
+    hint = db.Column(db.Text())
+
+    @classmethod
+    def get_or_create(cls, domain, owner_id, defaults=None):
+        instance = cls.query.filter_by(domain=domain, owner_id=owner_id).first()
+        if instance:
+            return instance
+        else:
+            instance = OwnershipCleanlinessFlag(domain=domain, owner_id=owner_id)
+            if defaults:
+                for field, value in defaults.items():
+                    setattr(instance, field, value)
+            db.session.add(instance)
+            db.session.flush()
+            return instance
+
+
+@event.listens_for(OwnershipCleanlinessFlag, "before_update")
+def gen_default(mapper, connection, instance):
+    if object_session(instance).is_modified(instance, include_collections=False):
+        instance.last_checked = datetime.utcnow()
