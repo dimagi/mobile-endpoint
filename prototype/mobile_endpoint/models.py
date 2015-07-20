@@ -6,7 +6,8 @@ from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 from sqlalchemy.orm.session import object_session
 from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 
-from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
+from mobile_endpoint.form.models import XFormInstance, doc_types_compressed, compressed_doc_type
+from mobile_endpoint.synclog.checksum import Checksum
 from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
 
 db = SQLAlchemy(session_options={'autocommit': True})
@@ -268,6 +269,10 @@ class Synclog(db.Model, ToFromGeneric):
     dependent_case_ids_on_phone = db.Column(ARRAY(UUID))
     index_tree = db.Column(JSONB())
 
+    @property
+    def checksum(self):
+        return Checksum(initial_checksum=self.hash)
+
     def to_generic(self):
         synclog = SimplifiedSyncLog(
             id=self.id,
@@ -302,7 +307,7 @@ class Synclog(db.Model, ToFromGeneric):
         self.case_ids_on_phone = generic.case_ids_on_phone
         self.dependent_case_ids_on_phone = generic.dependent_case_ids_on_phone
         self.index_tree = generic.index_tree.indices
-        self.hash = generic.get_state_hash().hash
+        self.hash = Checksum(generic.get_footprint_of_cases_on_phone()).hexdigest()
         return new, self
 
     def __repr__(self):

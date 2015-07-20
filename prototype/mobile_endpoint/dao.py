@@ -5,12 +5,10 @@ from uuid import UUID
 
 import redis
 from sqlalchemy.orm import contains_eager, defer
-from mobile_endpoint.case.models import CommCareCase
 
 from mobile_endpoint.exceptions import IllegalCaseId, NotFound
-from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex, cls_for_doc_type
-from mobile_endpoint.utils import chunked, get_with_lock
+from mobile_endpoint.utils import get_with_lock
 
 
 def to_generic(fn):

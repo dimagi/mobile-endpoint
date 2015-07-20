@@ -37,7 +37,7 @@ _set_source_root_parent('submodules')
 from flask.ext.script import Manager, Server
 from flask.ext.script.commands import ShowUrls, Clean
 from mobile_endpoint import create_app
-from mobile_endpoint.models import db, FormData, CaseData, CaseIndex
+from mobile_endpoint.models import db, FormData, CaseData, CaseIndex, Synclog, OwnershipCleanlinessFlag
 
 app = create_app()
 
@@ -54,8 +54,10 @@ def make_shell_context():
         in the context of the app
     """
 
-    return dict(app=app, db=db, FormData=FormData, CaseData=CaseData, CaseIndex=CaseIndex)
-
+    context = dict(app=app, db=db)
+    for class_ in [FormData, CaseData, CaseIndex, Synclog, OwnershipCleanlinessFlag]:
+        context[class_.__name__] = class_
+    return context
 
 if __name__ == "__main__":
     manager.run()
