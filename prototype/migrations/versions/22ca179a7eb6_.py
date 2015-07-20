@@ -21,8 +21,9 @@ def upgrade():
     sa.Column('owner_id', postgresql.UUID(), nullable=False),
     sa.Column('is_clean', sa.Boolean(), nullable=False),
     sa.Column('last_checked', sa.DateTime(), nullable=False),
-    sa.Column('hint', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('domain', 'owner_id')
+    sa.Column('hint', postgresql.UUID(), nullable=True),
+    sa.PrimaryKeyConstraint('domain', 'owner_id'),
+    sa.ForeignKeyConstraint(['hint'], ['case_data.id'], ),
     )
     ### end Alembic commands ###
 
