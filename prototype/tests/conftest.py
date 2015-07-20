@@ -1,3 +1,4 @@
+from flask.ext.migrate import upgrade
 import pytest
 import os
 import sys
@@ -40,7 +41,8 @@ def testapp():
     app = create_app('testconfig.py')
 
     db.app = app
-    db.create_all()
+    with app.app_context():
+        upgrade()
 
     return app
 

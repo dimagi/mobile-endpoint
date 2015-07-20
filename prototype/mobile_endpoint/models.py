@@ -149,6 +149,7 @@ class CaseData(db.Model, ToFromGeneric):
     closed = db.Column(db.Boolean(), default=False, nullable=False)
     owner_id = db.Column(UUID(), nullable=False)
     server_modified_on = db.Column(db.DateTime(), nullable=False)
+    version = db.Column(db.Integer(), default=0)
     case_json = db.Column(JSONB(), nullable=False)
 
     forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
@@ -199,6 +200,12 @@ class CaseData(db.Model, ToFromGeneric):
                 "owner_id='{c.owner_id}', "
                 "server_modified_on='{c.server_modified_on}')"
         ).format(c=self)
+
+
+@event.listens_for(CaseData, "before_update")
+def update_version(mapper, connection, instance):
+    if object_session(instance).is_modified(instance):
+        instance.version += 1
 
 db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
 db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
