@@ -179,12 +179,10 @@ class CaseData(db.Model, ToFromGeneric):
             new = True
 
         json = generic.to_json()
-        self.domain = json.pop('domain')
-        self.server_modified_on = generic.server_modified_on
-        self.owner_id = json.pop('owner_id')
-        self.closed = json.pop('closed')
-        json.pop('server_modified_on')
         json.pop('indices')  # drop indices since they are stored separately
+        for att in ['domain', 'owner_id', 'closed', 'server_modified_on']:
+            setattr(self, att, getattr(generic, att))
+            json.pop(att)
         self.case_json = json
 
         if xform:
@@ -228,14 +226,11 @@ class CaseIndex(db.Model, ToFromGeneric):
             self = generic._self
             new = False
         else:
-            self = cls()
+            self = cls(case_id=case_id, domain=domain)
             new = True
 
-        self.identifier = generic.identifier
-        self.referenced_type = generic.referenced_type
-        self.referenced_id = generic.referenced_id
-        self.case_id = case_id
-        self.domain = domain
+        for att in ['identifier', 'referenced_type', 'referenced_id', 'referenced_type']:
+            setattr(self, att, getattr(generic, att))
 
         return new, self
 
@@ -295,19 +290,15 @@ class Synclog(db.Model, ToFromGeneric):
             self = generic._self
             new = False
         else:
-            self = cls()
+            self = cls(id=generic.id)
             new = True
 
-        self.id = generic.id
-        self.date = generic.date
-        self.domain = generic.domain
-        self.user_id = generic.user_id
-        self.previous_log_id = generic.previous_log_id
-        self.owner_ids_on_phone = generic.owner_ids_on_phone
-        self.case_ids_on_phone = generic.case_ids_on_phone
-        self.dependent_case_ids_on_phone = generic.dependent_case_ids_on_phone
+        for att in ['date', 'domain', 'user_id', 'previous_log_id', 'owner_ids_on_phone', 'case_ids_on_phone', 'dependent_case_ids_on_phone']:
+            setattr(self, att, getattr(generic, att))
+
         self.index_tree = generic.index_tree.indices
-        self.hash = Checksum(generic.get_footprint_of_cases_on_phone()).hexdigest()
+        self.hash = generic.get_state_hash().hash
+        
         return new, self
 
     def __repr__(self):
