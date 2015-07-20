@@ -41,7 +41,7 @@ def upgrade():
     sa.Column('id', postgresql.UUID(), nullable=False),
     sa.Column('user_id', postgresql.UUID(), nullable=False),
     sa.Column('previous_log_id', postgresql.UUID(), nullable=True),
-    sa.Column('hash', sa.Text(), nullable=False),
+    sa.Column('hash', sa.LargeBinary(), nullable=False),
     sa.Column('owner_ids_on_phone', postgresql.ARRAY(postgresql.UUID()), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
