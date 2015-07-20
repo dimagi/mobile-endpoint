@@ -1,4 +1,4 @@
-"""empty message
+"""Initial model
 
 Revision ID: 3af0c27f1955
 Revises: None

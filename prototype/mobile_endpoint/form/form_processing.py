@@ -4,6 +4,7 @@ from uuid import uuid4, UUID
 
 from flask import logging
 from werkzeug.exceptions import BadRequest
+from mobile_endpoint.exceptions import DuplicateFormException
 
 from mobile_endpoint.form.models import XFormInstance, doc_types, XFormDuplicate
 from mobile_endpoint.utils import adjust_datetimes, get_with_lock, ReleaseOnError, LockManager
@@ -88,16 +89,19 @@ def create_xform(instance_xml, attachments, request_meta, dao):
     form_id = id_from_xml or str(uuid4())
     xform['id'] = form_id
     xform_lock = aquire_xform_lock(xform)
-    with ReleaseOnError(xform_lock.lock):
-        if id_from_xml:
-            try:
-                UUID(form_id)
-            except ValueError:
-                raise INVALID_ID(form_id)
-            else:
-                existing_form = dao.get_form(form_id)
-                if existing_form:
-                    return handle_duplicate_form(xform_lock, existing_form)
+    try:
+        with ReleaseOnError(xform_lock.lock):
+            if id_from_xml:
+                try:
+                    UUID(form_id)
+                except ValueError:
+                    raise INVALID_ID(form_id)
+                else:
+                    existing_form = dao.get_form(form_id)
+                    if existing_form:
+                        raise DuplicateFormException(existing_form)
+    except DuplicateFormException as e:
+        xform_lock = handle_duplicate_form(xform, e.existing_form)
 
     return xform_lock
 
@@ -106,18 +110,19 @@ def aquire_xform_lock(instance):
     return get_with_lock('xform-process-lock-{}'.format(instance['id']), lambda: instance)
 
 
-def handle_duplicate_form(xform_lock, existing_form):
-    new_form, lock = xform_lock
+def handle_duplicate_form(new_form, existing_form):
     conflict_id = new_form['id']
     if new_form['domain'] != existing_form['domain'] or existing_form['doc_type'] not in doc_types():
         # just change the ID and continue
         new_form['id'] = str(uuid4())
-        return xform_lock
+        return aquire_xform_lock(new_form)
     else:
 
         if existing_form._md5 != new_form._md5:
-            # handle form edit workflow
-            pass
+            # TODO prototype: handle form edit workflow
+            # for now just change the ID and continue
+            new_form['id'] = str(uuid4())
+            return aquire_xform_lock(new_form)
         else:
             # for now assume that the md5's are the same
             new_form['id'] = str(uuid4())
@@ -126,7 +131,7 @@ def handle_duplicate_form(xform_lock, existing_form):
             dupe['problem'] = "Form is a duplicate of another! (%s)" % conflict_id
             dupe['duplicate_id'] = conflict_id
             dupe['_md5'] = new_form._md5
-            return LockManager(dupe, lock)
+            return aquire_xform_lock(dupe)
 
 
 def _get_xform_json(xml_string):

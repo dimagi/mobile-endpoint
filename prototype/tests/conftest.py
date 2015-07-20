@@ -34,20 +34,28 @@ _set_source_root_parent('../submodules')
 from mobile_endpoint import create_app
 from mobile_endpoint.models import db
 
+
 @pytest.fixture(scope="session")
-def testapp(request):
+def testapp():
     app = create_app('testconfig.py')
 
     db.app = app
     db.create_all()
 
+    return app
+
+
+@pytest.fixture()
+def db_reset(request):
     def teardown():
+        for table in reversed(db.Model.metadata.sorted_tables):
+            db.session.execute(table.delete())
+
+        db.session.commit()
         db.session.remove()
-        db.drop_all()
 
     request.addfinalizer(teardown)
 
-    return app
 
 @pytest.fixture()
 def client(testapp):

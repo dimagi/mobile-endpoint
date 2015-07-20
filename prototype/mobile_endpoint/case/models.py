@@ -133,7 +133,7 @@ class IndexHoldingMixIn(object):
     def remove_index_by_ref_id(self, doc_id):
         index = self.get_index_by_ref_id(doc_id)
         if not index:
-            raise ValueError('index with id %s not found in doc %s' % (id, self._id))
+            raise ValueError('index with id %s not found in doc %s' % (doc_id, self.id))
         self.indices.remove(index)
 
 
@@ -168,10 +168,9 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
     server_modified_on = DateTimeProperty()
 
     def __unicode__(self):
-        return "CommCareCase: %s (%s)" % (self.case_id, self.get_id)
+        return "CommCareCase: %s (%s)" % (self.case_id, self.id)
 
     def __setattr__(self, key, value):
-        # todo: figure out whether we can get rid of this.
         # couchdbkit's auto-type detection gets us into problems for various
         # workflows here, so just force known string properties to strings
         # before setting them. this would just end up failing hard later if
@@ -357,7 +356,7 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
         else:
             raise ValueError("Can't apply action of type %s: %s" % (
                 action.action_type,
-                self.get_id,
+                self.id,
             ))
 
         # override any explicit properties from the update
@@ -425,7 +424,7 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
                 elif a.xform_id is None:
                     error = u"Case {0} action xform_id is None: {1}"
                 if error:
-                    raise ReconciliationError(error.format(self.get_id, a))
+                    raise ReconciliationError(error.format(self.id, a))
 
         _check_preconditions()
 
@@ -453,7 +452,7 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
                     if len(found_actions) != 1:
                         error = (u"Case {0} action conflicts "
                                  u"with multiple other actions: {1}")
-                        raise ReconciliationError(error.format(self.get_id, a))
+                        raise ReconciliationError(error.format(self.id, a))
                     match = found_actions[0]
                     # when they disagree, choose the _earlier_ one as this is
                     # the one that is likely timestamped with the form's date
@@ -472,7 +471,7 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
             if sorted_actions[0].action_type != const.CASE_ACTION_CREATE:
                 error = u"Case {0} first action not create action: {1}"
                 raise ReconciliationError(
-                    error.format(self.get_id, sorted_actions[0])
+                    error.format(self.id, sorted_actions[0])
                 )
         self.actions = sorted_actions
         if rebuild:
@@ -506,7 +505,7 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
             if actions[0].action_type != const.CASE_ACTION_CREATE:
                 error = u"Case {0} first action not create action: {1}"
                 raise ReconciliationError(
-                    error.format(self.get_id, self.actions[0])
+                    error.format(self.id, self.actions[0])
                 )
 
         for a in actions:
@@ -526,6 +525,14 @@ class CommCareCase(JsonObject, IndexHoldingMixIn):
 
         return sorted([(key, json[key]) for key in wrapped_case.dynamic_properties()
                        if re.search(r'^[a-zA-Z]', key)])
+
+    @property
+    def _dynamic_properties(self):
+        from jsonobject.base import get_dynamic_properties
+        return get_dynamic_properties(self)
+
+    def dynamic_properties(self):
+        return self._dynamic_properties.copy()
 
 
 def _action_sort_key_function(case):

@@ -1,4 +1,4 @@
-"""empty message
+"""Drop form JSON
 
 Revision ID: f69a277dfc5
 Revises: 1cbfd2c4d21e

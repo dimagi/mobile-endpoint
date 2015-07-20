@@ -11,6 +11,9 @@ from mobile_endpoint.synclog.checksum import CaseStateHash, Checksum
 logger = logging.getLogger(__name__)
 
 
+LOG_FORMAT_SIMPLIFIED = 'simplified'
+
+
 class SyncLogAssertionError(AssertionError):
 
     def __init__(self, case_id, *args, **kwargs):
@@ -160,7 +163,7 @@ class SimplifiedSyncLog(AbstractSyncLog):
     Just maintains a flat list of case IDs on the phone rather than the case/dependent state
     lists from the SyncLog class.
     """
-    # log_format = StringProperty(default=LOG_FORMAT_SIMPLIFIED)
+    log_format = StringProperty(default=LOG_FORMAT_SIMPLIFIED)
     case_ids_on_phone = SetProperty(unicode)
     # this is a subset of case_ids_on_phone used to flag that a case is only around because it has dependencies
     # this allows us to prune it if possible from other actions
