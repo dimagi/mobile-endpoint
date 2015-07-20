@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-import re
-from uuid import uuid4, UUID
-import os
+from uuid import uuid4
 
 import pytest
 
@@ -14,8 +12,8 @@ from tests.mock import CaseFactory, CaseStructure, post_case_blocks, CaseRelatio
 DOMAIN = 'test_domain'
 
 
-@pytest.mark.usefixtures("testapp", "client")
-class TestApi(object):
+@pytest.mark.usefixtures("testapp", "client", "db_reset")
+class TestReceiver(object):
 
     def _assert_form(self, form_id, user_id, synclog_id=None):
         sql_form = FormData.query.get(form_id)

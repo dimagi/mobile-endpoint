@@ -153,7 +153,6 @@ class CaseProcessingResult(object):
                 )}
                 for owner_id in all_touched_ids:
                     if owner_id not in to_update:
-                        print owner_id, to_update
                         # making from scratch - default to clean, but set to dirty if needed
                         flag = OwnershipCleanlinessFlag(domain=self.domain, owner_id=owner_id, is_clean=True)
                         if owner_id in flags_to_save:

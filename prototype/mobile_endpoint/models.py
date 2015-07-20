@@ -9,7 +9,6 @@ from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
 from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
 
-
 db = SQLAlchemy()
 
 migrate = Migrate()
@@ -180,9 +179,10 @@ class CaseData(db.Model, ToFromGeneric):
 
         json = generic.to_json()
         self.domain = json.pop('domain')
-        self.server_modified_on = json.pop('server_modified_on')
+        self.server_modified_on = generic.server_modified_on
         self.owner_id = json.pop('owner_id')
         self.closed = json.pop('closed')
+        json.pop('server_modified_on')
         json.pop('indices')  # drop indices since they are stored separately
         self.case_json = json
 
@@ -304,6 +304,16 @@ class Synclog(db.Model, ToFromGeneric):
         self.index_tree = generic.index_tree.indices
         self.hash = generic.get_state_hash().hash
         return new, self
+
+    def __repr__(self):
+        return (
+            "Synclog("
+                "id='{s.id}', "
+                "domain='{s.domain}', "
+                "date='{s.date}', "
+                "user_id='{s.user_id}', "
+                "previous_log_id='{s.previous_log_id}, "
+                "hash='{s.hash}')").format(s=self)
 
 
 class OwnershipCleanlinessFlag(db.Model):
