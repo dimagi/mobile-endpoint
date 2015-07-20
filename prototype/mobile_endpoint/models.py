@@ -9,7 +9,7 @@ from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
 from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={'autocommit': True})
 
 migrate = Migrate()
 
@@ -340,8 +340,8 @@ class OwnershipCleanlinessFlag(db.Model):
             if defaults:
                 for field, value in defaults.items():
                     setattr(instance, field, value)
-            db.session.add(instance)
-            db.session.flush()
+            with db.session.begin(subtransactions=True):
+                db.session.add(instance)
             return instance
 
 

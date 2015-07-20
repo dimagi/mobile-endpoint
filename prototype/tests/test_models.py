@@ -18,8 +18,8 @@ class TestModels(object):
                         server_modified_on=datetime.utcnow(), case_json={'a': 'b'})
         form.cases.append(case)
 
-        db.session.add(form)
-        db.session.commit()
+        with db.session.begin():
+            db.session.add(form)
 
         form = FormData.query.filter_by(domain="test").first()
         assert form is not None

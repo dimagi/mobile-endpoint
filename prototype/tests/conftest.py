@@ -48,10 +48,10 @@ def testapp():
 @pytest.fixture()
 def db_reset(request):
     def teardown():
-        for table in reversed(db.Model.metadata.sorted_tables):
-            db.session.execute(table.delete())
+        with db.session.begin():
+            for table in reversed(db.Model.metadata.sorted_tables):
+                db.session.execute(table.delete())
 
-        db.session.commit()
         db.session.remove()
 
     request.addfinalizer(teardown)

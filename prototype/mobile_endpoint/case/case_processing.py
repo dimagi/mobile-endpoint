@@ -144,43 +144,44 @@ class CaseProcessingResult(object):
         """
         if self.track_cleanliness and self.domain:
             flags_to_save = self.get_flags_to_save()
-            if should_create_flags_on_submission(self.domain):
-                # assert settings.UNIT_TESTING  # this is currently only true when unit testing
-                all_touched_ids = set(flags_to_save.keys()) | self.get_clean_owner_ids()
-                to_update = {f.owner_id: f for f in OwnershipCleanlinessFlag.query.filter(
-                    OwnershipCleanlinessFlag.domain == self.domain,
-                    OwnershipCleanlinessFlag.owner_id.in_(list(all_touched_ids)),
-                )}
-                for owner_id in all_touched_ids:
-                    if owner_id not in to_update:
-                        # making from scratch - default to clean, but set to dirty if needed
-                        flag = OwnershipCleanlinessFlag(domain=self.domain, owner_id=owner_id, is_clean=True)
-                        if owner_id in flags_to_save:
-                            flag.is_clean = False
-                            flag.hint = flags_to_save[owner_id]
-                        # flag.save()
-                        db.session.add(flag)
-                    else:
-                        # updating - only save if we are marking dirty or setting a hint
-                        flag = to_update[owner_id]
-                        if owner_id in flags_to_save and (flag.is_clean or not flag.hint):
-                            flag.is_clean = False
-                            flag.hint = flags_to_save[owner_id]
+            with db.session.begin(subtransactions=True):
+                if should_create_flags_on_submission(self.domain):
+                    # assert settings.UNIT_TESTING  # this is currently only true when unit testing
+                    all_touched_ids = set(flags_to_save.keys()) | self.get_clean_owner_ids()
+                    to_update = {f.owner_id: f for f in OwnershipCleanlinessFlag.query.filter(
+                        OwnershipCleanlinessFlag.domain == self.domain,
+                        OwnershipCleanlinessFlag.owner_id.in_(list(all_touched_ids)),
+                    )}
+                    for owner_id in all_touched_ids:
+                        if owner_id not in to_update:
+                            # making from scratch - default to clean, but set to dirty if needed
+                            flag = OwnershipCleanlinessFlag(domain=self.domain, owner_id=owner_id, is_clean=True)
+                            if owner_id in flags_to_save:
+                                flag.is_clean = False
+                                flag.hint = flags_to_save[owner_id]
                             # flag.save()
-            else:
-                # only update the flags that are already in the database
-                flags_to_update = OwnershipCleanlinessFlag.query.filter(
-                    OwnershipCleanlinessFlag.domain == self.domain,
-                    OwnershipCleanlinessFlag.owner_id.in_(flags_to_save.keys()),
-                    or_(
-                        OwnershipCleanlinessFlag.is_clean == True,
-                        OwnershipCleanlinessFlag.hint == None
+                            db.session.add(flag)
+                        else:
+                            # updating - only save if we are marking dirty or setting a hint
+                            flag = to_update[owner_id]
+                            if owner_id in flags_to_save and (flag.is_clean or not flag.hint):
+                                flag.is_clean = False
+                                flag.hint = flags_to_save[owner_id]
+                                # flag.save()
+                else:
+                    # only update the flags that are already in the database
+                    flags_to_update = OwnershipCleanlinessFlag.query.filter(
+                        OwnershipCleanlinessFlag.domain == self.domain,
+                        OwnershipCleanlinessFlag.owner_id.in_(flags_to_save.keys()),
+                        or_(
+                            OwnershipCleanlinessFlag.is_clean == True,
+                            OwnershipCleanlinessFlag.hint == None
+                        )
                     )
-                )
-                for flag in flags_to_update:
-                    flag.is_clean = False
-                    flag.hint = flags_to_save[flag.owner_id]
-                    # flag.save()
+                    for flag in flags_to_update:
+                        flag.is_clean = False
+                        flag.hint = flags_to_save[flag.owner_id]
+                        # flag.save()
 
 
 def get_case_updates(xform):

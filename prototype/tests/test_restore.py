@@ -130,22 +130,3 @@ def generate_restore_response(client, domain, user, since=None):
     )
     assert result.status_code == 200
     return result.data
-
-    
-def _create_synclog(user_id, owner_ids=None, case_ids=None, dependent_case_ids=None, index_tree=None):
-    case_ids = case_ids or []
-    hash = Checksum(case_ids).hexdigest()
-    synclog_id = str(uuid4())
-    db.session.add(Synclog(
-        id=synclog_id,
-        date=datetime.utcnow(),
-        domain=DOMAIN,
-        user_id=user_id,
-        hash=hash,
-        owner_ids_on_phone=owner_ids or [user_id],
-        case_ids_on_phone=case_ids,
-        dependent_case_ids_on_phone=dependent_case_ids or [],
-        index_tree=index_tree or {}
-    ))
-    db.session.commit()
-    return synclog_id
