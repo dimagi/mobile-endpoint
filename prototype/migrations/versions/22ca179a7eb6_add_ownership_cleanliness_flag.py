@@ -1,4 +1,4 @@
-"""empty message
+"""Add ownership_cleanliness_flag
 
 Revision ID: 22ca179a7eb6
 Revises: f69a277dfc5

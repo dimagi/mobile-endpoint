@@ -1,4 +1,4 @@
-"""empty message
+"""Make synclog into a single table
 
 Revision ID: 1cbfd2c4d21e
 Revises: 3af0c27f1955
