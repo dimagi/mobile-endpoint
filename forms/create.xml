@@ -15,7 +15,7 @@
         <n1:deviceID>cloudcare</n1:deviceID>
         <n1:timeStart>2015-07-02T13:20:15.660-04</n1:timeStart>
         <n1:timeEnd>2015-07-02T13:20:21.117-04</n1:timeEnd>
-        <n1:username>%%_username</n1:username>
+        <n1:username>%%_username%%</n1:username>
         <n1:userID>%%_user_id%%</n1:userID>
         <n1:instanceID>%%_form_instance_id%%</n1:instanceID>
         <n2:appVersion xmlns:n2="http://commcarehq.org/xforms">2.0</n2:appVersion>
