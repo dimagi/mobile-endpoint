@@ -5,6 +5,7 @@ from mobile_endpoint.dao import SQLDao
 from mobile_endpoint.extensions import requires_auth
 from mobile_endpoint.views import ota_mod
 from mobile_endpoint.restore.restore import User as CaseXMLUser, RestoreConfig, RestoreParams, RestoreCacheSettings
+from tests.dummy import dummy_user
 
 
 @ota_mod.route('/restore/<domain>', methods=['GET'])
@@ -40,11 +41,7 @@ def get_restore_params(request):
 
 
 def get_user(user_id):
-    return CaseXMLUser(user_id=user_id,
-                       username='bob',
-                       password='***',
-                       date_joined=date(2014, 1, 12),
-                       user_data={})
+    return dummy_user(user_id)
 
 
 class Domain(object):
