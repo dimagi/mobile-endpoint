@@ -9,3 +9,6 @@ pytest
 lxml
 Flask-Migrate
 iso8601
+gunicorn
+gevent
+psycogreen
