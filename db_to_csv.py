@@ -25,7 +25,7 @@ class RowToCSV(object):
         for i in xrange(self.limit):
             got_a_doc = False
             while not got_a_doc:
-                response = requests.get(url, params={
+                response = requests.get(url, verify=False, params={
                     "startkey": '["{domain}", "{uuid}"]'.format(
                         domain=settings.DOMAIN,
                         uuid=str(uuid.uuid4()),
