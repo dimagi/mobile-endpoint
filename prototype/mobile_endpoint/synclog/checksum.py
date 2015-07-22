@@ -41,16 +41,26 @@ class Checksum(object):
     >>> c.hexdigest()
     '409c5c597fa2c2a693b769f0d2ad432b'
 
+    >>> c1 = Checksum(initial_checksum=c.hexdigest())
+    >>> c1.hexdigest()
+    '409c5c597fa2c2a693b769f0d2ad432b'
+
+    >>> c1.add('def')
+    >>> c1.hexdigest() == Checksum(['abc123', '123abc', 'def']).hexdigest()
+    True
+
     >>> Checksum().hexdigest()
     ''
 
     """
 
-    def __init__(self, init=None):
-        self._list = init or []
+    def __init__(self, initial_list=None, initial_checksum=None):
+        self._list = map(Checksum.hash, initial_list) if initial_list else []
+        if initial_checksum:
+            self._list.append(bytearray(binascii.unhexlify(initial_checksum)))
 
     def add(self, id):
-        self._list.append(id)
+        self._list.append(Checksum.hash(id))
 
     @classmethod
     def hash(cls, line):
@@ -61,11 +71,12 @@ class Checksum(object):
         assert(len(bytes1) == len(bytes2))
         return bytearray([b1 ^ b2 for (b1, b2) in zip(bytes1, bytes2)])
 
-    def hexdigest(self):
+    def digest(self):
         if not self._list:
             return EMPTY_HASH
-        x = copy(self._list)
-        x = map(Checksum.hash, x)
-        x = reduce(Checksum.xor, x)
-        x = binascii.hexlify(str(x))
+        x = reduce(Checksum.xor, self._list)
+        return str(x)
+
+    def hexdigest(self):
+        x = binascii.hexlify(self.digest())
         return x

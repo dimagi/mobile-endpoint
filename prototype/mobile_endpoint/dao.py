@@ -5,12 +5,10 @@ from uuid import UUID
 
 import redis
 from sqlalchemy.orm import contains_eager, defer
-from mobile_endpoint.case.models import CommCareCase
 
 from mobile_endpoint.exceptions import IllegalCaseId, NotFound
-from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex, cls_for_doc_type
-from mobile_endpoint.utils import chunked, get_with_lock
+from mobile_endpoint.utils import get_with_lock
 
 
 def to_generic(fn):
@@ -103,33 +101,35 @@ class SQLDao(AbsctractDao):
         cases = case_result.cases if case_result else []
         synclog = case_result.synclog if case_result else None
 
-        def get_indices():
-            for case in cases:
-                for index in case.indices:
-                    yield CaseIndex.from_generic(index, case.domain, case.id)
+        with db.session.begin(subtransactions=True):
 
-        new_form, xform_sql = cls_for_doc_type(xform.doc_type).from_generic(xform)
-        case_docs = map(lambda doc: CaseData.from_generic(doc, xform_sql), cases)
+            def get_indices():
+                for case in cases:
+                    for index in case.indices:
+                        yield CaseIndex.from_generic(index, case.domain, case.id)
 
-        combined = [(new_form, xform_sql)] + case_docs + list(get_indices())
-        if synclog:
-            combined.append(Synclog.from_generic(synclog))
-        for is_new, doc in combined:
-            if is_new:
-                db.session.add(doc)
+            new_form, xform_sql = cls_for_doc_type(xform.doc_type).from_generic(xform)
+            case_docs = map(lambda doc: CaseData.from_generic(doc, xform_sql), cases)
 
-        if case_result:
-            case_result.commit_dirtiness_flags()
+            combined = [(new_form, xform_sql)] + case_docs + list(get_indices())
+            if synclog:
+                combined.append(Synclog.from_generic(synclog))
 
-        db.session.commit()
+            for is_new, doc in combined:
+                if is_new:
+                    db.session.add(doc)
+
+            if case_result:
+                case_result.commit_dirtiness_flags()
+
 
     def commit_restore(self, restore_state):
         synclog_generic = restore_state.current_sync_log
         if synclog_generic:
             _, synclog = Synclog.from_generic(synclog_generic)
-            db.session.add(synclog)
 
-        db.session.commit()
+            with db.session.begin():
+                db.session.add(synclog)
 
     @to_generic
     def get_synclog(self, id):

@@ -6,10 +6,11 @@ from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 from sqlalchemy.orm.session import object_session
 from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 
-from mobile_endpoint.form.models import doc_types, XFormInstance, doc_types_compressed, compressed_doc_type
+from mobile_endpoint.form.models import XFormInstance, doc_types_compressed, compressed_doc_type
+from mobile_endpoint.synclog.checksum import Checksum
 from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={'autocommit': True})
 
 migrate = Migrate()
 
@@ -148,6 +149,7 @@ class CaseData(db.Model, ToFromGeneric):
     closed = db.Column(db.Boolean(), default=False, nullable=False)
     owner_id = db.Column(UUID(), nullable=False)
     server_modified_on = db.Column(db.DateTime(), nullable=False)
+    version = db.Column(db.Integer(), default=0)
     case_json = db.Column(JSONB(), nullable=False)
 
     forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
@@ -178,12 +180,10 @@ class CaseData(db.Model, ToFromGeneric):
             new = True
 
         json = generic.to_json()
-        self.domain = json.pop('domain')
-        self.server_modified_on = generic.server_modified_on
-        self.owner_id = json.pop('owner_id')
-        self.closed = json.pop('closed')
-        json.pop('server_modified_on')
         json.pop('indices')  # drop indices since they are stored separately
+        for att in ['domain', 'owner_id', 'closed', 'server_modified_on']:
+            setattr(self, att, getattr(generic, att))
+            json.pop(att)
         self.case_json = json
 
         if xform:
@@ -200,6 +200,12 @@ class CaseData(db.Model, ToFromGeneric):
                 "owner_id='{c.owner_id}', "
                 "server_modified_on='{c.server_modified_on}')"
         ).format(c=self)
+
+
+@event.listens_for(CaseData, "before_update")
+def update_version(mapper, connection, instance):
+    if object_session(instance).is_modified(instance):
+        instance.version += 1
 
 db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
 db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
@@ -227,14 +233,11 @@ class CaseIndex(db.Model, ToFromGeneric):
             self = generic._self
             new = False
         else:
-            self = cls()
+            self = cls(case_id=case_id, domain=domain)
             new = True
 
-        self.identifier = generic.identifier
-        self.referenced_type = generic.referenced_type
-        self.referenced_id = generic.referenced_id
-        self.case_id = case_id
-        self.domain = domain
+        for att in ['identifier', 'referenced_type', 'referenced_id', 'referenced_type']:
+            setattr(self, att, getattr(generic, att))
 
         return new, self
 
@@ -268,6 +271,10 @@ class Synclog(db.Model, ToFromGeneric):
     dependent_case_ids_on_phone = db.Column(ARRAY(UUID))
     index_tree = db.Column(JSONB())
 
+    @property
+    def checksum(self):
+        return Checksum(initial_checksum=self.hash)
+
     def to_generic(self):
         synclog = SimplifiedSyncLog(
             id=self.id,
@@ -290,19 +297,15 @@ class Synclog(db.Model, ToFromGeneric):
             self = generic._self
             new = False
         else:
-            self = cls()
+            self = cls(id=generic.id)
             new = True
 
-        self.id = generic.id
-        self.date = generic.date
-        self.domain = generic.domain
-        self.user_id = generic.user_id
-        self.previous_log_id = generic.previous_log_id
-        self.owner_ids_on_phone = generic.owner_ids_on_phone
-        self.case_ids_on_phone = generic.case_ids_on_phone
-        self.dependent_case_ids_on_phone = generic.dependent_case_ids_on_phone
+        for att in ['date', 'domain', 'user_id', 'previous_log_id', 'owner_ids_on_phone', 'case_ids_on_phone', 'dependent_case_ids_on_phone']:
+            setattr(self, att, getattr(generic, att))
+
         self.index_tree = generic.index_tree.indices
         self.hash = generic.get_state_hash().hash
+        
         return new, self
 
     def __repr__(self):
@@ -340,8 +343,8 @@ class OwnershipCleanlinessFlag(db.Model):
             if defaults:
                 for field, value in defaults.items():
                     setattr(instance, field, value)
-            db.session.add(instance)
-            db.session.flush()
+            with db.session.begin(subtransactions=True):
+                db.session.add(instance)
             return instance
 
 
