@@ -7,7 +7,7 @@ import settings
 
 requests.packages.urllib3.disable_warnings()
 
-POST_URL = "http://{host}:{port}/a/{domain}/receiver/{app_id}/".format(
+POST_URL = "https://{host}:{port}/a/{domain}/receiver/{app_id}/".format(
     host=settings.HQ_HOST,
     port=settings.HQ_PORT,
     domain=settings.DOMAIN,
