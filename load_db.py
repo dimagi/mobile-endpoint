@@ -5,9 +5,7 @@ import requests
 from uuid import uuid4
 import settings
 
-import urllib3
-urllib3.disable_warnings()
-
+requests.packages.urllib3.disable_warnings()
 
 POST_URL = "http://{host}:{port}/a/{domain}/receiver/{app_id}/".format(
     host=settings.HQ_HOST,
