@@ -16,7 +16,8 @@ POST_URL = "http://{host}:{port}/a/{domain}/receiver/{app_id}/".format(
 
 
 def post_form(form):
-    requests.post(POST_URL, files={"xml_submission_file": form}, verify=False)
+    req = requests.post(POST_URL, files={"xml_submission_file": form}, verify=False)
+    req.raise_for_status()
 
 
 def load_data(scale):
