@@ -2,6 +2,7 @@ import os
 
 from invoke import task
 import sh
+import sys
 
 import settings
 from load_db import load_data
@@ -16,7 +17,7 @@ def tsung_hammer():
 
 
 @task
-def tsung_build():
+def tsung_build(user_rate=None, duration=None):
     from jinja2 import Environment, PackageLoader
     env = Environment(loader=PackageLoader('tsung', 'templates'))
 
@@ -24,8 +25,8 @@ def tsung_build():
 
     context = {
         'dtd_path': settings.TSUNG_DTD_PATH,
-        'duration': settings.TSUNG_DURATION,
-        'arrival_rate': settings.TSUNG_USERS_PER_SECOND,
+        'duration': duration or settings.TSUNG_DURATION,
+        'arrival_rate': user_rate or settings.TSUNG_USERS_PER_SECOND,
         'casedb': os.path.join(tsung_dir, 'files', 'casedb.csv'),
         'hq_host': settings.HQ_HOST,
         'hq_port': settings.HQ_PORT,
@@ -106,3 +107,20 @@ def load_db(scale):
     print("  case_form rows: ", new_cases + case_updates)
 
     load_data(scale)
+
+
+@task
+def awesome_test(test_name, user_rate, duration, load=0, log_dir=None):
+    if load:
+        load_db(load)
+    tsung_build(user_rate, duration)
+    tsung_erl_build()
+    if load:
+        # Don't rebuild casedb.csv if the database wasn't reloaded.
+        tsung_db()
+    args = ("-f", "tsung/build/{}.xml".format(test_name), "start")
+    if log_dir:
+        args = args + ("-l", log_dir)
+    for line in sh.tsung(*args, _iter=True):
+        sys.stdout.write(line)
+    # TODO: Build the report
