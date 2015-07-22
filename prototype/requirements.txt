@@ -12,3 +12,5 @@ iso8601
 gunicorn
 gevent
 psycogreen
+jsonobject
+pytz
