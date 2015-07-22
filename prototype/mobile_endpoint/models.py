@@ -42,6 +42,7 @@ class FormData(db.Model, ToFromGeneric):
     user_id = db.Column(UUID(), nullable=False)
     md5 = db.Column(db.LargeBinary(), nullable=False)
     synclog_id = db.Column(UUID(), db.ForeignKey('synclog.id'))
+    attachments = db.Column(JSONB())
 
     synclog = db.relationship("Synclog", foreign_keys=[synclog_id])
 
@@ -92,6 +93,7 @@ class FormError(db.Model, ToFromGeneric):
     md5 = db.Column(db.LargeBinary(), nullable=False)
     type = db.Column(db.Integer(), nullable=False)
     duplicate_id = db.Column(UUID(), db.ForeignKey('form_data.id'))
+    attachments = db.Column(JSONB())
 
     def to_generic(self):
         generic = doc_types_compressed().get(self.type)()
@@ -151,6 +153,7 @@ class CaseData(db.Model, ToFromGeneric):
     server_modified_on = db.Column(db.DateTime(), nullable=False)
     version = db.Column(db.Integer(), default=0)
     case_json = db.Column(JSONB(), nullable=False)
+    attachments = db.Column(JSONB())
 
     forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
 

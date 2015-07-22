@@ -21,10 +21,7 @@ def testapp():
 @pytest.fixture()
 def db_reset(request):
     def teardown():
-        with db.session.begin():
-            for table in reversed(db.Model.metadata.sorted_tables):
-                db.session.execute(table.delete())
-
+        delete_all_data()
         db.session.remove()
 
     request.addfinalizer(teardown)
@@ -33,3 +30,10 @@ def db_reset(request):
 @pytest.fixture()
 def client(testapp):
     return testapp.test_client()
+
+
+def delete_all_data():
+    with db.session.begin():
+        for table in reversed(db.Model.metadata.sorted_tables):
+            db.session.execute(table.delete())
+

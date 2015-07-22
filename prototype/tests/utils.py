@@ -1,4 +1,8 @@
+from datetime import datetime
+from uuid import uuid4
 from lxml import etree
+from mobile_endpoint.models import Synclog, db
+from mobile_endpoint.synclog.checksum import Checksum
 
 
 def check_xml_line_by_line(expected, actual):
@@ -25,3 +29,22 @@ def check_xml_line_by_line(expected, actual):
         import logging
         logging.error("Failure in xml comparison\nExpected:\n%s\nActual:\n%s" % (parsed_expected, parsed_actual))
         raise
+
+
+def create_synclog(domain, user_id, owner_ids=None, case_ids=None, dependent_case_ids=None, index_tree=None):
+    case_ids = case_ids or []
+    hash = Checksum(case_ids).hexdigest()
+    synclog_id = str(uuid4())
+    with db.session.begin():
+        db.session.add(Synclog(
+            id=synclog_id,
+            date=datetime.utcnow(),
+            domain=domain,
+            user_id=user_id,
+            hash=hash,
+            owner_ids_on_phone=owner_ids or [user_id],
+            case_ids_on_phone=case_ids,
+            dependent_case_ids_on_phone=dependent_case_ids or [],
+            index_tree=index_tree or {}
+        ))
+    return synclog_id
