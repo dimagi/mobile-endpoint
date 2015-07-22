@@ -6,7 +6,6 @@ import string
 from uuid import uuid4
 
 import pytest
-from mobile_endpoint.const import ATTACHMENT_TYPES
 
 from mobile_endpoint.models import db, FormData, CaseData, Synclog, CaseIndex
 from mobile_endpoint.synclog.checksum import Checksum
@@ -93,12 +92,7 @@ class TestDetermineRowSizes(object):
         synclog_id = create_synclog(domain, str(uuid4()))
         forms = []
         for i in range(num_rows):
-            attachments = [{
-                _random_string(20): {
-                    'mime': random.choice(ATTACHMENT_TYPES.values()),
-                    'size': 5000
-                }
-            } for i in range(attachments_per_row)]
+            attachments = _get_attachment_json(attachments_per_row)
             forms.append(
                 FormData(id=str(uuid4()), domain=domain, received_on=datetime.utcnow(),
                         user_id=str(uuid4()), md5=hashlib.md5(str(uuid4())).digest(), synclog_id=synclog_id,
@@ -124,20 +118,7 @@ class TestDetermineRowSizes(object):
         delete_all_data()
         cases = []
         for i in range(num_rows):
-            attachments = {
-                _random_string(20): {
-                    'mime': random.choice(ATTACHMENT_TYPES.values()),
-                    'size': 5000,
-                    'id': _random_string(20),
-                    'src': _random_string(50),
-                    'from': 'local',
-                    'name': _random_string(20),
-                    'md5': hashlib.md5(str(uuid4())).hexdigest(),
-                    'props': {'w': 240, 'h': 164}
-                }
-                for i in range(attachments_per_row)
-            }
-
+            attachments = _get_attachment_json(attachments_per_row)
             case_json = case_json_compact(case_properties_per_row, forms_per_case)
             cases.append(
                 CaseData(id=str(uuid4()), domain=domain, owner_id=str(uuid4()),
@@ -147,6 +128,16 @@ class TestDetermineRowSizes(object):
             )
 
         db.session.bulk_save_objects(cases)
+
+
+def _get_attachment_json(num):
+    return {
+        _random_string(20): {
+            'mime': _random_string(20),
+            'size': 5000,
+        }
+        for i in range(num)
+    }
 
 
 def case_json_expanded(num_props, num_forms):
@@ -203,7 +194,7 @@ def case_json_compact(num_props, num_forms):
     case_json = {
         'f': f_dict,
         'p': {
-            _random_string(20): [random.choice(f_dict.keys())[0], _random_string(20)]
+            _random_string(20): [random.choice(f_dict.keys()), _random_string(20)]
             for i in range(num_props)
         }
     }
