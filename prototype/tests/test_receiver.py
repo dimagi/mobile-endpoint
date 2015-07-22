@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from uuid import uuid4
 
 import pytest
 
-from mobile_endpoint.models import FormData, CaseData, Synclog, db
+from mobile_endpoint.models import FormData, CaseData, Synclog
 from mobile_endpoint.synclog.checksum import Checksum
 from mobile_endpoint.views.response import OPEN_ROSA_SUCCESS_RESPONSE
 from tests.mock import CaseFactory, CaseStructure, post_case_blocks, CaseRelationship
+from tests.utils import create_synclog
 
 DOMAIN = 'test_domain'
 
@@ -73,7 +73,7 @@ class TestReceiver(object):
     def test_form_with_synclog(self, testapp, client):
         user_id = str(uuid4())
         form_id = str(uuid4())
-        synclog_id = _create_synclog(user_id)
+        synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             result = post_case_blocks(client, '', form_extras={
                     'form_id': form_id,
@@ -93,7 +93,7 @@ class TestReceiver(object):
         user_id = str(uuid4())
         form_id = str(uuid4())
         case_id = str(uuid4())
-        synclog_id = _create_synclog(user_id)
+        synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
                 client,
@@ -124,7 +124,7 @@ class TestReceiver(object):
     def test_update_case(self, testapp, client):
         user_id = str(uuid4())
         case_id = str(uuid4())
-        synclog_id = _create_synclog(user_id)
+        synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
                 client,
@@ -182,23 +182,3 @@ class TestReceiver(object):
                     'referenced_id': parent.id,
                 }
             })
-
-
-def _create_synclog(user_id, owner_ids=None, case_ids=None, dependent_case_ids=None, index_tree=None):
-    case_ids = case_ids or []
-    hash = Checksum(case_ids).hexdigest()
-    synclog_id = str(uuid4())
-    with db.session.begin():
-        db.session.add(Synclog(
-            id=synclog_id,
-            date=datetime.utcnow(),
-            domain=DOMAIN,
-            user_id=user_id,
-            hash=hash,
-            owner_ids_on_phone=owner_ids or [user_id],
-            case_ids_on_phone=case_ids,
-            dependent_case_ids_on_phone=dependent_case_ids or [],
-            index_tree=index_tree or {}
-        ))
-    return synclog_id
-
