@@ -43,7 +43,6 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
     }
-    import ipdb; ipdb.set_trace()
     for filename in os.listdir(os.path.join(tsung_dir, 'templates')):
         if filename.endswith('j2'):
             template = env.get_template(filename)
