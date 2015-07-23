@@ -2,15 +2,27 @@ import os
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
-HQ_HOST = ""
-HQ_PORT = ""
+BACKENDS = {
+    'current': {
+        'SUBMISSION_URL': '',
+        'HOST': '',
+        'PORT': '',
+        # For extracting case ids:
+        'COUCH_HOST': '',
+        'COUCH_PORT': '',
+
+    },
+    'prototype': {
+        'SUBMISSION_URL': '',
+        'HOST': '',
+        'PORT': '',
+    },
+}
+
 HQ_APP_ID = ""
 DOMAIN = ""
 USER_ID = ""
 USERNAME = ""
-
-COUCH_HOST = ""
-COUCH_PORT = ""
 
 ##### SCALE FACTORS #####
 # see "load_db.py" for how these relate to real numbers of rows

@@ -6,7 +6,7 @@
     </clients>
 
     <servers>
-        <server host="{{ hq_host }}" port="{{ hq_port }}" type="tcp"></server>
+        <server host="{{ host }}" port="{{ port }}" type="tcp"></server>
     </servers>
 
     <load>
@@ -40,7 +40,7 @@
             <transaction name="submit_case_creation_form">
                 <request subst="true">
                     <http
-                        url="/a/{{ domain }}/receiver/{{ hq_app_id }}/"
+                        url="{{ submission_url }}"
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ create_submission }}"
@@ -67,9 +67,10 @@
 
             <transaction name="submit_case_update_form">
                 <request subst="true">
+                    <!-- TODO: Confirm that http tag works on an https url -->
                     <!-- NOTE: For some reason the couch request above seems to bork the host setting, which is why I need to set the host in the following url explicitly -->
                     <http
-                        url="http://{{ hq_host }}:{{ hq_port }}/a/{{ domain }}/receiver/{{ hq_app_id }}/"
+                        url="{{ submission_url }}"
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ update_submission }}"
