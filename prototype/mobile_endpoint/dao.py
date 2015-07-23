@@ -5,12 +5,10 @@ from uuid import UUID
 
 import redis
 from sqlalchemy.orm import contains_eager, defer
-from mobile_endpoint.case.models import CommCareCase
 
-from mobile_endpoint.exceptions import IllegalCaseId
-from mobile_endpoint.form.models import XFormInstance
+from mobile_endpoint.exceptions import IllegalCaseId, NotFound
 from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex, cls_for_doc_type
-from mobile_endpoint.utils import chunked, get_with_lock
+from mobile_endpoint.utils import get_with_lock
 
 
 def to_generic(fn):
@@ -40,10 +38,14 @@ class AbsctractDao(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def commit(self, xform, cases):
+    def commit_atomic_submission(self, xform, cases):
         """
         Commit the transaction
         """
+        pass
+
+    @abstractmethod
+    def commit_restore(self, restore_state):
         pass
 
     @abstractmethod
@@ -63,45 +65,79 @@ class AbsctractDao(object):
         pass
 
     @abstractmethod
-    def iter_cases(self, case_ids, chunksize=100, ordered=True):
+    def get_cases(self, case_ids, ordered=True):
         pass
 
     @abstractmethod
     def get_reverse_indexed_cases(self, domain, case_ids):
         pass
 
+    @abstractmethod
+    def get_open_case_ids(self, domain, owner_id):
+        pass
+
+    @abstractmethod
+    def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
+        pass
+
+    @abstractmethod
+    def get_indexed_case_ids(self, domain, case_ids):
+        """
+        Given a base list of case ids, gets all ids of cases they reference (parent cases)
+        """
+        pass
+
+    @abstractmethod
+    def get_last_modified_dates(self, domain, case_ids):
+        """
+        Given a list of case IDs, return a dict where the ids are keys and the
+        values are the last server modified date of that case.
+        """
+        pass
+
 
 class SQLDao(AbsctractDao):
-    def commit(self, xform, cases):
-        def to_sql(doc):
-            if isinstance(doc, XFormInstance):
-                return cls_for_doc_type(doc.doc_type).from_generic(doc)
-            elif isinstance(doc, CommCareCase):
-                return CaseData.from_generic(doc)
+    def commit_atomic_submission(self, xform, case_result):
+        cases = case_result.cases if case_result else []
+        synclog = case_result.synclog if case_result else None
 
-        def get_indices():
-            for case in cases:
-                for index in case.indices:
-                    yield CaseIndex.from_generic(index, case.domain, case.id)
+        with db.session.begin(subtransactions=True):
 
-        new_form, xform_sql = to_sql(xform)
-        case_docs = map(to_sql, cases)
+            def get_indices():
+                for case in cases:
+                    for index in case.indices:
+                        yield CaseIndex.from_generic(index, case.domain, case.id)
 
-        indices = list(get_indices())
+            new_form, xform_sql = cls_for_doc_type(xform.doc_type).from_generic(xform)
+            case_docs = map(lambda doc: CaseData.from_generic(doc, xform_sql), cases)
 
-        for new_case, case_sql in case_docs:
-            case_sql.forms.append(xform_sql)
+            combined = [(new_form, xform_sql)] + case_docs + list(get_indices())
+            if synclog:
+                combined.append(Synclog.from_generic(synclog))
 
-        combined = [(new_form, xform_sql)] + case_docs + indices
-        for is_new, doc in combined:
-            if is_new:
-                db.session.add(doc)
+            for is_new, doc in combined:
+                if is_new:
+                    db.session.add(doc)
 
-        db.session.commit()
+            if case_result:
+                case_result.commit_dirtiness_flags()
+
+
+    def commit_restore(self, restore_state):
+        synclog_generic = restore_state.current_sync_log
+        if synclog_generic:
+            _, synclog = Synclog.from_generic(synclog_generic)
+
+            with db.session.begin():
+                db.session.add(synclog)
 
     @to_generic
     def get_synclog(self, id):
-        return Synclog.query.get(id)
+        synclog = Synclog.query.get(id)
+        if not synclog:
+            raise NotFound()
+
+        return synclog
 
     @to_generic
     def get_form(self, id):
@@ -118,8 +154,8 @@ class SQLDao(AbsctractDao):
         return CaseData.query.filter_by(id=id).exists()
 
     @to_generic
-    def iter_cases(self, case_ids, chunksize=100, ordered=False):
-        cases = CaseData.query.filter(CaseData.id.in_(case_ids))
+    def get_cases(self, case_ids, ordered=False):
+        cases = CaseData.query.filter(CaseData.id.in_(case_ids)).all()
         if ordered:
             # SQL won't return the rows in any particular order so we need to order them ourselves
             index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
@@ -138,6 +174,34 @@ class SQLDao(AbsctractDao):
             .options(
                 contains_eager('indices'),
                 defer(CaseData.case_json)
+        ).all()
+
+    def get_open_case_ids(self, domain, owner_id):
+        return [row[0] for row in CaseData.query.with_entities(CaseData.id).filter(
+            CaseData.domain == domain,
+            CaseData.owner_id == owner_id,
+            CaseData.closed == False
+        )]
+
+    def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
+        return [row[0] for row in CaseData.query.with_entities(CaseData.id).filter(
+            CaseData.domain == domain,
+            CaseData.owner_id == owner_id,
+            CaseData.server_modified_on > reference_date
+        )]
+
+    def get_indexed_case_ids(self, domain, case_ids):
+        return [row[0] for row in CaseIndex.query.with_entities(CaseIndex.referenced_id).filter(
+            CaseIndex.domain == domain,
+            CaseIndex.case_id.in_(case_ids),
+        )]
+
+    def get_last_modified_dates(self, domain, case_ids):
+        return dict(
+            CaseData.query.with_entities(CaseData.id, CaseData.server_modified_on).filter(
+                CaseData.domain == domain,
+                CaseData.id.in_(case_ids)
+            )
         )
 
 
@@ -219,7 +283,7 @@ class CaseDbCache(object):
         Does NOT overwrite what is already in the cache if there is already something there.
         """
         case_ids = set(case_ids) - set(self.cache.keys())
-        for case in self.dao.iter_cases(case_ids):
+        for case in self.dao.get_cases(case_ids):
             self.set(case['id'], case)
 
     def mark_changed(self, case):
