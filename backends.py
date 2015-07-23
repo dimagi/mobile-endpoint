@@ -56,6 +56,7 @@ class Current(Backend):
     name = 'current'
 
     def populate_case_csv(self, limit, dest):
+        # Pull random-ish case ids from the database.
 
         # Erase the contents of the file
         open(dest, 'w').close()
