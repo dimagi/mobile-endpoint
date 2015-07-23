@@ -101,9 +101,9 @@ def load_db(scale):
     case_updates = int(forms_with_cases * (1 - settings.NEW_UPDATE_CASE_RATIO))
     case_indexes = int(new_cases * settings.CHILD_CASE_RATIO)
     print("Loading data. Estimated numbers:")
-    print("  formdata rows:  ", forms)
-    print("  casedata rows:  ", new_cases)
-    print("  caseindex rows: ", case_indexes)
+    print("  forms:  ", forms)
+    print("  new cases:  ", new_cases)
+    print("  case indexes: ", case_indexes)
     print("  case_form rows: ", new_cases + case_updates)
 
     load_data(scale)
