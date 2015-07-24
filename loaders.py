@@ -214,6 +214,8 @@ class DataLoader(object):
         self.form_json = load_json('form.json')
         self.form_case_partial = load_json('form_case_partial.json')
         self.case_json = load_json('case.json')
+        self.case_update_partial = load_json('case_update_partial.json')
+        self.case_index_partial = load_json('case_index_partial.json')
         self.synclog_json = load_json('synclog.json')
 
         self.num_cases = self.scale * settings.SCALE_FACTOR * settings.FORM_CASE_RATIO
@@ -248,7 +250,7 @@ class DataLoader(object):
         id_index = random.randint(0, max_num)
         new = False
         if id_index not in id_dict:
-            id_dict[id_index] = uuid4().hex
+            id_dict[id_index] = str(uuid4())
             new = True
 
         return id_dict[id_index], new
@@ -256,7 +258,7 @@ class DataLoader(object):
     def get_user_id(self):
         user_id, new = self._get_doc_id(self.user_ids, settings.NUM_UNIQUE_USERS)
         if new:
-            synclog_id = uuid4().hex
+            synclog_id = str(uuid4())
             self.user_synclogs[user_id] = synclog_id
 
             synclog = deepcopy(self.synclog_json)
@@ -306,6 +308,14 @@ class DataLoader(object):
         case['user_id'] = user_id
         case['owner_id'] = user_id
         case['xform_ids'] = forms
+        case['actions'][0]['xform_id'] = forms[0]
+        case['actions'][0]['user_id'] = user_id
+
+        for form_id in forms[1:]:
+            action = deepcopy(self.case_update_partial)
+            action['xform_id'] = form_id
+            action['user_id'] = user_id
+            case['actions'].append(action)
 
         if is_child_case:
             self.num_case_indexes += 1
@@ -314,12 +324,14 @@ class DataLoader(object):
             while parent_id == case_id:
                 parent_id = random.choice(case_ids)
 
-            case['indices'] = [{
-                "doc_type": "CommCareCaseIndex",
-                "identifier": "parent",
-                "referenced_type": "registration",
-                "referenced_id": parent_id
-            }]
+            index = {"doc_type": "CommCareCaseIndex", "identifier": "parent",
+                     "referenced_type": "registration", "referenced_id": parent_id}
+            action = deepcopy(self.case_index_partial)
+            action['xform_id'] = forms[-1]
+            action['user_id'] = user_id
+            action['indices'] = [index]
+            case['actions'].append(action)
+            case['indices'] = [index]
 
         return case
 
