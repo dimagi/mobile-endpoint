@@ -1,0 +1,143 @@
+{
+   "_id": "",
+   "opened_on": "2013-07-16T12:53:34Z",
+   "domain": "",
+   "surname": "",
+   "initial_processing_complete": false,
+   "actions": [
+       {
+           "doc_type": "CommCareCaseAction",
+           "xform_id": "3fd21b20-486a-4d96-b746-27b4c2592768",
+           "user_id": "320fc8e02431d2e619e261ff0c67d8e9",
+           "xform_name": "Register Child",
+           "sync_log_id": "edc036e51d54d8e1d873668e810224b2",
+           "server_date": "2013-07-22T09:43:20Z",
+           "action_type": "create",
+           "updated_known_properties": {
+               "type": "child_list",
+               "name": "",
+               "owner_id": "320fc8e02431d2e619e261ff0c67d8e9"
+           },
+           "updated_unknown_properties": {
+           },
+           "indices": [
+           ],
+           "xform_xmlns": "http://openrosa.org/formdesigner/5BC81A5E-3347-43B9-B5F6-0297FAD40FAD",
+           "date": "2013-07-16T12:53:34Z"
+       },
+       {
+           "doc_type": "CommCareCaseAction",
+           "xform_id": "3fd21b20-486a-4d96-b746-27b4c2592768",
+           "user_id": "320fc8e02431d2e619e261ff0c67d8e9",
+           "xform_name": "Register Child",
+           "sync_log_id": "edc036e51e54d8e1d873668e810224b2",
+           "server_date": "2013-07-22T09:43:20Z",
+           "action_type": "update",
+           "updated_known_properties": {
+           },
+           "updated_unknown_properties": {
+               "first_name": "",
+               "surname": "",
+               "dob": "2013-04-13",
+               "delivery_place": "home",
+               "delivery_in_facility": "no",
+               "sex": "sex-female",
+               "full_name": "",
+               "health_id": "",
+               "dob_calc": "2013-04-13",
+               "weight_at_birth": ""
+           },
+           "indices": [
+           ],
+           "xform_xmlns": "http://openrosa.org/formdesigner/5BC81A5E-3347-43B9-B5F6-0297FAD40FAD",
+           "date": "2013-07-16T12:53:34Z"
+       },
+       {
+           "doc_type": "CommCareCaseAction",
+           "xform_id": "3fd21b20-486a-4d96-b746-27b4c2592768",
+           "user_id": "320fc8e02431d2e619e261ff0c67d8e9",
+           "xform_name": "Register Child",
+           "sync_log_id": "edc036e51d54d8e1d873668e810224b2",
+           "server_date": "2013-07-22T09:43:20Z",
+           "action_type": "index",
+           "updated_known_properties": {
+           },
+           "updated_unknown_properties": {
+           },
+           "indices": [
+               {
+                   "doc_type": "CommCareCaseIndex",
+                   "identifier": "parent",
+                   "referenced_type": "registration",
+                   "referenced_id": "f08ad6f5-f3fb-4e73-9be0-9520c1fa958b"
+               }
+           ],
+           "xform_xmlns": "http://openrosa.org/formdesigner/5BC81A5E-3347-43B9-B5F6-0297FAD40FAD",
+           "date": "2013-07-16T12:53:34Z"
+       },
+       {
+           "doc_type": "CommCareCaseAction",
+           "xform_id": "607760d2-662d-43d6-8fad-ecd5289a706a",
+           "user_id": "320fc8e02431d2e619e261ff0c67d8e9",
+           "xform_name": "Visit",
+           "sync_log_id": "edc036e51d54d8e1d873668e810224b2",
+           "server_date": "2013-07-22T09:43:37Z",
+           "action_type": "update",
+           "updated_known_properties": {
+           },
+           "updated_unknown_properties": {
+               "curr_danger_type": " ",
+               "cur_muac": "",
+               "curr_referral_type": "",
+               "stop_postnatal_sms": "1"
+           },
+           "indices": [
+           ],
+           "xform_xmlns": "http://openrosa.org/formdesigner/99EB4DCB-891C-49AA-9445-ADCD87ECD88B",
+           "date": "2013-07-16T12:56:59Z"
+       }
+   ],
+   "sex": "sex-male",
+   "full_name": "Silent Bob",
+   "curr_referral_type": "",
+   "closed_on": null,
+   "first_name": "Silent",
+   "user_id": "",
+   "computed_": {
+   },
+   "#export_tag": [
+       "domain",
+       "type"
+   ],
+   "delivery_in_facility": "no",
+   "curr_danger_type": " ",
+   "version": "2.0",
+   "closed": false,
+   "health_id": "12345",
+   "type": "child_list",
+   "owner_id": "",
+   "xform_ids": [
+   ],
+   "server_modified_on": "",
+   "location_": [
+   ],
+   "export_tag": [
+   ],
+   "delivery_place": "home",
+   "computed_modified_on_": null,
+   "modified_on": "",
+   "closed_by": null,
+   "doc_type": "CommCareCase",
+   "referrals": [
+   ],
+   "name": "",
+   "dob": "2013-04-13",
+   "stop_postnatal_sms": "1",
+   "cur_muac": "",
+   "dob_calc": "2013-04-13",
+   "opened_by": "320fc8a02431d2e619e261ff0c67d8e9",
+   "indices": [
+   ],
+   "external_id": null,
+   "weight_at_birth": ""
+}

@@ -5,6 +5,7 @@ from invoke import task
 import sh
 import backends
 import settings
+from utils import confirm
 
 
 def _get_backend(backend_name):
@@ -103,18 +104,9 @@ def load_db(scale, backend_name):
     except ValueError:
         print("Scale must be an integer")
 
-    forms = settings.SCALE_FACTOR * scale
-    forms_with_cases = forms * settings.FORM_CASE_RATIO
-    new_cases = int(forms_with_cases * settings.NEW_UPDATE_CASE_RATIO)
-    case_updates = int(forms_with_cases * (1 - settings.NEW_UPDATE_CASE_RATIO))
-    case_indexes = int(new_cases * settings.CHILD_CASE_RATIO)
-    print("Loading data. Estimated numbers:")
-    print("  forms:  ", forms)
-    print("  new cases:  ", new_cases)
-    print("  case indexes: ", case_indexes)
-    print("  case_form rows: ", new_cases + case_updates)
-
     backend = _get_backend(backend_name)
+    if confirm("Do you want to delete the current database?"):
+        backend.reset_db()
     backend.load_data(scale)
 
 

@@ -1,0 +1,36 @@
+{
+    "@case_id": "",
+    "@date_modified": "",
+    "@user_id": "",
+    "@xmlns": "http://commcarehq.org/case/transaction/v2",
+    "create": {
+        "case_name": "nurse-20150511110900",
+        "case_type": "test",
+        "owner_id": ""
+    },
+    "update": {
+        "age": "45",
+        "clinic": "demo",
+        "country": "",
+        "diagnoses_match": "yes",
+        "diagnosis": "POSITIVE",
+        "district": "",
+        "expiration_date": "2016-05-11",
+        "gps": "",
+        "gps_country": "",
+        "gps_district": "",
+        "gps_province": "",
+        "lot_number": "1345",
+        "odk_control_result": "VALID",
+        "odk_diagnosis": "POSITIVE",
+        "odk_line_1": "POSITIVE",
+        "odk_line_2": "",
+        "patient_id": "nurse-20150511110900",
+        "province": "",
+        "sex": "male",
+        "test_date": "2015-05-11",
+        "visual_control_result": "VALID",
+        "visual_line_1": "POSITIVE",
+        "visual_line_2": ""
+    }
+}
