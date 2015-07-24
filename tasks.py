@@ -16,13 +16,6 @@ def _get_backend(backend_name):
 
 
 @task
-def tsung_hammer():
-    tsung_build()
-    tsung_erl_build()
-    populate_case_ids()
-
-
-@task
 def tsung_build(backend_name, user_rate=None, duration=None):
     from jinja2 import Environment, PackageLoader
     env = Environment(loader=PackageLoader('tsung', 'templates'))
@@ -55,47 +48,6 @@ def tsung_build(backend_name, user_rate=None, duration=None):
             with open(new_filename, 'w') as f:
                 f.write(template.render(**context))
                 print("Built config: {}".format(new_filename))
-
-
-@task
-def tsung_erl_compile():
-    erlc = sh.Command('erlc')
-    erl_dir = os.path.join(settings.BASEDIR, 'tsung', 'erlang_subst')
-    erlc('-o', erl_dir, sh.glob(os.path.join(erl_dir, '*.erl')))
-    print('Successfully compiled erl files')
-
-
-@task
-def tsung_erl_clean():
-    erl_dir = os.path.join(settings.BASEDIR, 'tsung', 'erlang_subst')
-    try:
-        sh.rm(sh.glob(os.path.join(erl_dir, '*.beam')))
-    except sh.ErrorReturnCode_1, e:
-        print('There\'s probably nothing to clean, try running tsung_erl_compile')
-    print('Successfully cleaned beam files')
-
-
-@task
-def tsung_erl_link():
-    erl_dir = os.path.join(settings.BASEDIR, 'tsung', 'erlang_subst')
-    sh.ln('-sf', sh.glob(os.path.join(erl_dir, '*.beam')), settings.TSUNG_EBIN)
-    print('Successfully linked beam files')
-
-
-@task
-def tsung_erl_build():
-    tsung_erl_clean()
-    tsung_erl_compile()
-    tsung_erl_link()
-
-
-@task
-def populate_case_ids(backend_name):
-    """Builds casedb.csv for tsung to reference using existing data in the database"""
-    _get_backend(backend_name).populate_case_csv(
-        settings.NUM_CASES_TO_UPDATE,
-        os.path.join(settings.BASEDIR, 'tsung/files/casedb.csv'),
-    )
 
 
 @task

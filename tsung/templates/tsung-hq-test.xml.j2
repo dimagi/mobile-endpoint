@@ -30,11 +30,16 @@
                 <var name="user_id" />
             </setdynvars>
 
-            <setdynvars sourcetype="random_string" length="32">
-                <var name="case_id" />
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="case_id" />
             </setdynvars>
-            <setdynvars sourcetype="random_string" length="32">
-                <var name="form_instance_id" />
+
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="form_instance_id" />
             </setdynvars>
 
             <transaction name="submit_case_creation_form">
@@ -61,8 +66,10 @@
             <setdynvars sourcetype="value" value="{{ user_id }}">
                 <var name="user_id" />
             </setdynvars>
-            <setdynvars sourcetype="random_string" length="32">
-                <var name="form_instance_id" />
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="form_instance_id" />
             </setdynvars>
 
             <transaction name="submit_case_update_form">
