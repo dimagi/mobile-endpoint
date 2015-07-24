@@ -1,5 +1,52 @@
 # mobile-endpoint
 
+Libraries for loadtesting CommCare HQ's new form and case processing/retore engine.
+
+This repository mainly consists of two components:
+
+- A prototype endpoint (with swappable backends) for processing forms and cases and restoring data to phones
+- A suite of load testing tools (including tests of the prototype) built on tsung.
+
+## Prototype
+
+### Prerequisites
+
+These tests depend on Postgres 9.4 or later since they make use of the jsonb column type.
+
+See [http://www.postgresql.org/docs/9.4/static/upgrading.html] for information about upgrading your local postgres.
+
+### Installation
+
+To setup an environment for the prototype make a new virtualenv and install requirements:
+
+```
+$ makevirtualenv --no-site-packages mobile-endpoint
+$ cd prototype/
+$ pip install requirements.txt  # different from tsung requirements
+```
+
+### Running tests
+
+In the prototype directory first setup a `localconfig.py` and `testconfig.py` and edit the connection string (and anything else as necessary).
+`localconfig.py` just needs to exist (and will be used for running the server).
+`testconfig.py` overrides `localconfig.py` when running tests.
+
+```
+$ cp localconfig.example.py localconfig.py
+$ cp testconfig.example.py testconfig.py
+```
+
+Once your settings are updated you can run tests as follows
+
+```
+$ py.test  # run all tests
+$ py.test test_models  # run model tests
+$ py.test test_basic  # run test_models.test_basic
+```
+
+
+## Tsung Tests
+
 ### Loading the database
 
 To load the database you can use `invoke`. First initialize the DB:

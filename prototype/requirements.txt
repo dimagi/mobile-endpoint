@@ -3,7 +3,7 @@ Flask-SQLAlchemy
 SQLAlchemy
 Werkzeug
 Flask-Script
-flask-redis
+flask-redis==0.1.0
 psycopg2
 pytest
 lxml
