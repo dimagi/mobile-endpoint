@@ -49,7 +49,10 @@
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ create_submission }}"
-                    ></http>
+                    >
+                        <www_authenticate userid="admin" passwd="secret"/>
+                        <http_header name="Content-Type" value="application/xml"/>
+                    </http>
                 </request>
             </transaction>
         </session>
@@ -81,7 +84,10 @@
                         method="POST"
                         version="1.1"
                         contents_from_file="{{ update_submission }}"
-                    ></http>
+                    >
+                    <www_authenticate userid="admin" passwd="secret"/>
+                    <http_header name="Content-Type" value="application/xml"/>
+                    </http>
                 </request>
             </transaction>
         </session>
