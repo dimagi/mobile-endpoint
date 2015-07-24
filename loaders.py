@@ -153,7 +153,6 @@ class SynclogLoaderSQL(RowLoader):
         ))
 
 
-
 class FullCaseLoaderSQL(RowLoader):
     def __init__(self, psql):
         self.psql = psql

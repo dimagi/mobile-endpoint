@@ -28,6 +28,10 @@ def tsung_build(backend_name, user_rate=None, duration=None):
     env = Environment(loader=PackageLoader('tsung', 'templates'))
 
     tsung_dir = os.path.join(settings.BASEDIR, 'tsung')
+    build_dir = os.path.join(tsung_dir, 'build')
+    if not os.path.isdir(build_dir):
+        os.makedirs(build_dir)
+
     backend = _get_backend(backend_name)
 
     context = {
@@ -35,19 +39,19 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         'duration': duration or settings.TSUNG_DURATION,
         'arrival_rate': user_rate or settings.TSUNG_USERS_PER_SECOND,
         'casedb': os.path.join(tsung_dir, 'files', 'casedb.csv'),
-        'host': settings.BACKENDS[backend_name]['HOST'],
-        'port': settings.BACKENDS[backend_name]['PORT'],
+        'host': backend.settings['HOST'],
+        'port': backend.settings['PORT'],
         'submission_url': backend.submission_url,
-        'username': settings.USERNAME,
+        'username': backend.settings['USERNAME'],
         'domain': settings.DOMAIN,
-        'user_id': settings.USER_ID,
+        'user_id': backend.settings['USER_ID'],
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
     }
     for filename in os.listdir(os.path.join(tsung_dir, 'templates')):
         if filename.endswith('j2'):
             template = env.get_template(filename)
-            new_filename = os.path.join(tsung_dir, 'build', filename[:-3])
+            new_filename = os.path.join(build_dir, filename[:-3])
             with open(new_filename, 'w') as f:
                 f.write(template.render(**context))
                 print("Built config: {}".format(new_filename))
@@ -67,7 +71,6 @@ def tsung_erl_clean():
     try:
         sh.rm(sh.glob(os.path.join(erl_dir, '*.beam')))
     except sh.ErrorReturnCode_1, e:
-        print(e)
         print('There\'s probably nothing to clean, try running tsung_erl_compile')
     print('Successfully cleaned beam files')
 

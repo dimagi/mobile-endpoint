@@ -1,5 +1,11 @@
 # mobile-endpoint
 
+## Get the tsung source
+
+```
+$ sudo git clone https://github.com/processone/tsung.git /usr/local/src/tsung
+```
+
 ## Running tests on indiacloud8
 
 Use the `awesome_test` task to run the tests. e.g.

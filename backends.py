@@ -66,6 +66,7 @@ class Current(Backend):
         self.auth = HTTPBasicAuth(self.settings['COUCH_USERNAME'], self.settings['COUCH_PASSWORD'])
         self.user_ids = []
         self.case_ids = []
+        self.submission_url = self.settings['SUBMISSION_URL']
 
     def reset_db(self):
         response = requests.delete(self.couch_url, auth=self.auth)
@@ -121,6 +122,7 @@ class Prototype(Backend):
         super(Prototype, self).__init__()
 
         self.psql = get_psql(self.name)
+        self.submission_url = '/'.join([self.settings['SUBMISSION_URL'], settings.DOMAIN])
 
     def reset_db(self):
         sh.dropdb(self.settings['PG_DATABASE'], '--if-exists')
