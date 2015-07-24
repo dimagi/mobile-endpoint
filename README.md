@@ -1,10 +1,27 @@
 # mobile-endpoint
 
-## Get the tsung source
+## Get tsung
 
 ```
 $ sudo git clone https://github.com/processone/tsung.git /usr/local/src/tsung
+$ cd /usr/local/src/tsung
+$ ./configure
+$ sudo make install
 ```
+
+### Tsung dependencies
+- autoconf
+- automake
+- erlang-base
+- erlang-crypto
+- erlang-eunit
+- erlang-inets
+- erlang-snmp
+- erlang-ssl
+- erlang-xmerl
+- erlang-dev
+- erlang-asn1
+
 
 ## Running tests on indiacloud8
 
@@ -24,8 +41,4 @@ The `load` flag is optional. If not included, no new forms or cases will be load
 To load the database you can use:
 ```
 $ invoke load_db <scale_factor> <backend>
-$ invoke populate_case_ids <backend>
 ```
-The first command puts a lot of forms and cases into the database, and the
-second pulls out a large number of random case ids to be update in the next test.
-Both of these commands are invoked if the `load` flag is passed to the `awesome_test` task.
