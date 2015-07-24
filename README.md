@@ -11,9 +11,12 @@ This repository mainly consists of two components:
 
 ### Prerequisites
 
-These tests depend on Postgres 9.4 or later since they make use of the jsonb column type.
+These tests depend on Postgres 9.4 since they make use of the jsonb column type. They also depend on Redis 2.6 or later .
 
 See [http://www.postgresql.org/docs/9.4/static/upgrading.html] for information about upgrading your local postgres.
+
+To upgrade redis you can just install a new version over your existing one.
+
 
 ### Installation
 
