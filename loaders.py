@@ -5,6 +5,7 @@ from copy import copy, deepcopy
 from datetime import datetime
 import hashlib
 import json
+import os
 import random
 from uuid import uuid4
 import requests
@@ -347,3 +348,11 @@ class DataLoader(object):
         print("Loaded cases {}".format(count))
 
         self.print_actual()
+
+    def save_database(self, dest_folder):
+        case_db = os.path.join(dest_folder, 'casedb.csv')
+        case_ids = list(self.case_forms.keys())
+        random.shuffle(case_ids)
+        case_selection = case_ids[:settings.NUM_CASES_TO_UPDATE]
+        with open(case_db, "w") as file:
+            file.write("\n".join(case_selection))

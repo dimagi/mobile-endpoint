@@ -110,7 +110,12 @@ def load_db(scale, backend_name):
     backend = _get_backend(backend_name)
     if confirm("Do you want to delete the current database?"):
         backend.reset_db()
-    backend.load_data(scale)
+
+    files_dir = os.path.join(settings.BASEDIR, 'tsung', 'files')
+    if not os.path.isdir(files_dir):
+        os.makedirs(files_dir)
+
+    backend.load_data(scale, files_dir)
 
 
 @task
@@ -118,10 +123,6 @@ def awesome_test(backend, user_rate, duration, load=0, log_dir=None):
     if load:
         load_db(load, backend)
     tsung_build(backend, user_rate, duration)
-    tsung_erl_build()
-    if load:
-        # Don't rebuild casedb.csv if the database wasn't reloaded.
-        populate_case_ids(backend)
     args = ("-f", "tsung/build/tsung-hq-test.xml", "start")
     if log_dir:
         # TODO: Probably this needs to go before "start"
