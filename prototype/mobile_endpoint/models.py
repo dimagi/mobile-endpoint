@@ -160,6 +160,7 @@ class CaseData(db.Model, ToFromGeneric):
     def to_generic(self):
         if self.case_json:
             generic = CommCareCase.wrap(self.case_json)
+            generic.indices = []
         else:
             generic = CommCareCase()
 
@@ -208,7 +209,7 @@ class CaseData(db.Model, ToFromGeneric):
 @event.listens_for(CaseData, "before_update")
 def update_version(mapper, connection, instance):
     if object_session(instance).is_modified(instance):
-        instance.version += 1
+        instance.version = (instance.version or 0) + 1
 
 db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
 db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
