@@ -18,4 +18,3 @@ class TestConfig(object):
             assert doc['prop'] == 'value'
             assert doc['_rev']
             db.delete_doc(doc)
-
