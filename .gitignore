@@ -64,5 +64,6 @@ tsung/erlang_subst/*.beam
 *erl_crash*
 tsung/files/*.csv
 
-prototype/localconfig*
+prototype/localconfig.py
+prototype/instance/testconfig.py
 prototype/restore_tmp
