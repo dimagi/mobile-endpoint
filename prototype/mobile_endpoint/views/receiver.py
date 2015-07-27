@@ -21,7 +21,7 @@ def form_receiver(domain):
 def couch_receiver(domain):
     return _receiver(domain, CouchDao())
 
-def _receiver(domain, dao)
+def _receiver(domain, dao):
     instance, attachments = get_instance_and_attachments(request)
     request_meta = get_request_metadata(request)
     request_meta['domain'] = domain
