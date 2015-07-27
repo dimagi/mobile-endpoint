@@ -50,45 +50,45 @@ $ py.test test_basic  # run test_models.test_basic
 
 ## Tsung Tests
 
-### Loading the database
-
-To load the database you can use `invoke`. First initialize the DB:
+## Get tsung
 
 ```
-invoke init_db
+$ sudo git clone https://github.com/processone/tsung.git /usr/local/src/tsung
+$ cd /usr/local/src/tsung
+$ ./configure
+$ sudo make install
 ```
 
-Next load the DB with some tests data:
+### Tsung dependencies
+- autoconf
+- automake
+- erlang-base
+- erlang-crypto
+- erlang-eunit
+- erlang-inets
+- erlang-snmp
+- erlang-ssl
+- erlang-xmerl
+- erlang-dev
+- erlang-asn1
 
-```
-invoke load_db <scale_factor>
-```
 
-### Configuring Tsung
+## Running tests on indiacloud8
 
-First you'll need to generate the Tsung config. Make your localsettings for Tsung are correct.To build the
-Tsung XML conf (can be found in `tsung/build`):
-```
-invoke tsung_build
-```
-
-Next you need to compile and link the erlang files so that Tsung knows about them:
-```
-invoke tsung_erl_build
-```
-
-If you want to just do this in one step:
-
-```
-invoke tsung_hammer
-```
-
-### Running Tsung on indiacloud6
+Use the `awesome_test` task to run the tests. e.g.
 ```
 $ sudo -iu cchq bash
 $ source ~/.virtualenvs/tsung/bin/activate
 $ pip install -r requirements.txt  # Only necessary if there are new deps
-$ invoke tsung_hammer
 $ ulimit -n 65536  # Make sure enough file descriptors are available
-$ tsung -f ~/.tsung/mobile-endpoint/tsung/build/<config> start
+$ invoke awesome_test --duration=60 --load=100 --backend=prototype --user-rate=250
+```
+The `load` flag is optional. If not included, no new forms or cases will be loaded into the database before running the test.
+
+
+### Loading the database without a test
+
+To load the database you can use:
+```
+$ invoke load_db <scale_factor> <backend>
 ```

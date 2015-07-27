@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "{{ dtd_path }}" []>
+<tsung loglevel="info">
+    <clients>
+        <client host="localhost" use_controller_vm="true" maxusers="1000"/>
+    </clients>
+
+    <servers>
+        <server host="{{ host }}" port="{{ port }}" type="tcp"></server>
+    </servers>
+
+    <load>
+        <arrivalphase phase="1" duration="{{ duration }}" unit="second">
+            <users arrivalrate="{{ arrival_rate}}" unit="second"></users>
+        </arrivalphase>
+    </load>
+
+    <options>
+        <option name="file_server" id="casedb" value="{{ casedb }}"></option>
+    </options>
+
+    <sessions>
+
+        <session probability="50" name="form-submission-new-case" type="ts_http">
+
+            <setdynvars sourcetype="value" value="{{ username }}">
+                <var name="username" />
+            </setdynvars>
+            <setdynvars sourcetype="value" value="{{ user_id }}">
+                <var name="user_id" />
+            </setdynvars>
+
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="case_id" />
+            </setdynvars>
+
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="form_instance_id" />
+            </setdynvars>
+
+            <transaction name="submit_case_creation_form">
+                <request subst="true">
+                    <http
+                        url="{{ submission_url }}"
+                        method="POST"
+                        version="1.1"
+                        contents_from_file="{{ create_submission }}"
+                    >
+                        <www_authenticate userid="admin" passwd="secret"/>
+                        <http_header name="Content-Type" value="application/xml"/>
+                    </http>
+                </request>
+            </transaction>
+        </session>
+
+        <session probability="50" name="form-submission-update-case" type="ts_http">
+
+            <setdynvars sourcetype="file" fileid="casedb" delimiter="," order="random">
+                <var name="case_id" />
+            </setdynvars>
+
+            <setdynvars sourcetype="value" value="{{ username }}">
+                <var name="username" />
+            </setdynvars>
+            <setdynvars sourcetype="value" value="{{ user_id }}">
+                <var name="user_id" />
+            </setdynvars>
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="form_instance_id" />
+            </setdynvars>
+
+            <transaction name="submit_case_update_form">
+                <request subst="true">
+                    <!-- TODO: Confirm that http tag works on an https url -->
+                    <!-- NOTE: For some reason the couch request above seems to bork the host setting, which is why I need to set the host in the following url explicitly -->
+                    <http
+                        url="{{ submission_url }}"
+                        method="POST"
+                        version="1.1"
+                        contents_from_file="{{ update_submission }}"
+                    >
+                    <www_authenticate userid="admin" passwd="secret"/>
+                    <http_header name="Content-Type" value="application/xml"/>
+                    </http>
+                </request>
+            </transaction>
+        </session>
+
+        <!-- TODO: QUESTION: Will these form trigger the sync log updates?-->
+
+    </sessions>
+</tsung>

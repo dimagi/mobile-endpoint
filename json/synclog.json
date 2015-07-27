@@ -1,0 +1,13 @@
+{
+   "_id": "",
+   "doc_type": "SyncLog",
+   "user_id": "",
+   "dependent_cases_on_phone": [
+   ],
+   "strict": true,
+   "previous_log_id": null,
+   "last_seq": "",
+   "owner_ids_on_phone": [],
+   "date": "",
+   "cases_on_phone": []
+}
