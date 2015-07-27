@@ -1,3 +1,4 @@
+from couchdbkit import ResourceNotFound
 from mobile_endpoint.backends.couch.models import CouchForm
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
@@ -5,7 +6,8 @@ from mobile_endpoint.dao import AbsctractDao, to_generic
 class CouchDao(AbsctractDao):
 
     def commit_atomic_submission(self, xform, cases):
-        pass
+        is_new, form = CouchForm.from_generic(xform)
+        form.save()
 
     def commit_restore(self, restore_state):
         pass
@@ -15,7 +17,10 @@ class CouchDao(AbsctractDao):
 
     @to_generic
     def get_form(self, id):
-        return CouchForm.get(id)
+        try:
+            return CouchForm.get(id)
+        except ResourceNotFound:
+            return None
 
     def get_case(self, id, lock=False):
         pass

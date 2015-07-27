@@ -27,7 +27,7 @@ class CouchForm(Document, ToFromGeneric):
             self = generic._self
             new = False
         else:
-            self = XFormInstance(_id=generic.id)
+            self = cls(_id=generic.id)
             new = True
 
         self.domain = generic.domain
