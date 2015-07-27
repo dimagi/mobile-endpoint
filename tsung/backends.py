@@ -2,12 +2,16 @@ from __future__ import print_function
 from collections import namedtuple
 import json
 from uuid import uuid4
+
 import requests
 from requests.auth import HTTPBasicAuth
 import sh
+import time
+
 from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL
 import settings
 from utils import get_psql, execute_sql_file, cd
+
 
 User = namedtuple('User', 'id username password')
 
@@ -18,11 +22,25 @@ class Backend(object):
     def __init__(self):
         self.settings = settings.BACKENDS[self.name]
 
+    def check_access(self):
+        if settings.TEST_SERVER != 'localhost':
+            sh.ssh(settings.TEST_SERVER, 'echo ping!')
+
+    def start(self):
+        raise NotImplementedError()
+
+    def stop(self):
+        raise NotImplementedError()
+
+    def restart(self):
+        self.stop()
+        self.start()
+
     def load_data(self, dest_folder):
-        pass
+        raise NotImplementedError()
 
     def bootstrap_service(self):
-        pass
+        raise NotImplementedError()
 
     def create_users(self, number):
         users = []
@@ -33,7 +51,7 @@ class Backend(object):
         return users
 
     def _create_user(self):
-        pass
+        raise NotImplementedError()
 
 
 class Current(Backend):
@@ -55,13 +73,13 @@ class Current(Backend):
             port=self.settings['PORT'],
         )
 
-    def _run_manage_py(self, command, *args):
+    def _run_manage_py(self, command, *args, **kwargs):
         python = '{}/bin/python'.format(settings.PYTHONN_ENV)
         manage = '{}/manage.py'.format(settings.HQ_ENVIRONMENT_ROOT)
         try:
             if settings.TEST_SERVER == 'localhost':
                 with cd(settings.HQ_ENVIRONMENT_ROOT):
-                    sh.Command(python)(manage, command, *args)
+                    sh.Command(python)(manage, command, _bg=kwargs.get('bg', False), *args)
             else:
                 sh.ssh(settings.TEST_SERVER, '{command} {manage} {command} {args}'.format(
                     command='cd {} && {}'.format(settings.HQ_ENVIRONMENT_ROOT, python),
@@ -98,6 +116,24 @@ class Current(Backend):
             '--noinput',
         )
 
+    def start(self):
+        print('Starting service: ', self.name)
+        if settings.TEST_SERVER == 'localhost':
+            self._run_manage_py('runserver', '0.0.0.0:8000', bg=True)
+        else:
+            sh.ssh(settings.TEST_SERVER, 'sudo supervisorctl start all')
+        time.sleep(5)
+
+        requests.get('http://{}:{}/'.format(self.settings['HOST'], self.settings['PORT']))
+
+    def stop(self):
+        print('Stopping service: ', self.name)
+        if settings.TEST_SERVER == 'localhost':
+            pids = sh.pgrep('-f', 'runserver', _ok_code=[0, 1])
+            for pid in pids:
+                sh.kill(pid.rstrip())
+        else:
+            sh.ssh(settings.TEST_SERVER, 'sudo supervisorctl stop all')
 
     def load_data(self, dest_folder):
         row_loader = CouchRowLoader(self.couch_url, self.auth)
