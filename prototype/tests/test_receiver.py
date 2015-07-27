@@ -67,6 +67,7 @@ class ReceiverTestMixin(object):
         synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
+                self._get_backend(),
                 client,
                 domain=DOMAIN,
                 case_defaults={
@@ -98,6 +99,7 @@ class ReceiverTestMixin(object):
         synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
+                self._get_backend(),
                 client,
                 domain=DOMAIN,
                 case_defaults={
@@ -131,7 +133,7 @@ class ReceiverTestMixin(object):
         user_id = str(uuid4())
         owner_id = str(uuid4())
         with testapp.app_context():
-            factory = CaseFactory(client, domain=DOMAIN, case_defaults={
+            factory = CaseFactory(self._get_backend(), client, domain=DOMAIN, case_defaults={
                 'user_id': user_id,
                 'owner_id': owner_id,
                 'case_type': 'duck',
