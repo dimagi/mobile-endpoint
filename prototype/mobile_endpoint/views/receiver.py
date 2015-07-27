@@ -26,8 +26,6 @@ def _receiver(domain, dao):
     request_meta = get_request_metadata(request)
     request_meta['domain'] = domain
 
-    dao = SQLDao()
-
     xform_lock = create_xform(instance, attachments, request_meta, dao)
 
     with xform_lock as xform:
