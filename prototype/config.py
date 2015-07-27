@@ -10,4 +10,6 @@ SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:@localhost/receiver'
 
 REDIS_URL = "redis://localhost:6379/0"
 
+COUCH_URI = 'http://localhost:5984/mobile_endpoint'
+
 del os
