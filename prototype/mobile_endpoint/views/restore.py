@@ -1,6 +1,6 @@
 from datetime import date
 from flask import request
-from mobile_endpoint.dao import SQLDao
+from mobile_endpoint.backends.sql.dao import SQLDao
 
 from mobile_endpoint.extensions import requires_auth
 from mobile_endpoint.views import ota_mod

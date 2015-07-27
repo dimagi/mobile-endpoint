@@ -5,8 +5,8 @@ from datetime import datetime
 from uuid import uuid4
 from xml.etree import ElementTree
 from flask.templating import render_template_string
+from mobile_endpoint.backends.sql.dao import SQLDao
 from mobile_endpoint.case.xml import NS_VERSION_MAP, V2
-from mobile_endpoint.dao import SQLDao
 from mobile_endpoint.utils import json_format_datetime
 
 
@@ -24,7 +24,7 @@ MOCK_FORM = """<?xml version='1.0' ?>
 </system>"""
 
 
-def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
+def post_case_blocks(backend, client, case_blocks, form_extras=None, domain=None):
     """
     Post case blocks.
 
@@ -35,6 +35,10 @@ def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
         form_extras = {}
 
     domain = domain or form_extras.pop('domain', None)
+    submit_url = {
+        'sql': 'ota/receiver/{}'.format(domain),
+        'couch': 'ota/couch-receiver/{}'.format(domain),
+    }[backend]
 
     now = json_format_datetime(datetime.utcnow())
     if not isinstance(case_blocks, basestring):
@@ -51,7 +55,7 @@ def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
     headers = {'Authorization': 'Basic ' + base64.b64encode('admin:secret')}
     headers.update(form_extras.get('headers', {}))
     result = client.post(
-        'ota/receiver/{}'.format(domain),
+        submit_url,
         headers=headers,
         data=form_xml
     )
@@ -305,7 +309,8 @@ class CaseFactory(object):
     easier to work with to setup parent/child structures or default properties.
     """
 
-    def __init__(self, client, domain=None, case_defaults=None, form_extras=None):
+    def __init__(self, backend, client, domain=None, case_defaults=None, form_extras=None):
+        self.backend = backend
         self.client = client
         self.domain = domain
         self.case_defaults = case_defaults if case_defaults is not None else {}
@@ -325,6 +330,7 @@ class CaseFactory(object):
         if form_extras is not None:
             submit_form_extras.update(form_extras)
         return post_case_blocks(
+            self.backend,
             self.client,
             caseblocks,
             form_extras=submit_form_extras,

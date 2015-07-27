@@ -1,7 +1,9 @@
 from flask import request
+from mobile_endpoint.backends.couch.dao import CouchDao
+from mobile_endpoint.backends.sql.dao import SQLDao
 
 from mobile_endpoint.case.case_processing import process_cases_in_form
-from mobile_endpoint.dao import SQLDao
+
 from mobile_endpoint.extensions import requires_auth
 from mobile_endpoint.form.form_processing import create_xform, get_instance_and_attachments, get_request_metadata
 from mobile_endpoint.views import ota_mod
@@ -11,11 +13,18 @@ from mobile_endpoint.views.response import get_open_rosa_response
 @ota_mod.route('/receiver/<domain>', methods=['POST'])
 @requires_auth
 def form_receiver(domain):
+    return _receiver(domain, SQLDao())
+
+
+@ota_mod.route('/couch-receiver/<domain>', methods=['POST'])
+@requires_auth
+def couch_receiver(domain):
+    return _receiver(domain, CouchDao())
+
+def _receiver(domain, dao):
     instance, attachments = get_instance_and_attachments(request)
     request_meta = get_request_metadata(request)
     request_meta['domain'] = domain
-
-    dao = SQLDao()
 
     xform_lock = create_xform(instance, attachments, request_meta, dao)
 

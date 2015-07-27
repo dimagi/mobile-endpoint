@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 from uuid import uuid4
 
-import pytest
-
-from mobile_endpoint.models import FormData, CaseData, Synclog
-from mobile_endpoint.synclog.checksum import Checksum
 from mobile_endpoint.views.response import OPEN_ROSA_SUCCESS_RESPONSE
 from tests.mock import CaseFactory, CaseStructure, post_case_blocks, CaseRelationship
 from tests.utils import create_synclog
@@ -12,54 +8,29 @@ from tests.utils import create_synclog
 DOMAIN = 'test_domain'
 
 
-@pytest.mark.usefixtures("testapp", "client", "db_reset")
-class TestReceiver(object):
+class ReceiverTestMixin(object):
+    """
+    Mixin for different receiver backends. Override the _assert_form/case/synclog methods
+    to test the backend itself.
+    """
+
+    def _get_backend(self):
+        raise NotImplementedError()
 
     def _assert_form(self, form_id, user_id, synclog_id=None):
-        sql_form = FormData.query.get(form_id)
-        assert sql_form is not None
-        assert sql_form.domain == DOMAIN
-        assert sql_form.user_id == user_id
-        if synclog_id:
-            assert sql_form.synclog_id == synclog_id
-        else:
-            assert sql_form.synclog_id is None
+        raise NotImplementedError()
 
     def _assert_case(self, case_id, owner_id, num_forms=1, closed=False, indices=None):
-        sql_case = CaseData.query.get(case_id)
-        assert sql_case is not None
-        assert sql_case.domain == DOMAIN
-        assert sql_case.closed == closed
-        assert len(sql_case.forms) == num_forms
-        assert sql_case.owner_id == owner_id
-
-        if indices:
-            sql_indices = {}
-            for index in sql_case.indices:
-                sql_indices[index.identifier] = {
-                    'referenced_type': index.referenced_type,
-                    'referenced_id': index.referenced_id
-                }
-
-            assert sql_indices == indices
-
-        return sql_case
+        raise NotImplementedError()
 
     def _assert_synclog(self, id, case_ids=None, dependent_ids=None, index_tree=None):
-        synclog = Synclog.query.get(id)
-        case_ids = case_ids or []
-        dependent_ids = dependent_ids or []
-        index_tree = index_tree or {}
-        assert case_ids == synclog.case_ids_on_phone
-        assert dependent_ids == synclog.dependent_case_ids_on_phone
-        assert index_tree == synclog.index_tree
-        assert Checksum(case_ids).hexdigest() == synclog.hash
+        raise NotImplementedError()
 
     def test_vanilla_form(self, testapp, client):
         user_id = str(uuid4())
         form_id = str(uuid4())
         with testapp.app_context():
-            result = post_case_blocks(client, '', form_extras={
+            result = post_case_blocks(self._get_backend(), client, '', form_extras={
                     'form_id': form_id,
                     'user_id': user_id,
                     'domain': DOMAIN,
@@ -75,7 +46,7 @@ class TestReceiver(object):
         form_id = str(uuid4())
         synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
-            result = post_case_blocks(client, '', form_extras={
+            result = post_case_blocks(self._get_backend(), client, '', form_extras={
                     'form_id': form_id,
                     'user_id': user_id,
                     'domain': DOMAIN,
@@ -96,6 +67,7 @@ class TestReceiver(object):
         synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
+                self._get_backend(),
                 client,
                 domain=DOMAIN,
                 case_defaults={
@@ -127,6 +99,7 @@ class TestReceiver(object):
         synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
+                self._get_backend(),
                 client,
                 domain=DOMAIN,
                 case_defaults={
@@ -160,7 +133,7 @@ class TestReceiver(object):
         user_id = str(uuid4())
         owner_id = str(uuid4())
         with testapp.app_context():
-            factory = CaseFactory(client, domain=DOMAIN, case_defaults={
+            factory = CaseFactory(self._get_backend(), client, domain=DOMAIN, case_defaults={
                 'user_id': user_id,
                 'owner_id': owner_id,
                 'case_type': 'duck',

@@ -12,5 +12,6 @@ iso8601
 gunicorn
 gevent
 psycogreen
-jsonobject
+jsonobject==0.7.0
+jsonobject-couchdbkit==0.6.5.7
 pytz
