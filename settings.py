@@ -6,59 +6,69 @@ SQLDIR = os.path.join(BASEDIR, "sql")
 
 BACKENDS = {
     'current': {
-        'SUBMISSION_URL': '',
-        'HOST': '',
-        'PORT': '',
-        'USER_ID': '',
-        'USERNAME': '',
-        'PASSWORD': '',
-        # For extracting case ids:
-        'COUCH_HOST': '',
-        'COUCH_PORT': '',
-        'COUCH_DATABASE': '',
-        'COUCH_USERNAME': '',
-        'COUCH_PASSWORD': '',
+        'SUBMISSION_URL': '/a/{domain}/receiver/',
+        'HOST': 'localhost',
+        'PORT': '8000',
+
+        # These must match the values in the Django localsettings.py file
+        'COUCH_HOST': 'localhost',
+        'COUCH_PORT': '5984',
+        'COUCH_DATABASE': 'hq_load_test',
+        'COUCH_USERNAME': 'commcarehq',
+        'COUCH_PASSWORD': 'commcarehq',
+
+        # These must match the values in the Django localsettings.py file
+        'PG_HOST': 'localhost',
+        'PG_PORT': '5432',
+        'PG_DATABASE': 'hq_load_test',
+        'PG_USERNAME': 'postgres',
+
+        'SUPERUSER_USERNAME': 'joe@dimagi.com',
+        'SUPERUSER_PASSWORD': 'mater'
     },
-    'prototype': {
-        'SUBMISSION_URL': '',
-        'HOST': '',
-        'PORT': '',
-        'USER_ID': '',
-        'USERNAME': '',
-        'PASSWORD': '',
-        # For extracting case ids:
-        'PG_HOST': '',
-        'PG_PORT': '',
-        'PG_DATABASE': '',
-        'PG_USERNAME': '',
+    'prototype-sql': {
+        'SUBMISSION_URL': '/ota/receiver',
+        'HOST': 'localhost',
+        'PORT': '5000',
+
+        # Must match the values in localconfig.py file
+        'PG_HOST': 'localhost',
+        'PG_PORT': '5432',
+        'PG_DATABASE': 'prototype_load_test',
+        'PG_USERNAME': 'postgres',
     },
 }
 
-DOMAIN = ''
+DOMAIN = 'load-test-domain'
 
 ##### SCALE FACTORS #####
-# see "loaders.py" for how these relate to real numbers of rows
+# Number of uses to test against
+NUM_UNIQUE_USERS = 100
 
-# multiplication factor for load_db command
-SCALE_FACTOR = 10000
+# Number of cases to create per user
+CASES_PER_USER = 1500
 
-# ratio of forms that create or update a case
-FORM_CASE_RATIO = 0.6
+# Number of forms to be submitted against each case
+FORMS_PER_CASE = 1.5
 
-# of the cases that are created what ratio are child cases
+# Of the cases that are created what ratio are child cases
 CHILD_CASE_RATIO = 0.5
-
-NUM_UNIQUE_USERS = SCALE_FACTOR / 10
 
 ##### TEST FACTORS ####
 # The number of different cases that will updated during the tests.
 NUM_CASES_TO_UPDATE = 10000
 
 
+### Bootstrap settings ###
+TEST_SERVER = 'indiacloud8.internal.commcarehq.org'
+HQ_ENVIRONMENT_ROOT = '/home/cchq/www/tsung_hq_test/code_root'
+PYTHONN_ENV = '/home/cchq/www/tsung_hq_test/python_env'
+MOBILE_USER_PASSWORD = '123'
+
 
 ##### TSUNG CONFIG #####
-TSUNG_DURATION = 600  # Test length in seconds
-TSUNG_USERS_PER_SECOND = 15
+TSUNG_DURATION = 600  # Default test length in seconds. Override via command line
+TSUNG_USERS_PER_SECOND = 15  # Default user arrival rate per second. Override via command line
 
 
 try:

@@ -17,17 +17,17 @@
 
     <options>
         <option name="file_server" id="casedb" value="{{ casedb }}"></option>
+        <option name="file_server" id="userdb" value="{{ userdb }}"></option>
     </options>
 
     <sessions>
 
         <session probability="50" name="form-submission-new-case" type="ts_http">
 
-            <setdynvars sourcetype="value" value="{{ username }}">
-                <var name="username" />
-            </setdynvars>
-            <setdynvars sourcetype="value" value="{{ user_id }}">
+            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
+                <var name="username" />
+                <var name="password" />
             </setdynvars>
 
             <setdynvars sourcetype="eval"
@@ -50,7 +50,7 @@
                         version="1.1"
                         contents_from_file="{{ create_submission }}"
                     >
-                        <www_authenticate userid="admin" passwd="secret"/>
+                        <www_authenticate userid="%%_username%%" passwd="%%_password%%"/>
                         <http_header name="Content-Type" value="application/xml"/>
                     </http>
                 </request>
@@ -59,16 +59,16 @@
 
         <session probability="50" name="form-submission-update-case" type="ts_http">
 
+            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
+                <var name="user_id" />
+                <var name="username" />
+                <var name="password" />
+            </setdynvars>
+
             <setdynvars sourcetype="file" fileid="casedb" delimiter="," order="random">
                 <var name="case_id" />
             </setdynvars>
 
-            <setdynvars sourcetype="value" value="{{ username }}">
-                <var name="username" />
-            </setdynvars>
-            <setdynvars sourcetype="value" value="{{ user_id }}">
-                <var name="user_id" />
-            </setdynvars>
             <setdynvars sourcetype="eval"
                     code="fun({Pid,DynVars})->
                               uuid:random_str() end.">
@@ -85,7 +85,7 @@
                         version="1.1"
                         contents_from_file="{{ update_submission }}"
                     >
-                    <www_authenticate userid="admin" passwd="secret"/>
+                    <www_authenticate userid="%%_username%%" passwd="%%_password%%"/>
                     <http_header name="Content-Type" value="application/xml"/>
                     </http>
                 </request>
