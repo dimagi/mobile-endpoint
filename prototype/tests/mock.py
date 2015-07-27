@@ -24,7 +24,7 @@ MOCK_FORM = """<?xml version='1.0' ?>
 </system>"""
 
 
-def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
+def post_case_blocks(client, case_blocks, form_extras=None, domain=None, backend='sql'):
     """
     Post case blocks.
 
@@ -35,6 +35,10 @@ def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
         form_extras = {}
 
     domain = domain or form_extras.pop('domain', None)
+    submit_url = {
+        'sql': 'ota/receiver/{}'.format(domain),
+        'couch': 'ota/couch-receiver/{}'.format(domain),
+    }[backend]
 
     now = json_format_datetime(datetime.utcnow())
     if not isinstance(case_blocks, basestring):
@@ -51,7 +55,7 @@ def post_case_blocks(client, case_blocks, form_extras=None, domain=None):
     headers = {'Authorization': 'Basic ' + base64.b64encode('admin:secret')}
     headers.update(form_extras.get('headers', {}))
     result = client.post(
-        'ota/receiver/{}'.format(domain),
+        submit_url,
         headers=headers,
         data=form_xml
     )
