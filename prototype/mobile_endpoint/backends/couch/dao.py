@@ -1,4 +1,5 @@
-from mobile_endpoint.dao import AbsctractDao
+from mobile_endpoint.backends.couch.models import CouchForm
+from mobile_endpoint.dao import AbsctractDao, to_generic
 
 
 class CouchDao(AbsctractDao):
@@ -12,8 +13,9 @@ class CouchDao(AbsctractDao):
     def get_synclog(self, id):
         pass
 
+    @to_generic
     def get_form(self, id):
-        pass
+        return CouchForm.get(id)
 
     def get_case(self, id, lock=False):
         pass
