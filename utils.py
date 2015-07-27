@@ -1,7 +1,9 @@
+from __future__ import print_function
 import contextlib
 import json
 import os
 import sh
+import sys
 import settings
 
 
@@ -50,3 +52,6 @@ def cd(path):
         yield
     finally:
         os.chdir(old_path)
+
+def update_progress(title, progress):
+    print('\r{} [{}] {}%'.format(title, '#'*int(progress*50), int(progress*100)), end='')

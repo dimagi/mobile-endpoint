@@ -9,8 +9,9 @@ import os
 import random
 from uuid import uuid4
 import requests
+import time
 import settings
-from utils import load_json, json_format_datetime
+from utils import load_json, json_format_datetime, update_progress
 
 
 ENABLE_TRIGGERS = "ALTER TABLE {table} ENABLE TRIGGER ALL"
@@ -64,7 +65,7 @@ class SQLRowLoader(RowLoader):
 
     @abstractmethod
     def doc_to_rows(self, doc):
-        pass
+        return []
 
     def put_doc(self, doc):
         rows = self.doc_to_rows(doc)
@@ -197,15 +198,13 @@ class FullCaseLoaderSQL(RowLoader):
 
 class DataLoader(object):
     """
-    * Load `scale` * settings.SCALE_FACTOR forms.
-    * Select settings.FORM_CASE_RATIO forms to also have cases.
-    * For settings.NEW_UPDATE_CASE_RATIO of those forms simulate a case update
-    * For the rest of the forms load a single case for each form.
-    * Make it a child case of an existing case for settings.CHILD_CASE_RATIO of the cases.
+    * Loads the user_ids from the userdb.csv file
+    * For each user create CASES_PER_USER cases
     """
-    def __init__(self, files_folder, scale, form_loader, case_loader, sync_token_loader):
+    def __init__(self, files_folder, form_loader, case_loader, sync_token_loader):
         self.files_folder = files_folder
-        self.scale = scale
+        self.case_db_path = os.path.join(files_folder, 'casedb.csv')
+
         self.form_loader = form_loader
         self.case_loader = case_loader
         self.sync_token_loader = sync_token_loader
@@ -219,103 +218,91 @@ class DataLoader(object):
         self.case_index_partial = load_json('case_index_partial.json')
         self.synclog_json = load_json('synclog.json')
 
-        self.num_cases = self.scale * settings.SCALE_FACTOR * settings.FORM_CASE_RATIO
-        self.case_ids = {}
-        self.user_ids_synclogs = {}
-        self.case_forms = {}
+        self.user_ids = []  # list of user IDs
+        self.selected_case_ids = []  # case_ids to save to the casedb.csv file
 
+        # these get cleared after each user's data has been created
+        self.case_ids_gen = []  # list of case ID for current user
+        self.case_forms = {}  # list of forms that have updated each case for current user
+
+        self.num_forms = 0
+        self.num_cases = 0
         self.num_case_indexes = 0
         self.num_case_updates = 0
 
         self._load_user_ids()
+        self.num_users = len(self.user_ids)
 
     def _load_user_ids(self):
         with open(os.path.join(self.files_folder, 'userdb.csv')) as f:
             user_data = f.readlines()
 
-        for user in user_data:
-            user_id, username, password = user.split(',')
-            self.user_ids_synclogs[user_id] = None
-
-    def print_estimates(self):
-        forms = settings.SCALE_FACTOR * self.scale
-        case_indexes = int(self.num_cases * settings.CHILD_CASE_RATIO)
-        print("Loading data. Estimated numbers:")
-        print("  forms:  ", forms)
-        print("  cases:  ", self.num_cases)
-        print("  case indexes: ", case_indexes)
-        print("")
+        self.user_ids = [
+            user.split(',')[0]
+            for user in user_data
+        ]
 
     def print_actual(self):
-        forms = settings.SCALE_FACTOR * self.scale
         print("")
         print("Loading complete. Actual numbers:")
-        print("  forms:  ", forms)
-        print("  cases:  ", len(self.case_ids.keys()))
+        print("  forms:  ", self.num_forms)
+        print("  cases:  ", self.num_cases)
         print("  case indexes: ", self.num_case_indexes)
         print("  case updates: ", self.num_case_updates)
 
-    @staticmethod
-    def _get_doc_id(id_dict, max_num):
-        id_index = random.randint(0, max_num)
-        new = False
-        if id_index not in id_dict:
-            id_dict[id_index] = str(uuid4())
-            new = True
+    def get_synclog_id(self, user_id):
+        synclog_id = str(uuid4())
 
-        return id_dict[id_index], new
+        synclog = deepcopy(self.synclog_json)
+        synclog['_id'] = synclog_id
+        synclog['user_id'] = user_id
+        synclog['owner_ids_on_phone'] = [user_id]
+        synclog['date'] = json_format_datetime(datetime.utcnow())
+        self.sync_token_loader.put_doc(synclog)
+        self.sync_token_loader.flush()
 
-    def get_user_id(self):
-        user_id = random.choice(self.user_ids_synclogs.keys())
+        return synclog_id
 
-        if not self.user_ids_synclogs[user_id]:
-            synclog_id = str(uuid4())
-            self.user_ids_synclogs[user_id] = synclog_id
+    def get_case_id(self, new):
+        if new:
+            case_id = str(uuid4())
+            self.case_ids_gen.append(case_id)
+        else:
+            case_id = random.choice(self.case_ids_gen)
 
-            synclog = deepcopy(self.synclog_json)
-            synclog['_id'] = synclog_id
-            synclog['user_id'] = user_id
-            synclog['owner_ids_on_phone'] = [user_id]
-            synclog['date'] = json_format_datetime(datetime.utcnow())
-            self.sync_token_loader.put_doc(synclog)
-            self.sync_token_loader.flush()
+        return case_id
 
-        return user_id
+    def get_form(self, user_id, synclog_id, create_case):
+        form_id = str(uuid4())
 
-    def get_case_id(self):
-        return self._get_doc_id(self.case_ids, self.num_cases)
-
-    def get_form(self, form_id, has_case):
         form = deepcopy(self.form_json)
         form['domain'] = self.domain
         form['_id'] = form_id
-        user_id = self.get_user_id()
         form['form']['meta']['userID'] = user_id
-        form['last_sync_token'] = self.user_ids_synclogs[user_id]
+        form['last_sync_token'] = synclog_id
 
-        if has_case:
-            case_id, new = self.get_case_id()
-            case = copy(self.form_case_partial)
-            case['@case_id'] = case_id
-            case['date_modified'] = json_format_datetime(datetime.utcnow())
-            case['user_id'] = user_id
-            if not new:
-                self.num_case_updates += 1
-                del case['create']
-            form['case'] = case
+        case_id = self.get_case_id(create_case)
+        case = copy(self.form_case_partial)
+        case['@case_id'] = case_id
+        case['date_modified'] = json_format_datetime(datetime.utcnow())
+        case['user_id'] = user_id
+        if not create_case:
+            self.num_case_updates += 1
+            del case['create']
 
-            case_forms = self.case_forms.setdefault(case_id, [])
-            case_forms.append(form_id)
+        form['case'] = case
+
+        case_forms = self.case_forms.setdefault(case_id, [])
+        case_forms.append(form_id)
         return form
 
-    def get_case(self, case_id, forms, is_child_case):
+    def get_case(self, user_id, case_id, forms, is_child_case):
         case = deepcopy(self.case_json)
         case['_id'] = case_id
         case['domain'] = self.domain
         now = json_format_datetime(datetime.utcnow())
         case['modified_on'] = now
         case['server_modified_on'] = now
-        user_id = self.get_user_id()
         case['user_id'] = user_id
         case['owner_id'] = user_id
         case['xform_ids'] = forms
@@ -347,35 +334,53 @@ class DataLoader(object):
         return case
 
     def run(self):
-        self.print_estimates()
+        open(self.case_db_path, 'w').close()
 
-        for chunk in range(self.scale):
-            print("Loading forms {} to {}".format(chunk * settings.SCALE_FACTOR, (chunk + 1) * settings.SCALE_FACTOR))
+        forms_per_user = float(settings.CASES_PER_USER * settings.FORMS_PER_CASE)
+
+        for i, user_id in enumerate(self.user_ids):
+            print('\n## Loading data for user {} of {}\n'.format(i, self.num_users))
+            synclog_id = self.get_synclog_id(user_id)
+            num_cases_user = 0
+            num_forms_user = 0
             with self.form_loader as loader:
-                for i in range(settings.SCALE_FACTOR):
-                    has_case = random.random() < settings.FORM_CASE_RATIO
-                    form_id = str(uuid4())
-                    form = self.get_form(form_id, has_case)
+                while num_forms_user < forms_per_user:
+                    create_case = num_cases_user < settings.CASES_PER_USER
+                    form = self.get_form(user_id, synclog_id, create_case)
                     loader.put_doc(form)
+                    num_forms_user += 1
+                    if create_case:
+                        num_cases_user += 1
 
-        print('')
-        count = 0
-        with self.case_loader as loader:
-            for case_id, forms in self.case_forms.items():
-                is_child_case = random.random() < settings.CHILD_CASE_RATIO
-                case = self.get_case(case_id, forms, is_child_case)
-                loader.put_doc(case)
-                count += 1
-                if count % self.scale == 0:
-                    print("Loaded cases {} to {}".format(count - self.scale, count))
-        print("Loaded cases {}".format(count))
+                    update_progress('Forms:', num_forms_user / forms_per_user)
+
+            self.num_forms += num_forms_user
+            self.num_cases += num_cases_user
+
+            print('')
+            with self.case_loader as loader:
+                case_ids = self.case_forms.keys()
+                num_cases = float(len(case_ids))
+                for j, case_id in enumerate(case_ids):
+                    is_child_case = random.random() < settings.CHILD_CASE_RATIO
+                    forms = self.case_forms[case_id]
+                    case = self.get_case(user_id, case_id, forms, is_child_case)
+                    loader.put_doc(case)
+                    update_progress('Cases:', j / num_cases)
+
+            self.save_database_and_clear()
 
         self.print_actual()
 
-    def save_database(self, dest_folder):
-        case_db = os.path.join(dest_folder, 'casedb.csv')
+    def save_database_and_clear(self):
+        export_case_ids_per_user = int(settings.NUM_CASES_TO_UPDATE / self.num_users)
+
         case_ids = list(self.case_forms.keys())
         random.shuffle(case_ids)
-        case_selection = case_ids[:settings.NUM_CASES_TO_UPDATE]
-        with open(case_db, "w") as file:
+        case_selection = case_ids[:export_case_ids_per_user]
+
+        with open(self.case_db_path, "a") as file:
             file.write("\n".join(case_selection))
+
+        self.case_ids_gen = []
+        self.case_forms.clear()

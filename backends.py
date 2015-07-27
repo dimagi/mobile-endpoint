@@ -18,13 +18,21 @@ class Backend(object):
     def __init__(self):
         self.settings = settings.BACKENDS[self.name]
 
-    def load_data(self, scale, dest_folder):
+    def load_data(self, dest_folder):
         pass
 
     def bootstrap_service(self):
         pass
 
-    def create_users(self, user_list):
+    def create_users(self, number):
+        users = []
+        for i in range(number):
+            print('Creating user {} of {}'.format(i, number))
+            users.append(self._create_user())
+
+        return users
+
+    def _create_user(self):
         pass
 
 
@@ -41,7 +49,7 @@ class Current(Backend):
         self.auth = HTTPBasicAuth(self.settings['COUCH_USERNAME'], self.settings['COUCH_PASSWORD'])
         self.user_ids = []
         self.case_ids = []
-        self.submission_url = self.settings['SUBMISSION_URL']
+        self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
         self.base_url = 'http://{host}:{port}'.format(
             host=self.settings['HOST'],
             port=self.settings['PORT'],
@@ -91,26 +99,18 @@ class Current(Backend):
         )
 
 
-    def load_data(self, scale, dest_folder):
+    def load_data(self, dest_folder):
         row_loader = CouchRowLoader(self.couch_url, self.auth)
-        loader = DataLoader(dest_folder, scale, row_loader, row_loader, row_loader)
+        loader = DataLoader(dest_folder, row_loader, row_loader, row_loader)
         loader.run()
-        loader.save_database(dest_folder)
 
     def bootstrap_service(self):
-        self.run_manage_py(
+        self._run_manage_py(
             'bootstrap',
             settings.DOMAIN,
             self.settings['SUPERUSER_USERNAME'],
             self.settings['SUPERUSER_PASSWORD']
         )
-
-    def create_users(self, number):
-        users = []
-        for user_id in range(number):
-            users.append(self._create_user())
-
-        return users
 
     def _create_user(self):
         payload = {
@@ -121,32 +121,34 @@ class Current(Backend):
         result = requests.post('{}/a/{}/api/v0.5/user/'.format(
             self.base_url, settings.DOMAIN
         ), data=json.dumps(payload), auth=auth, headers={'Content-Type': 'application/json'})
-        assert result.status_code == 201, result.text
+        assert result.status_code == 201, json.dumps(result.json(), indent=True)
         payload['id'] = result.json()['id']
         return User(**payload)
 
 
-class Prototype(Backend):
-    name = 'prototype'
+class PrototypeSQL(Backend):
+    name = 'prototype-sql'
 
     def __init__(self):
-        super(Prototype, self).__init__()
+        super(PrototypeSQL, self).__init__()
 
         self.psql = get_psql(self.name)
         self.submission_url = self.settings['SUBMISSION_URL']
 
     def reset_db(self):
+        print("Dropping and creating postgres DB", self.settings['PG_DATABASE'])
         sh.dropdb(self.settings['PG_DATABASE'], '--if-exists')
         sh.createdb(self.settings['PG_DATABASE'])
+
+        print("Running postgres schema file")
         execute_sql_file(self.psql, 'prototype.sql')
 
-    def load_data(self, scale, dest_folder):
-        loader = DataLoader(dest_folder, scale, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
+    def load_data(self, dest_folder):
+        loader = DataLoader(dest_folder, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
         loader.run()
-        loader.save_database(dest_folder)
 
     def bootstrap_service(self):
         pass
 
-    def create_users(self, number):
-        return []
+    def _create_user(self):
+        return User(user_id=str(uuid4()), username='admin', password='secret')
