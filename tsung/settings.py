@@ -1,8 +1,11 @@
 import os
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
-JSONDIR = os.path.join(BASEDIR, "json")
-SQLDIR = os.path.join(BASEDIR, "sql")
+TEMPLATE_DIR = os.path.join(BASEDIR, 'templates')
+BUILD_DIR = os.path.join(BASEDIR, 'build')
+DB_FILES_DIR = os.path.join(BUILD_DIR, 'files')
+JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
+SQL_DIR = os.path.join(BASEDIR, "sql")
 
 BACKENDS = {
     'current': {
@@ -24,7 +27,7 @@ BACKENDS = {
         'PG_USERNAME': 'postgres',
 
         'SUPERUSER_USERNAME': 'joe@dimagi.com',
-        'SUPERUSER_PASSWORD': 'mater'
+        'SUPERUSER_PASSWORD': 'mater',
     },
     'prototype-sql': {
         'SUBMISSION_URL': '/ota/receiver',
@@ -69,7 +72,7 @@ MOBILE_USER_PASSWORD = '123'
 ##### TSUNG CONFIG #####
 TSUNG_DURATION = 600  # Default test length in seconds. Override via command line
 TSUNG_USERS_PER_SECOND = 15  # Default user arrival rate per second. Override via command line
-
+TSUNG_DTD_PATH = '/usr/local/src/tsung/tsung-1.0.dtd'
 
 try:
     from localsettings import *

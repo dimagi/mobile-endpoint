@@ -2,8 +2,8 @@ from __future__ import print_function
 import contextlib
 import json
 import os
+
 import sh
-import sys
 import settings
 
 
@@ -21,12 +21,12 @@ def get_psql(backend):
 
 
 def execute_sql_file(psql, file):
-    with open(os.path.join(settings.SQLDIR, file)) as f:
+    with open(os.path.join(settings.SQL_DIR, file)) as f:
         return psql(_in=f)
 
 
 def load_json(filename):
-    with open(os.path.join(settings.JSONDIR, filename)) as f:
+    with open(os.path.join(settings.JSON_DIR, filename)) as f:
         return json.load(f)
 
 

@@ -8,8 +8,9 @@ import json
 import os
 import random
 from uuid import uuid4
+
 import requests
-import time
+
 import settings
 from utils import load_json, json_format_datetime, update_progress
 
