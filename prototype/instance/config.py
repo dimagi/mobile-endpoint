@@ -12,4 +12,10 @@ REDIS_URL = "redis://localhost:6379/0"
 
 RESTORE_DIR = 'restore_tmp'
 
+# couch settings
+COUCH_URI = 'http://localhost:5984'
+COUCH_DBS = {
+    'forms': 'mobile_endpoint_forms'
+}
+
 del os

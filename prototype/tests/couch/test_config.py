@@ -1,6 +1,6 @@
 import uuid
 import pytest
-from mobile_endpoint.backends.couch.db import get_db
+from mobile_endpoint.backends.couch.models import CouchForm
 
 
 @pytest.mark.usefixtures("testapp")
@@ -12,7 +12,7 @@ class TestConfig(object):
     def test_db_works(self, testapp):
         with testapp.app_context():
             id = uuid.uuid4().hex
-            db = get_db('test')
+            db = CouchForm.get_db()
             db.save_doc({'_id': id, 'prop': 'value'})
             doc = db.get(id)
             assert doc['prop'] == 'value'
