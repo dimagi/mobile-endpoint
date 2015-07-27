@@ -7,6 +7,9 @@ from tests.test_receiver import ReceiverTestMixin, DOMAIN
 @pytest.mark.usefixtures("testapp", "client", "db_reset")
 class TestPostgresReceiver(ReceiverTestMixin):
 
+    def _get_backend(self):
+        return 'sql'
+
     def _assert_form(self, form_id, user_id, synclog_id=None):
         sql_form = FormData.query.get(form_id)
         assert sql_form is not None

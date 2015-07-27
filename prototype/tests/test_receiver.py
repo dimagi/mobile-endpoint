@@ -14,6 +14,9 @@ class ReceiverTestMixin(object):
     to test the backend itself.
     """
 
+    def _get_backend(self):
+        raise NotImplementedError()
+
     def _assert_form(self, form_id, user_id, synclog_id=None):
         raise NotImplementedError()
 
@@ -27,7 +30,7 @@ class ReceiverTestMixin(object):
         user_id = str(uuid4())
         form_id = str(uuid4())
         with testapp.app_context():
-            result = post_case_blocks(client, '', form_extras={
+            result = post_case_blocks(self._get_backend(), client, '', form_extras={
                     'form_id': form_id,
                     'user_id': user_id,
                     'domain': DOMAIN,
@@ -43,7 +46,7 @@ class ReceiverTestMixin(object):
         form_id = str(uuid4())
         synclog_id = create_synclog(DOMAIN, user_id)
         with testapp.app_context():
-            result = post_case_blocks(client, '', form_extras={
+            result = post_case_blocks(self._get_backend(), client, '', form_extras={
                     'form_id': form_id,
                     'user_id': user_id,
                     'domain': DOMAIN,

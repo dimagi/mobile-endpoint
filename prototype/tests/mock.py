@@ -24,7 +24,7 @@ MOCK_FORM = """<?xml version='1.0' ?>
 </system>"""
 
 
-def post_case_blocks(client, case_blocks, form_extras=None, domain=None, backend='sql'):
+def post_case_blocks(backend, client, case_blocks, form_extras=None, domain=None):
     """
     Post case blocks.
 
@@ -309,9 +309,10 @@ class CaseFactory(object):
     easier to work with to setup parent/child structures or default properties.
     """
 
-    def __init__(self, client, domain=None, case_defaults=None, form_extras=None):
+    def __init__(self, client, domain=None, case_defaults=None, form_extras=None, backend='sql'):
         self.client = client
         self.domain = domain
+        self.backend = backend
         self.case_defaults = case_defaults if case_defaults is not None else {}
         self.form_extras = form_extras if form_extras is not None else {}
 
@@ -329,6 +330,7 @@ class CaseFactory(object):
         if form_extras is not None:
             submit_form_extras.update(form_extras)
         return post_case_blocks(
+            self.backend,
             self.client,
             caseblocks,
             form_extras=submit_form_extras,
