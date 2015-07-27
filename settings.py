@@ -6,18 +6,29 @@ SQLDIR = os.path.join(BASEDIR, "sql")
 
 BACKENDS = {
     'current': {
-        'SUBMISSION_URL': '',
+        'SUBMISSION_URL': '',  # e.g. /{domain}/receiver/
         'HOST': '',
         'PORT': '',
         'USER_ID': '',
         'USERNAME': '',
         'PASSWORD': '',
-        # For extracting case ids:
+
+        # HQ Couch DB
         'COUCH_HOST': '',
         'COUCH_PORT': '',
         'COUCH_DATABASE': '',
         'COUCH_USERNAME': '',
         'COUCH_PASSWORD': '',
+
+        # HQ postgres DB
+        'PG_HOST': '',
+        'PG_PORT': '',
+        'PG_DATABASE': '',
+        'PG_USERNAME': '',
+
+        # username and password for superuser (will get created during bootstrap)
+        'SUPERUSER_USERNAME': '',
+        'SUPERUSER_PASSWORD': ''
     },
     'prototype': {
         'SUBMISSION_URL': '',
@@ -26,7 +37,8 @@ BACKENDS = {
         'USER_ID': '',
         'USERNAME': '',
         'PASSWORD': '',
-        # For extracting case ids:
+
+        # Prototype postgres DB
         'PG_HOST': '',
         'PG_PORT': '',
         'PG_DATABASE': '',
@@ -54,6 +66,12 @@ NUM_UNIQUE_USERS = SCALE_FACTOR / 10
 # The number of different cases that will updated during the tests.
 NUM_CASES_TO_UPDATE = 10000
 
+
+### Bootstrap settings ###
+TEST_SERVER = 'indiacloud8.internal.commcarehq.org'
+HQ_ENVIRONMENT_ROOT = '/home/cchq/www/tsung_hq_test/code_root'
+PYTHONN_ENV = '/home/cchq/www/tsung_hq_test/python_env'
+MOBILE_USER_PASSWORD = '123'
 
 
 ##### TSUNG CONFIG #####

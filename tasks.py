@@ -59,15 +59,26 @@ def load_db(scale, backend_name):
     except ValueError:
         print("Scale must be an integer")
 
-    backend = _get_backend(backend_name)
-    if confirm("Do you want to delete the current database?"):
-        backend.reset_db()
-
     files_dir = os.path.join(settings.BASEDIR, 'tsung', 'files')
     if not os.path.isdir(files_dir):
         os.makedirs(files_dir)
 
-    backend.load_data(scale, files_dir)
+    backend = _get_backend(backend_name)
+    if confirm("Do you want to delete the current database?"):
+        # backend.reset_db()
+        # backend.bootstrap_service()
+        users = backend.create_users(settings.NUM_UNIQUE_USERS)
+
+        user_db = os.path.join(files_dir, 'userdb.csv')
+        with open(user_db, "w") as file:
+            for user in users:
+                file.write("{},{},{}\n".format(
+                    user.id, user.username, user.password
+                ))
+
+
+
+    # backend.load_data(scale, files_dir)
 
 
 @task

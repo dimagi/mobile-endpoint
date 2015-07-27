@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import sh
@@ -38,3 +39,14 @@ def confirm(msg):
 def json_format_datetime(dt):
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
+
+@contextlib.contextmanager
+def cd(path):
+    """http://stackoverflow.com/a/24469659
+    """
+    old_path = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_path)
