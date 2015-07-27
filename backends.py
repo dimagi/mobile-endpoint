@@ -27,22 +27,6 @@ class Backend(object):
     def create_users(self, user_list):
         pass
 
-    def run_manage_py(self, command, *args):
-        python = '{}/bin/python'.format(settings.PYTHONN_ENV)
-        manage = '{}/manage.py'.format(settings.HQ_ENVIRONMENT_ROOT)
-        try:
-            if settings.TEST_SERVER == 'localhost':
-                with cd(settings.HQ_ENVIRONMENT_ROOT):
-                    sh.Command(python)(manage, command, *args)
-            else:
-                sh.ssh(settings.TEST_SERVER, '{command} {manage} {command} {args}'.format(
-                    command='cd {} && {}'.format(settings.HQ_ENVIRONMENT_ROOT, python),
-                    manage=manage,
-                    args=' '.join(args)))
-        except Exception as e:
-            print(e.stderr)
-
-
 
 class Current(Backend):
     name = 'current'
@@ -63,6 +47,21 @@ class Current(Backend):
             port=self.settings['PORT'],
         )
 
+    def _run_manage_py(self, command, *args):
+        python = '{}/bin/python'.format(settings.PYTHONN_ENV)
+        manage = '{}/manage.py'.format(settings.HQ_ENVIRONMENT_ROOT)
+        try:
+            if settings.TEST_SERVER == 'localhost':
+                with cd(settings.HQ_ENVIRONMENT_ROOT):
+                    sh.Command(python)(manage, command, *args)
+            else:
+                sh.ssh(settings.TEST_SERVER, '{command} {manage} {command} {args}'.format(
+                    command='cd {} && {}'.format(settings.HQ_ENVIRONMENT_ROOT, python),
+                    manage=manage,
+                    args=' '.join(args)))
+        except Exception as e:
+            print(e.stderr)
+
     def reset_db(self):
         print('Dropping postgres', self.settings['PG_DATABASE'])
         sh.dropdb(self.settings['PG_DATABASE'], '--if-exists')
@@ -80,13 +79,13 @@ class Current(Backend):
             raise Exception("Failed to create couch database: {}\n{}".format(self.couch_url, response.text))
 
         print('Running syncdb')
-        self.run_manage_py(
+        self._run_manage_py(
             'syncdb',
             '--noinput',
         )
 
         print('Running migrate')
-        self.run_manage_py(
+        self._run_manage_py(
             'migrate',
             '--noinput',
         )
@@ -94,7 +93,7 @@ class Current(Backend):
 
     def load_data(self, scale, dest_folder):
         row_loader = CouchRowLoader(self.couch_url, self.auth)
-        loader = DataLoader(scale, row_loader, row_loader, row_loader)
+        loader = DataLoader(dest_folder, scale, row_loader, row_loader, row_loader)
         loader.run()
         loader.save_database(dest_folder)
 
@@ -142,7 +141,7 @@ class Prototype(Backend):
         execute_sql_file(self.psql, 'prototype.sql')
 
     def load_data(self, scale, dest_folder):
-        loader = DataLoader(scale, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
+        loader = DataLoader(dest_folder, scale, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
         loader.run()
         loader.save_database(dest_folder)
 

@@ -65,8 +65,8 @@ def load_db(scale, backend_name):
 
     backend = _get_backend(backend_name)
     if confirm("Do you want to delete the current database?"):
-        # backend.reset_db()
-        # backend.bootstrap_service()
+        backend.reset_db()
+        backend.bootstrap_service()
         users = backend.create_users(settings.NUM_UNIQUE_USERS)
 
         user_db = os.path.join(files_dir, 'userdb.csv')
@@ -76,9 +76,7 @@ def load_db(scale, backend_name):
                     user.id, user.username, user.password
                 ))
 
-
-
-    # backend.load_data(scale, files_dir)
+    backend.load_data(scale, files_dir)
 
 
 @task

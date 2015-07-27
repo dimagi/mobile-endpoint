@@ -203,7 +203,8 @@ class DataLoader(object):
     * For the rest of the forms load a single case for each form.
     * Make it a child case of an existing case for settings.CHILD_CASE_RATIO of the cases.
     """
-    def __init__(self, scale, form_loader, case_loader, sync_token_loader):
+    def __init__(self, files_folder, scale, form_loader, case_loader, sync_token_loader):
+        self.files_folder = files_folder
         self.scale = scale
         self.form_loader = form_loader
         self.case_loader = case_loader
@@ -220,12 +221,21 @@ class DataLoader(object):
 
         self.num_cases = self.scale * settings.SCALE_FACTOR * settings.FORM_CASE_RATIO
         self.case_ids = {}
-        self.user_ids = {}
+        self.user_ids_synclogs = {}
         self.case_forms = {}
-        self.user_synclogs = {}
 
         self.num_case_indexes = 0
         self.num_case_updates = 0
+
+        self._load_user_ids()
+
+    def _load_user_ids(self):
+        with open(os.path.join(self.files_folder, 'userdb.csv')) as f:
+            user_data = f.readlines()
+
+        for user in user_data:
+            user_id, username, password = user.split(',')
+            self.user_ids_synclogs[user_id] = None
 
     def print_estimates(self):
         forms = settings.SCALE_FACTOR * self.scale
@@ -256,10 +266,11 @@ class DataLoader(object):
         return id_dict[id_index], new
 
     def get_user_id(self):
-        user_id, new = self._get_doc_id(self.user_ids, settings.NUM_UNIQUE_USERS)
-        if new:
+        user_id = random.choice(self.user_ids_synclogs.keys())
+
+        if not self.user_ids_synclogs[user_id]:
             synclog_id = str(uuid4())
-            self.user_synclogs[user_id] = synclog_id
+            self.user_ids_synclogs[user_id] = synclog_id
 
             synclog = deepcopy(self.synclog_json)
             synclog['_id'] = synclog_id
@@ -269,7 +280,7 @@ class DataLoader(object):
             self.sync_token_loader.put_doc(synclog)
             self.sync_token_loader.flush()
 
-        return user_id, new
+        return user_id
 
     def get_case_id(self):
         return self._get_doc_id(self.case_ids, self.num_cases)
@@ -278,9 +289,9 @@ class DataLoader(object):
         form = deepcopy(self.form_json)
         form['domain'] = self.domain
         form['_id'] = form_id
-        user_id = self.get_user_id()[0]
+        user_id = self.get_user_id()
         form['form']['meta']['userID'] = user_id
-        form['last_sync_token'] = self.user_synclogs[user_id]
+        form['last_sync_token'] = self.user_ids_synclogs[user_id]
 
         if has_case:
             case_id, new = self.get_case_id()
@@ -304,7 +315,7 @@ class DataLoader(object):
         now = json_format_datetime(datetime.utcnow())
         case['modified_on'] = now
         case['server_modified_on'] = now
-        user_id = random.choice(self.user_ids.values())
+        user_id = self.get_user_id()
         case['user_id'] = user_id
         case['owner_id'] = user_id
         case['xform_ids'] = forms
