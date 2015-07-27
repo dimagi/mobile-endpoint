@@ -9,11 +9,14 @@ from mobile_endpoint.models import db
 
 @pytest.fixture(scope="session")
 def testapp():
+    from mobile_endpoint.backends.couch.db import create_db
     app = create_app('testconfig.py')
 
     db.app = app
     with app.app_context():
         upgrade()
+        # create couch DB
+        create_db('test')  # todo parameterize
 
     return app
 
