@@ -89,10 +89,11 @@ class Current(Backend):
             print(e.stderr)
 
     def reset_db(self):
+        common_args = ['-h {}'.format(self.settings['PG_HOST']), '-u {}'.format(self.settings['PG_USERNAME'])]
         print('Dropping postgres', self.settings['PG_DATABASE'])
-        sh.dropdb(self.settings['PG_DATABASE'], '--if-exists')
+        sh.dropdb(self.settings['PG_DATABASE'], '--if-exists', *common_args)
         print('Creating postgres', self.settings['PG_DATABASE'])
-        sh.createdb(self.settings['PG_DATABASE'])
+        sh.createdb(self.settings['PG_DATABASE'], *common_args)
 
         print('Dropping couch', self.couch_url)
         response = requests.delete(self.couch_url, auth=self.auth)
