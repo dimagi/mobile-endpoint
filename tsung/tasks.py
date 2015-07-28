@@ -1,3 +1,4 @@
+from collections import namedtuple
 import os
 import sys
 
@@ -8,6 +9,8 @@ import backends
 import settings
 from utils import cd
 from utils import confirm
+
+Phase = namedtuple('Phase', 'duration, arrival_rate')
 
 
 def _get_backend(backend_name):
@@ -26,11 +29,21 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         os.makedirs(settings.BUILD_DIR)
 
     backend = _get_backend(backend_name)
+    duration = int(duration or settings.TSUNG_DURATION)
+    user_rate = int(user_rate or settings.TSUNG_USERS_PER_SECOND)
+    main_phase = Phase(duration=duration, arrival_rate=user_rate)
+    if duration > 120:
+        phases = [
+            Phase(duration=60, arrival_rate=int(user_rate/4)),
+            Phase(duration=60, arrival_rate=int(user_rate/2)),
+            main_phase,
+        ]
+    else:
+        phases = [main_phase]
 
     context = {
         'dtd_path': settings.TSUNG_DTD_PATH,
-        'duration': duration or settings.TSUNG_DURATION,
-        'arrival_rate': user_rate or settings.TSUNG_USERS_PER_SECOND,
+        'phases': phases,
         'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb.csv'),
         'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb.csv'),
         'host': backend.settings['HOST'],
@@ -93,11 +106,16 @@ def awesome_test(backend, user_rate, duration, load=False):
         for line in sh.tsung(*args, _iter=True):
             sys.stdout.write(line)
             if 'Log directory' in line:
-                log_dir = line.splint(':')[1]
+                log_dir = line.split(':')[1].strip()
+                log_dir = log_dir.replace('"', '')
     except Exception as e:
-        print(e.stderr)
+        if hasattr(e, 'stderr'):
+            print(e.stderr)
+        else:
+            raise
 
     if log_dir:
+        print("Generating report")
         title = 'Awesome Test: backend={}, user_rate={}, duration={}'.format(
             backend.name, user_rate, duration
         )

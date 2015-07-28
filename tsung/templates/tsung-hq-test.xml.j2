@@ -10,9 +10,11 @@
     </servers>
 
     <load>
-        <arrivalphase phase="1" duration="{{ duration }}" unit="second">
-            <users arrivalrate="{{ arrival_rate}}" unit="second"></users>
+        {% for phase in phases %}
+        <arrivalphase phase="{{ loop.index }}" duration="{{ phase.duration }}" unit="second">
+            <users arrivalrate="{{ phase.arrival_rate}}" unit="second"></users>
         </arrivalphase>
+        {% endfor %}
     </load>
 
     <options>
