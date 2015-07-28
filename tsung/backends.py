@@ -64,6 +64,7 @@ class Current(Backend):
             port=self.settings['COUCH_PORT'],
             db=self.settings['COUCH_DATABASE'],
         )
+        self.psql = get_psql(self.name)
         self.auth = HTTPBasicAuth(self.settings['COUCH_USERNAME'], self.settings['COUCH_PASSWORD'])
         self.user_ids = []
         self.case_ids = []
@@ -91,9 +92,12 @@ class Current(Backend):
     def reset_db(self):
         common_args = ['-h {}'.format(self.settings['PG_HOST']), '-u {}'.format(self.settings['PG_USERNAME'])]
         print('Dropping postgres', self.settings['PG_DATABASE'])
-        sh.dropdb(self.settings['PG_DATABASE'], '--if-exists', *common_args)
+        sh.dropdb(self.settings['PG_DATABASE'], *common_args, _ok_code=[0, 1])
         print('Creating postgres', self.settings['PG_DATABASE'])
         sh.createdb(self.settings['PG_DATABASE'], *common_args)
+
+        # verify DB is accessible
+        self.psql(c="SELECT 1")
 
         print('Dropping couch', self.couch_url)
         response = requests.delete(self.couch_url, auth=self.auth)
@@ -174,7 +178,7 @@ class PrototypeSQL(Backend):
 
     def reset_db(self):
         print("Dropping and creating postgres DB", self.settings['PG_DATABASE'])
-        sh.dropdb(self.settings['PG_DATABASE'], '--if-exists')
+        sh.dropdb(self.settings['PG_DATABASE'])
         sh.createdb(self.settings['PG_DATABASE'])
 
         print("Running postgres schema file")
