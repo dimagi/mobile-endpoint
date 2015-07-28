@@ -6,6 +6,7 @@ import sh
 
 import backends
 import settings
+from utils import cd
 from utils import confirm
 
 
@@ -76,22 +77,29 @@ def load_db(backend_name):
 
 
 @task
-def awesome_test(backend, user_rate, duration, load=False, log_dir=None):
+def awesome_test(backend, user_rate, duration, load=False):
     if load:
         load_db(backend)
 
     tsung_build(backend, user_rate, duration)
 
     backend = _get_backend(backend)
-    backend.restart()
+    if not backend.is_running():
+        backend.restart()
 
+    log_dir = None
     args = ("-f", "build/tsung-hq-test.xml", "start")
-    if log_dir:
-        # TODO: Probably this needs to go before "start"
-        args = args + ("-l", log_dir)
     try:
         for line in sh.tsung(*args, _iter=True):
             sys.stdout.write(line)
+            if 'Log directory' in line:
+                log_dir = line.splint(':')[1]
     except Exception as e:
         print(e.stderr)
-    # TODO: Build the report
+
+    if log_dir:
+        title = 'Awesome Test: backend={}, user_rate={}, duration={}'.format(
+            backend.name, user_rate, duration
+        )
+        with cd(log_dir):
+            sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)

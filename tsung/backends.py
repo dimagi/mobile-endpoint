@@ -26,10 +26,31 @@ class Backend(object):
         if settings.TEST_SERVER != 'localhost':
             sh.ssh(settings.TEST_SERVER, 'echo ping!')
 
+    def is_running(self):
+        try:
+            requests.get('http://{}:{}/'.format(self.settings['HOST'], self.settings['PORT']))
+        except:
+            return False
+        else:
+            return True
+
     def start(self):
+        self._start()
+
+        for i in range(5):
+            time.sleep(1)
+            if self.is_running():
+                return
+
+        raise Exception("Service not running after 5 seconds")
+
+    def _start(self):
         raise NotImplementedError()
 
     def stop(self):
+        self._stop()
+
+    def _stop(self):
         raise NotImplementedError()
 
     def restart(self):
@@ -82,10 +103,12 @@ class Current(Backend):
                 with cd(settings.HQ_ENVIRONMENT_ROOT):
                     sh.Command(python)(manage, command, _bg=kwargs.get('bg', False), *args)
             else:
-                sh.ssh(settings.TEST_SERVER, '{command} {manage} {command} {args}'.format(
+                for line in sh.ssh(settings.TEST_SERVER, '{command} {manage} {django_command} {args}'.format(
                     command='cd {} && {}'.format(settings.HQ_ENVIRONMENT_ROOT, python),
                     manage=manage,
-                    args=' '.join(args)))
+                    django_command=command,
+                    args=' '.join(args)), _iter=True):
+                    print("    ", line)
         except Exception as e:
             print(e.stderr)
 
@@ -121,17 +144,14 @@ class Current(Backend):
             '--noinput',
         )
 
-    def start(self):
+    def _start(self):
         print('Starting service: ', self.name)
         if settings.TEST_SERVER == 'localhost':
             self._run_manage_py('runserver', '0.0.0.0:8000', bg=True)
         else:
             sh.ssh(settings.TEST_SERVER, 'sudo supervisorctl start all')
-        time.sleep(5)
 
-        requests.get('http://{}:{}/'.format(self.settings['HOST'], self.settings['PORT']))
-
-    def stop(self):
+    def _stop(self):
         print('Stopping service: ', self.name)
         if settings.TEST_SERVER == 'localhost':
             pids = sh.pgrep('-f', 'runserver', _ok_code=[0, 1])
