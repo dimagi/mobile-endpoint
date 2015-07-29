@@ -32,6 +32,15 @@ class TestCouchReceiver(ReceiverTestMixin):
         # assert len(couch_case.forms) == num_forms
         assert couch_case.owner_id == owner_id
 
+        if indices:
+            couch_indices = {}
+            for index in couch_case.indices:
+                couch_indices[index['identifier']] = {
+                    'referenced_type': index['referenced_type'],
+                    'referenced_id': index['referenced_id']
+                }
+                assert couch_indices == indices
+
         return couch_case
 
     def _assert_synclog(self, id, case_ids=None, dependent_ids=None, index_tree=None):
