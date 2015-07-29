@@ -13,7 +13,7 @@ from mobile_endpoint.models import db, FormData, CaseData, CaseIndex, Synclog, O
 app = create_app()
 
 manager = Manager(app)
-manager.add_command("server", Server())
+manager.add_command("runserver", Server())
 manager.add_command("show-urls", ShowUrls())
 manager.add_command("clean", Clean())
 manager.add_command('db', MigrateCommand)
