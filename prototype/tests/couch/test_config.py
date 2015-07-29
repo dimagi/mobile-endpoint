@@ -1,9 +1,11 @@
 import uuid
 import pytest
 from mobile_endpoint.backends.couch.models import CouchForm
+from tests.conftest import couch
 
 
-@pytest.mark.usefixtures("testapp")
+@pytest.mark.usefixtures("testapp", "couchdb")
+@couch
 class TestConfig(object):
 
     def test_setting(self, testapp):

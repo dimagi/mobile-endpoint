@@ -43,8 +43,11 @@ Once your settings are updated you can run tests as follows
 
 ```
 $ py.test  # run all tests
-$ py.test test_models  # run model tests
-$ py.test test_basic  # run test_models.test_basic
+$ py.test -k test_models  # run model tests
+$ py.test -k test_basic  # run test_models.test_basic
+$ py.test -m <sql or couch> # only run the sql or couch tests
+$ py.test --rowsize <form or case> # run the rowsize form or case tests
+
 ```
 
 

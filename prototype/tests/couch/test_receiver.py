@@ -2,14 +2,17 @@ import pytest
 from mobile_endpoint.backends.couch.models import CouchForm
 from mobile_endpoint.models import FormData, CaseData, Synclog
 from mobile_endpoint.synclog.checksum import Checksum
+from tests.conftest import couch
+from tests.mock import BACKEND_COUCH
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
-@pytest.mark.usefixtures("testapp", "client", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "couchdb", "db_reset")
+@couch
 class TestCouchReceiver(ReceiverTestMixin):
 
     def _get_backend(self):
-        return 'couch'
+        return BACKEND_COUCH
 
     def _assert_form(self, form_id, user_id, synclog_id=None):
         form = CouchForm.get(form_id)

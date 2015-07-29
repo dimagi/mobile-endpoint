@@ -10,11 +10,12 @@ import pytest
 from mobile_endpoint.models import db, FormData, CaseData, Synclog, CaseIndex
 from mobile_endpoint.synclog.checksum import Checksum
 from mobile_endpoint.utils import json_format_datetime
-from tests.conftest import delete_all_data
+from tests.conftest import delete_all_data, rowsize, sql
 from tests.utils import create_synclog
 
 
-@pytest.mark.usefixtures("testapp", "db_reset")
+@pytest.mark.usefixtures("testapp", "sqldb", "db_reset")
+@sql
 class TestModels(object):
     def test_basic(self, testapp):
         form = FormData(id=str(uuid4()), domain='test', received_on=datetime.utcnow(),
@@ -74,9 +75,9 @@ class TestModels(object):
         assert CaseData.query.get(case_id).version == 3
 
 
-@pytest.mark.usefixtures("testapp")
+@pytest.mark.usefixtures("testapp", "sqldb")
 class TestDetermineRowSizes(object):
-    @pytest.mark.skipif(True, reason="Not a real test. Only run this manually")
+    @rowsize('form')
     def test_table_size_form(self):
         """
         Insert 10000 rows into the form_data table. Run scripts/get_table_sizes.sh to
@@ -101,7 +102,7 @@ class TestDetermineRowSizes(object):
 
         db.session.bulk_save_objects(forms)
 
-    @pytest.mark.skipif(True, reason="Not a real test. Only run this manually")
+    @rowsize('case')
     def test_table_size_case(self):
         """
         Insert 10000 rows into the form_data table. Run scripts/get_table_sizes.sh to
