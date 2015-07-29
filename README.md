@@ -25,7 +25,7 @@ To setup an environment for the prototype make a new virtualenv and install requ
 ```
 $ makevirtualenv --no-site-packages mobile-endpoint
 $ cd prototype/
-$ pip install requirements.txt  # different from tsung requirements
+$ pip install -r requirements.txt  # different from tsung requirements
 ```
 
 ### Running tests
