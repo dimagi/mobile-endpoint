@@ -1,5 +1,6 @@
 from datetime import date
 from flask import request
+from mobile_endpoint.backends.manager import get_dao
 from mobile_endpoint.backends.sql.dao import SQLDao
 
 from mobile_endpoint.extensions import requires_auth
@@ -11,10 +12,20 @@ from tests.dummy import dummy_user
 @ota_mod.route('/restore/<domain>', methods=['GET'])
 @requires_auth
 def ota_restore(domain):
+    return _ota_restore(domain, backend='sql')
+
+
+@ota_mod.route('/couch-restore/<domain>', methods=['GET'])
+@requires_auth
+def ota_restore(domain):
+    return _ota_restore(domain, backend='sql')
+
+
+def _ota_restore(domain, backend):
     user_id = request.args.get('user_id')
     restore_params = get_restore_params(request)
 
-    dao = SQLDao()
+    dao = get_dao(backend)
     restore_config = RestoreConfig(
         dao=dao,
         project=Domain(domain),
@@ -25,6 +36,7 @@ def ota_restore(domain):
     response = restore_config.get_response()
     dao.commit_restore(restore_config.restore_state)
     return response
+
 
 def get_restore_params(request):
     """
