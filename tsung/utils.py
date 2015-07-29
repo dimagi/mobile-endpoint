@@ -50,3 +50,11 @@ def cd(path):
 
 def update_progress(title, progress):
     print('\r{} [{}] {}%'.format(title, '#'*int(progress*50), int(progress*100)), end='')
+
+
+def get_settings_for_readme():
+    out = []
+    for name in ['NUM_UNIQUE_USERS', 'CASES_PER_USER', 'FORMS_PER_CASE', 'CHILD_CASE_RATIO', 'NUM_CASES_TO_UPDATE']:
+        out.append('{} = {}'.format(name, getattr(settings, name)))
+
+    return '\n'.join(out)

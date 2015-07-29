@@ -7,7 +7,7 @@ import sh
 
 import backends
 import settings
-from utils import cd
+from utils import cd, get_settings_for_readme
 from utils import confirm
 
 Phase = namedtuple('Phase', 'duration, arrival_rate')
@@ -20,11 +20,15 @@ def _get_backend(backend_name):
     }[backend_name]()
 
 
-@task
-def tsung_build(backend_name, user_rate=None, duration=None):
+def _render_template(filename, context):
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader(settings.TEMPLATE_DIR))
+    template = env.get_template(filename)
+    return template.render(**context)
 
+
+@task
+def tsung_build(backend_name, user_rate=None, duration=None):
     if not os.path.isdir(settings.BUILD_DIR):
         os.makedirs(settings.BUILD_DIR)
 
@@ -53,13 +57,11 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
     }
-    for filename in os.listdir(os.path.join(settings.BASEDIR, 'templates')):
-        if filename.endswith('j2'):
-            template = env.get_template(filename)
-            new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
-            with open(new_filename, 'w') as f:
-                f.write(template.render(**context))
-                print("Built config: {}".format(new_filename))
+    filename = 'tsung-hq-test.xml.j2'
+    new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
+    with open(new_filename, 'w') as f:
+        f.write(_render_template(filename, context))
+        print("Built config: {}".format(new_filename))
 
 
 @task
@@ -90,7 +92,7 @@ def load_db(backend_name):
 
 
 @task
-def awesome_test(backend, user_rate, duration, load=False):
+def awesome_test(backend, user_rate, duration, load=False, notes=None):
     if load:
         load_db(backend)
 
@@ -115,9 +117,21 @@ def awesome_test(backend, user_rate, duration, load=False):
             raise
 
     if log_dir:
+        print("Creating README in log directory")
+        context = {
+            'notes': notes,
+            'settings': get_settings_for_readme(),
+            'user_rate': user_rate,
+            'duration': duration
+        }
+        with open(os.path.join(log_dir, 'README.md'), 'w') as f:
+            f.write(_render_template('README.md.j2', context))
+
         print("Generating report")
         title = 'Awesome Test: backend={}, user_rate={}, duration={}'.format(
             backend.name, user_rate, duration
         )
         with cd(log_dir):
             sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)
+
+            print(sh.cat('README.md'))
