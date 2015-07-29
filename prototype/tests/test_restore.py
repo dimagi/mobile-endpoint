@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import base64
-from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -8,9 +7,8 @@ import time
 from mobile_endpoint.case import const
 from mobile_endpoint.case.xml import V2
 
-from mobile_endpoint.models import Synclog, db
+from mobile_endpoint.models import Synclog
 from mobile_endpoint.restore import xml
-from mobile_endpoint.synclog.checksum import Checksum
 from tests.dummy import dummy_user, dummy_restore_xml
 from tests.mock import CaseFactory, CaseStructure
 from tests.utils import check_xml_line_by_line
@@ -18,7 +16,7 @@ from tests.utils import check_xml_line_by_line
 DOMAIN = 'test_domain'
 
 
-@pytest.mark.usefixtures("testapp", "client", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "sqldb", "db_reset")
 class TestRestore(object):
     user_id = str(uuid4())
     case_id = str(uuid4())

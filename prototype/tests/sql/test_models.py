@@ -14,7 +14,7 @@ from tests.conftest import delete_all_data
 from tests.utils import create_synclog
 
 
-@pytest.mark.usefixtures("testapp", "db_reset")
+@pytest.mark.usefixtures("testapp", "sqldb", "db_reset")
 class TestModels(object):
     def test_basic(self, testapp):
         form = FormData(id=str(uuid4()), domain='test', received_on=datetime.utcnow(),
@@ -74,7 +74,7 @@ class TestModels(object):
         assert CaseData.query.get(case_id).version == 3
 
 
-@pytest.mark.usefixtures("testapp")
+@pytest.mark.usefixtures("testapp", "sqldb")
 class TestDetermineRowSizes(object):
     @pytest.mark.skipif(True, reason="Not a real test. Only run this manually")
     def test_table_size_form(self):

@@ -4,7 +4,7 @@ from mobile_endpoint.synclog.checksum import Checksum
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
-@pytest.mark.usefixtures("testapp", "client", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "sqldb", "db_reset")
 class TestPostgresReceiver(ReceiverTestMixin):
 
     def _get_backend(self):

@@ -3,7 +3,7 @@ import pytest
 from mobile_endpoint.backends.couch.models import CouchForm
 
 
-@pytest.mark.usefixtures("testapp")
+@pytest.mark.usefixtures("testapp", "couchdb")
 class TestConfig(object):
 
     def test_setting(self, testapp):

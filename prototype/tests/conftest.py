@@ -9,16 +9,23 @@ from mobile_endpoint.models import db
 
 @pytest.fixture(scope="session")
 def testapp():
-    from mobile_endpoint.backends.couch.db import init_dbs
     app = create_app('testconfig.py')
 
     db.app = app
-    with app.app_context():
-        upgrade()
-        # init couch DBs
-        init_dbs()
-
     return app
+
+
+@pytest.fixture(scope="session")
+def sqldb(testapp):
+    with testapp.app_context():
+        upgrade()
+
+
+@pytest.fixture(scope="session")
+def couchdb(testapp):
+    from mobile_endpoint.backends.couch.db import init_dbs
+    with testapp.app_context():
+        init_dbs()
 
 
 @pytest.fixture()
