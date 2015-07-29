@@ -9,6 +9,7 @@ JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
 BACKENDS = {
     'current': {
         'SUBMISSION_URL': '/a/{domain}/receiver/',
+        'SUBMIT_WITH_AUTH': False,
         'HOST': '10.10.1.28',
         'PORT': '9010',
 
@@ -33,6 +34,7 @@ BACKENDS = {
     },
     'prototype-sql': {
         'SUBMISSION_URL': '/ota/receiver',
+        'SUBMIT_WITH_AUTH': True,
         'HOST': '10.10.1.28',
         'PORT': '9011',
 
