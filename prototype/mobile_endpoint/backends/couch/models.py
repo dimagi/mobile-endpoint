@@ -46,7 +46,9 @@ class CouchCase(Document, ToFromGeneric):
         return 'cases'
 
     def to_generic(self):
-        return CommCareCase.wrap(self.to_json())
+        json = self.to_json()
+        json['id'] = json.pop('_id')
+        return CommCareCase.wrap(json)
 
     @classmethod
     def from_generic(cls, generic, xform=None, **kwargs):

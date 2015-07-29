@@ -54,8 +54,10 @@ class CouchDao(AbsctractDao):
     def case_exists(self, id):
         return CouchCase.get_db().doc_exist(id)
 
+    @to_generic
     def get_cases(self, case_ids, ordered=True):
-        pass
+        for row in CouchCase.view('_all_docs', keys=case_ids, include_docs=True):
+            yield row
 
     def get_reverse_indexed_cases(self, domain, case_ids):
         # todo
