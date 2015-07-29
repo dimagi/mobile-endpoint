@@ -9,6 +9,7 @@ from mobile_endpoint.case.xml import V2
 
 from mobile_endpoint.models import Synclog
 from mobile_endpoint.restore import xml
+from tests.conftest import sql
 from tests.dummy import dummy_user, dummy_restore_xml
 from tests.mock import CaseFactory, CaseStructure
 from tests.utils import check_xml_line_by_line
@@ -17,6 +18,7 @@ DOMAIN = 'test_domain'
 
 
 @pytest.mark.usefixtures("testapp", "client", "sqldb", "db_reset")
+@sql
 class TestRestore(object):
     user_id = str(uuid4())
     case_id = str(uuid4())
