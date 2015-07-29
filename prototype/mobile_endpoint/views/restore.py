@@ -1,11 +1,9 @@
-from datetime import date
 from flask import request
 from mobile_endpoint.backends.manager import get_dao
-from mobile_endpoint.backends.sql.dao import SQLDao
 
 from mobile_endpoint.extensions import requires_auth
 from mobile_endpoint.views import ota_mod
-from mobile_endpoint.restore.restore import User as CaseXMLUser, RestoreConfig, RestoreParams, RestoreCacheSettings
+from mobile_endpoint.restore.restore import RestoreConfig, RestoreParams, RestoreCacheSettings
 from tests.dummy import dummy_user
 
 
@@ -17,7 +15,7 @@ def ota_restore(domain):
 
 @ota_mod.route('/couch-restore/<domain>', methods=['GET'])
 @requires_auth
-def ota_restore(domain):
+def couch_restore(domain):
     return _ota_restore(domain, backend='sql')
 
 
