@@ -166,6 +166,20 @@ class Current(Backend):
             self.settings['SUPERUSER_PASSWORD']
         )
 
+        if not self.settings['SUBMIT_WITH_AUTH']:
+            print("Turning off secure submissions for domain")
+            params = {'reduce': 'false', 'include_docs': 'true', 'key': '"{}"'.format(settings.DOMAIN)}
+            resp = requests.get('{}/_design/domain/_view/domains'.format(
+                self.couch_url), params=params, auth=self.auth
+            )
+            assert resp.status_code == 200, resp.text
+            domain = resp.json()['rows'][0]['doc']
+            domain['secure_submissions'] = False
+            resp = requests.put('{}/{}'.format(self.couch_url, domain['_id']), auth=self.auth, data=json.dumps(domain), headers={
+                'content-type': "application/json"
+            })
+            assert resp.status_code == 201, [resp.status_code, resp.text]
+
     def _create_user(self):
         payload = {
             'username': str(uuid4()),

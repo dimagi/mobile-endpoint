@@ -56,6 +56,7 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         'domain': settings.DOMAIN,
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
+        'do_auth': backend.settings['SUBMIT_WITH_AUTH']
     }
     filename = 'tsung-hq-test.xml.j2'
     new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
