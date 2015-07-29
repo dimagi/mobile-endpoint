@@ -6,6 +6,7 @@ from uuid import uuid4
 from xml.etree import ElementTree
 from flask.templating import render_template_string
 from mobile_endpoint.backends.couch.dao import CouchDao
+from mobile_endpoint.backends.manager import get_dao
 from mobile_endpoint.backends.sql.dao import SQLDao
 from mobile_endpoint.case.xml import NS_VERSION_MAP, V2
 from mobile_endpoint.utils import json_format_datetime
@@ -316,10 +317,7 @@ class CaseFactory(object):
 
     def __init__(self, backend, client, domain=None, case_defaults=None, form_extras=None):
         self.backend = backend
-        self.dao = {
-            'sql': SQLDao,
-            'couch': CouchDao
-        }[backend]()
+        self.dao = get_dao(self.backend)
         self.client = client
         self.domain = domain
         self.case_defaults = case_defaults if case_defaults is not None else {}
