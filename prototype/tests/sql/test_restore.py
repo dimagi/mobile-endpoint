@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+from mobile_endpoint.backends.manager import BACKEND_SQL
 from tests.conftest import sql
 from tests.test_restore import RestoreTestMixin
 
@@ -9,4 +10,4 @@ from tests.test_restore import RestoreTestMixin
 class TestSQLRestore(RestoreTestMixin):
 
     def _get_backend(self):
-        return 'sql'
+        return BACKEND_SQL
