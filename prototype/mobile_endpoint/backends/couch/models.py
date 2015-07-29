@@ -1,4 +1,5 @@
 from couchdbkit import Document
+from mobile_endpoint.case.models import CommCareCase
 from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import ToFromGeneric
 
@@ -35,4 +36,28 @@ class CouchForm(Document, ToFromGeneric):
         self.user_id = generic.metadata.userID
         self.md5 = str(generic._md5)
         self.synclog_id = generic.last_sync_token
+        return new, self
+
+
+class CouchCase(Document, ToFromGeneric):
+
+    @staticmethod
+    def get_app_name():
+        return 'cases'
+
+    def to_generic(self):
+        return CommCareCase.wrap(self.to_json())
+
+    @classmethod
+    def from_generic(cls, generic, xform=None, **kwargs):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            case_json = generic.to_json()
+            id = case_json.pop('id')
+            case_json['_id'] = id
+            self = cls.wrap(case_json)
+            new = True
+
         return new, self

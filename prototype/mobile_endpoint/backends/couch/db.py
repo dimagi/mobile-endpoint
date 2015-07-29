@@ -1,6 +1,6 @@
 from couchdbkit import Database
 from flask import current_app
-from mobile_endpoint.backends.couch.models import CouchForm
+from mobile_endpoint.backends.couch.models import CouchForm, CouchCase
 
 
 def create_db(db_name):
@@ -22,7 +22,7 @@ def delete_db(db_name):
 
 
 def init_dbs():
-    for cls in [CouchForm]:
+    for cls in [CouchForm, CouchCase]:
         db_name = current_app.config.get('COUCH_DBS')[cls.get_app_name()]
         db = create_db(db_name)
         cls.set_db(db)
