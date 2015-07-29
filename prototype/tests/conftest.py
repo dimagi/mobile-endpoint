@@ -8,6 +8,7 @@ from mobile_endpoint.models import db
 
 couch = pytest.mark.couch
 sql = pytest.mark.sql
+mongo = pytest.mark.mongo
 rowsize = pytest.mark.rowsize
 
 

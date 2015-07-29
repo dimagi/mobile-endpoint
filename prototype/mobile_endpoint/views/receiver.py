@@ -22,6 +22,11 @@ def form_receiver(domain):
 def couch_receiver(domain):
     return _receiver(domain, backend='couch')
 
+@ota_mod.route('/mongo-receiver/<domain>', methods=['POST'])
+@requires_auth
+def mongo_receiver(domain):
+    return _receiver(domain, backend='mongo')
+
 
 def _receiver(domain, backend):
     dao = get_dao(backend)

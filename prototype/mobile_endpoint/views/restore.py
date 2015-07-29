@@ -16,7 +16,13 @@ def ota_restore(domain):
 @ota_mod.route('/couch-restore/<domain>', methods=['GET'])
 @requires_auth
 def couch_restore(domain):
-    return _ota_restore(domain, backend='sql')
+    return _ota_restore(domain, backend='couch')
+
+
+@ota_mod.route('/mongo-restore/<domain>', methods=['GET'])
+@requires_auth
+def mongo_restore(domain):
+    return _ota_restore(domain, backend='mongo')
 
 
 def _ota_restore(domain, backend):
