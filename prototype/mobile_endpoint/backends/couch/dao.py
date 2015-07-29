@@ -52,7 +52,7 @@ class CouchDao(AbsctractDao):
             None, _get_case(id)
 
     def case_exists(self, id):
-        pass
+        return CouchCase.get_db().doc_exist(id)
 
     def get_cases(self, case_ids, ordered=True):
         pass
