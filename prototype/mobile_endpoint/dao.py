@@ -33,7 +33,7 @@ class AbsctractDao(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def commit_atomic_submission(self, xform, cases):
+    def commit_atomic_submission(self, xform, case_result):
         """
         Commit the transaction
         """

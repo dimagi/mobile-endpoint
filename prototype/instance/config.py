@@ -15,7 +15,8 @@ RESTORE_DIR = 'restore_tmp'
 # couch settings
 COUCH_URI = 'http://localhost:5984'
 COUCH_DBS = {
-    'forms': 'mobile_endpoint_forms'
+    'forms': 'mobile_endpoint_forms',
+    'cases': 'mobile_endpoint_cases'
 }
 
 del os
