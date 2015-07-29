@@ -24,6 +24,10 @@ MOCK_FORM = """<?xml version='1.0' ?>
 </system>"""
 
 
+BACKEND_SQL = 'sql'
+BACKEND_COUCH = 'couch'
+
+
 def post_case_blocks(backend, client, case_blocks, form_extras=None, domain=None):
     """
     Post case blocks.
@@ -36,8 +40,8 @@ def post_case_blocks(backend, client, case_blocks, form_extras=None, domain=None
 
     domain = domain or form_extras.pop('domain', None)
     submit_url = {
-        'sql': 'ota/receiver/{}'.format(domain),
-        'couch': 'ota/couch-receiver/{}'.format(domain),
+        BACKEND_SQL: 'ota/receiver/{}'.format(domain),
+        BACKEND_COUCH: 'ota/couch-receiver/{}'.format(domain),
     }[backend]
 
     now = json_format_datetime(datetime.utcnow())

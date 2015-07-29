@@ -11,7 +11,7 @@ from mobile_endpoint.models import Synclog
 from mobile_endpoint.restore import xml
 from tests.conftest import sql
 from tests.dummy import dummy_user, dummy_restore_xml
-from tests.mock import CaseFactory, CaseStructure
+from tests.mock import CaseFactory, CaseStructure, BACKEND_SQL
 from tests.utils import check_xml_line_by_line
 
 DOMAIN = 'test_domain'
@@ -40,6 +40,7 @@ class TestRestore(object):
     def test_user_restore_with_case(self, testapp, client):
         with testapp.app_context():
             factory = CaseFactory(
+                BACKEND_SQL,
                 client,
                 domain=DOMAIN,
                 case_defaults={
@@ -95,6 +96,7 @@ class TestRestore(object):
         # update the case
         with testapp.app_context():
             factory = CaseFactory(
+                BACKEND_SQL,
                 client,
                 domain=DOMAIN,
                 case_defaults={

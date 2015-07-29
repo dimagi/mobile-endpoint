@@ -2,6 +2,7 @@ import pytest
 from mobile_endpoint.models import FormData, CaseData, Synclog
 from mobile_endpoint.synclog.checksum import Checksum
 from tests.conftest import sql
+from tests.mock import BACKEND_SQL
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
@@ -10,7 +11,7 @@ from tests.test_receiver import ReceiverTestMixin, DOMAIN
 class TestPostgresReceiver(ReceiverTestMixin):
 
     def _get_backend(self):
-        return 'sql'
+        return BACKEND_SQL
 
     def _assert_form(self, form_id, user_id, synclog_id=None):
         sql_form = FormData.query.get(form_id)
