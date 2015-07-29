@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from abc import abstractmethod
 from uuid import uuid4
 
 from mobile_endpoint.views.response import OPEN_ROSA_SUCCESS_RESPONSE
@@ -14,17 +15,21 @@ class ReceiverTestMixin(object):
     to test the backend itself.
     """
 
+    @abstractmethod
     def _get_backend(self):
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def _assert_form(self, form_id, user_id, synclog_id=None):
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def _assert_case(self, case_id, owner_id, num_forms=1, closed=False, indices=None):
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def _assert_synclog(self, id, case_ids=None, dependent_ids=None, index_tree=None):
-        raise NotImplementedError()
+        pass
 
     def test_vanilla_form(self, testapp, client):
         user_id = str(uuid4())
