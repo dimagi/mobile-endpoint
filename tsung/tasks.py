@@ -33,8 +33,8 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         os.makedirs(settings.BUILD_DIR)
 
     backend = _get_backend(backend_name)
-    duration = int(duration or settings.TSUNG_DURATION)
-    user_rate = int(user_rate or settings.TSUNG_USERS_PER_SECOND)
+    duration = int(duration)
+    user_rate = int(user_rate)
     main_phase = Phase(duration=duration, arrival_rate=user_rate)
     if duration > 120:
         phases = [
