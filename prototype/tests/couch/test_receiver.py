@@ -1,9 +1,7 @@
 import pytest
 from mobile_endpoint.backends.couch.models import CouchForm, CouchCase
-from mobile_endpoint.models import FormData, CaseData, Synclog
-from mobile_endpoint.synclog.checksum import Checksum
+from mobile_endpoint.backends.manager import BACKEND_COUCH
 from tests.conftest import couch
-from tests.mock import BACKEND_COUCH
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
