@@ -5,7 +5,6 @@ TEMPLATE_DIR = os.path.join(BASEDIR, 'templates')
 BUILD_DIR = os.path.join(BASEDIR, 'build')
 DB_FILES_DIR = os.path.join(BUILD_DIR, 'files')
 JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
-SQL_DIR = os.path.join(BASEDIR, "sql")
 
 BACKENDS = {
     'current': {
@@ -28,6 +27,9 @@ BACKENDS = {
 
         'SUPERUSER_USERNAME': 'joe@dimagi.com',
         'SUPERUSER_PASSWORD': 'mater',
+
+        'ENVIRONMENT_ROOT': '/home/cchq/www/tsung_hq_test/code_root',
+        'PYTHON_ENV': '/home/cchq/www/tsung_hq_test/python_env',
     },
     'prototype-sql': {
         'SUBMISSION_URL': '/ota/receiver',
@@ -39,6 +41,9 @@ BACKENDS = {
         'PG_PORT': '5432',
         'PG_DATABASE': 'prototype_load_test',
         'PG_USERNAME': 'postgres',
+
+        'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
+        'PYTHON_ENV': '/home/cchq/prototype/python_env',
     },
 }
 
@@ -64,8 +69,6 @@ NUM_CASES_TO_UPDATE = 10000
 
 ### Bootstrap settings ###
 TEST_SERVER = 'indiacloud8.internal.commcarehq.org'
-HQ_ENVIRONMENT_ROOT = '/home/cchq/www/tsung_hq_test/code_root'
-PYTHONN_ENV = '/home/cchq/www/tsung_hq_test/python_env'
 MOBILE_USER_PASSWORD = '123'
 
 

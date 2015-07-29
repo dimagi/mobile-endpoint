@@ -69,7 +69,7 @@ def load_db(backend_name):
 
     backend = _get_backend(backend_name)
     if confirm("Do you want to delete the current database?"):
-        backend.check_access()
+        backend.check_ssh_access()
         backend.stop()
         backend.reset_db()
         print('Bootstrapping service with domain and superuser')

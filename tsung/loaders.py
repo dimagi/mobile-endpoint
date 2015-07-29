@@ -340,7 +340,7 @@ class DataLoader(object):
         forms_per_user = float(settings.CASES_PER_USER * settings.FORMS_PER_CASE)
 
         for i, user_id in enumerate(self.user_ids):
-            print('\n## Loading data for user {} of {}\n'.format(i, self.num_users))
+            print('\n\n## Loading data for user {} of {}'.format(i, self.num_users))
             synclog_id = self.get_synclog_id(user_id)
             num_cases_user = 0
             num_forms_user = 0
@@ -367,7 +367,7 @@ class DataLoader(object):
                     forms = self.case_forms[case_id]
                     case = self.get_case(user_id, case_id, forms, is_child_case)
                     loader.put_doc(case)
-                    update_progress('Cases:', j / num_cases)
+                    update_progress('Cases:', (j + 1) / num_cases)
 
             self.save_database_and_clear()
 
