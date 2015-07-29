@@ -6,7 +6,7 @@ from uuid import uuid4
 from xml.etree import ElementTree
 from flask.templating import render_template_string
 from mobile_endpoint.backends.couch.dao import CouchDao
-from mobile_endpoint.backends.manager import get_dao
+from mobile_endpoint.backends.manager import get_dao, get_submit_url
 from mobile_endpoint.backends.sql.dao import SQLDao
 from mobile_endpoint.case.xml import NS_VERSION_MAP, V2
 from mobile_endpoint.utils import json_format_datetime
@@ -26,10 +26,6 @@ MOCK_FORM = """<?xml version='1.0' ?>
 </system>"""
 
 
-BACKEND_SQL = 'sql'
-BACKEND_COUCH = 'couch'
-
-
 def post_case_blocks(backend, client, case_blocks, form_extras=None, domain=None):
     """
     Post case blocks.
@@ -41,10 +37,8 @@ def post_case_blocks(backend, client, case_blocks, form_extras=None, domain=None
         form_extras = {}
 
     domain = domain or form_extras.pop('domain', None)
-    submit_url = {
-        BACKEND_SQL: 'ota/receiver/{}'.format(domain),
-        BACKEND_COUCH: 'ota/couch-receiver/{}'.format(domain),
-    }[backend]
+
+    submit_url = get_submit_url(backend, domain)
 
     now = json_format_datetime(datetime.utcnow())
     if not isinstance(case_blocks, basestring):
