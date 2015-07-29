@@ -22,6 +22,7 @@ def form_receiver(domain):
 def couch_receiver(domain):
     return _receiver(domain, backend='couch')
 
+
 def _receiver(domain, backend):
     dao = get_dao(backend)
     instance, attachments = get_instance_and_attachments(request)
