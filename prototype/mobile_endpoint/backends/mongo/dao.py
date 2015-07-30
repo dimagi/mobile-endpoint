@@ -1,4 +1,5 @@
 from collections import defaultdict
+from mongoengine import DoesNotExist, NotUniqueError
 from mobile_endpoint.dao import AbsctractDao, to_generic
 from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
 from couchdbkit import ResourceNotFound
@@ -13,29 +14,33 @@ class MongoDao(AbsctractDao):
 
         # form
         _, form = MongoForm.from_generic(xform)
-        docs_by_collection[MongoForm.get_collection()].append(form.to_dict())
+        form.save()
 
         # cases
         cases = case_result.cases if case_result else []
-        for case in cases:
-            docs_by_collection[MongoCase.get_collection()].append(MongoCase.from_generic(case)[1].to_dict())
+        cases = [MongoCase.from_generic(case)[1] for case in cases]
+        if cases:
+            # TODO: Needs to be an upsert?
+            MongoCase.objects.insert(cases)
 
         # todo sync logs
         # synclog = case_result.synclog if case_result else None
-        for collection, docs in docs_by_collection.items():
-            collection.insert_many(docs)
 
 
     @to_generic
     def get_form(self, id):
-        return MongoForm.get(id)
+        try:
+            return MongoForm.objects.get(id=id)
+        except DoesNotExist:
+            return None
+
 
     @to_generic
     def get_case(self, id, lock=False):
         def _get_case(id):
             try:
-                return MongoCase.get(id)
-            except ResourceNotFound:  # TODO: Replace with the right exception
+                return MongoCase.objects.get(id=id)
+            except DoesNotExist:
                 return None
 
         if lock:
@@ -49,7 +54,7 @@ class MongoDao(AbsctractDao):
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
-        pass
+        return MongoCase.objects(id__in=case_ids).all()
 
     def get_reverse_indexed_cases(self, domain, case_ids):
         # todo
