@@ -10,6 +10,8 @@ from mobile_endpoint.utils import get_with_lock
 class MongoDao(AbsctractDao):
 
     def commit_atomic_submission(self, xform, case_result):
+        # TODO: Save all in one bulk operation
+        # TODO: Are the forms, cases, and synclogs all supposed to be all or nothing?
 
         # form
         _, form = MongoForm.from_generic(xform)
@@ -28,8 +30,11 @@ class MongoDao(AbsctractDao):
                 bulkop.find({'_id': case_id}).upsert().replace_one(case_son)
             bulkop.execute()
 
-        # todo sync logs
-        # synclog = case_result.synclog if case_result else None
+        # synclog
+        synclog = case_result.synclog if case_result else None
+        if synclog:
+            _, log = MongoSynclog.from_generic(synclog)
+            log.save()
 
 
     @to_generic
@@ -80,8 +85,12 @@ class MongoDao(AbsctractDao):
     def commit_restore(self, restore_state):
         pass
 
+    @to_generic
     def get_synclog(self, id):
-        pass
+        synclog = MongoSynclog.objects.get(id=id)
+        if not synclog:
+            raise NotFound()
+        return synclog
 
     def save_synclog(self, generic):
         _, synclog = MongoSynclog.from_generic(generic)

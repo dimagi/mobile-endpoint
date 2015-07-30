@@ -1,7 +1,9 @@
 from uuid import UUID
 import pytest
-from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
+from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, \
+    MongoSynclog
 from mobile_endpoint.backends.manager import BACKEND_MONGO
+from mobile_endpoint.synclog.checksum import Checksum
 from tests.conftest import mongo
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
@@ -45,7 +47,12 @@ class TestMongoReceiver(ReceiverTestMixin):
         return mongo_case
 
     def _assert_synclog(self, id, case_ids=None, dependent_ids=None, index_tree=None):
-        # todo
-        pass
-
+        synclog = MongoSynclog.objects.get(id=id)
+        case_ids = case_ids or []
+        dependent_ids = dependent_ids or []
+        index_tree = index_tree or {}
+        assert case_ids == [unicode(i) for i in synclog.case_ids_on_phone]
+        assert dependent_ids == [unicode(i) for i in synclog.dependent_case_ids_on_phone]
+        assert index_tree == synclog.index_tree
+        assert Checksum(case_ids).hexdigest() == unicode(synclog.hash)
 
