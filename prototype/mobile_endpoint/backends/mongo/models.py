@@ -6,6 +6,7 @@ from mobile_endpoint.case.models import CommCareCase
 from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import ToFromGeneric
 
+# TODO: Fix this
 #connect(host=current_app.config.get('MONGO_URI'))
 connect(host="mongodb://localhost/mobile_endpoint_test")
 
@@ -59,7 +60,7 @@ class MongoCase(DynamicDocument, ToFromGeneric):
     closed = BooleanField(default=False)
     owner_id = UUIDField()
     server_modified_on = DateTimeField()
-    version = IntField()
+    version = StringField()
 
     def to_generic(self):
         dict = self.to_mongo().to_dict()
@@ -80,6 +81,9 @@ class MongoCase(DynamicDocument, ToFromGeneric):
         else:
             case_json = generic.to_json()
             self = cls(**case_json)
+            # Looks like fields aren't cleaned/converted to the right type
+            # until document saving or validation (?). So, self.id will be a
+            # string, not a UUID.
             new = True
 
         return new, self
