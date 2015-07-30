@@ -48,6 +48,10 @@ class MongoForm(Document, ToFromGeneric):
         return generic
 
     def to_dict(self):
+        """
+        Return a dictionary representation of this object in a form suitable for
+        saving in the database with the pymongo driver.
+        """
         return {
             'domain': self.domain,
             'received_on': self.received_on,
@@ -56,6 +60,21 @@ class MongoForm(Document, ToFromGeneric):
             'synclog_id': self.synclog_id,
             '_id': self._id,
         }
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Instantiate a new MongoForm from a dictionary of the sort that would be
+        received from the database with the pymongo driver.
+        """
+        self = cls()
+        self.domain = d['domain']
+        self.received_on = d['received_on']
+        self.user_id = d['user_id']
+        self.md5 = d['md5']
+        self.synclog_id = d['synclog_id']
+        if '_id' in d:
+            self._id = d['_id']
 
 
 class MongoCase(Document, ToFromGeneric):
