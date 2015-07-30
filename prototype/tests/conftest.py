@@ -8,6 +8,7 @@ from mobile_endpoint.models import db
 
 couch = pytest.mark.couch
 sql = pytest.mark.sql
+mongo = pytest.mark.mongo
 rowsize = pytest.mark.rowsize
 
 
@@ -48,6 +49,12 @@ def couchdb(testapp):
     from mobile_endpoint.backends.couch.db import init_dbs
     with testapp.app_context():
         init_dbs()
+
+@pytest.fixture(scope="session")
+def mongodb(testapp):
+    pass
+    # Nothing needed here I think.
+    # Mongo creates dbs the first time you try to use them.
 
 
 @pytest.fixture()
