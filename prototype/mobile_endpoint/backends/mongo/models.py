@@ -1,5 +1,7 @@
+from mobile_endpoint.backends.mongo.db import get_db
 from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import ToFromGeneric
+from uuid import UUID
 
 
 class Document(object):
@@ -7,12 +9,16 @@ class Document(object):
 
     @classmethod
     def get_collection(cls):
-        pass
+        """Get the pymongo collection associated with this Document type"""
+        return get_db()[cls._collection_name]
 
     @classmethod
     def get(cls, id):
         """Return the document (dictionary) with the given id."""
-        pass
+        if isinstance(id, basestring):
+            id = UUID(id)
+        doc = cls.get_collection().find_one({'_id': id})
+        return cls.from_dict(doc)
 
 
 class MongoForm(Document, ToFromGeneric):
@@ -55,7 +61,7 @@ class MongoForm(Document, ToFromGeneric):
         return {
             'domain': self.domain,
             'received_on': self.received_on,
-            'user_id': self.user_id,  # TODO: Should this be an ObjectID object?
+            'user_id': self.user_id,
             'md5': self.md5,
             'synclog_id': self.synclog_id,
             '_id': self._id,

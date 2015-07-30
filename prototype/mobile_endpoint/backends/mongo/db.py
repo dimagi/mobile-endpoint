@@ -1,9 +1,8 @@
 from pymongo import MongoClient
 from flask import current_app
-from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
-
 
 def client():
+    # TODO: Read a bit more about how pymongo does connection pooling
     return MongoClient(current_app.config.get('MONGO_URI'))
 
 
