@@ -1,3 +1,4 @@
+from uuid import UUID
 from mongoengine import DoesNotExist
 from mobile_endpoint.dao import AbsctractDao, to_generic
 from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
@@ -44,15 +45,15 @@ class MongoDao(AbsctractDao):
                 return MongoCase.objects.get(id=id)
             except DoesNotExist:
                 return None
-
         if lock:
             return get_with_lock('case_lock_{}'.format(id), lambda: _get_case(id))
         else:
             None, _get_case(id)
 
     def case_exists(self, id):
-        pass
-        # return MongoCase.get_db().doc_exist(id)
+        assert isinstance(id, UUID)
+        return MongoCase.objects(id=id).limit(1) is not None
+        # TODO: Test this
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
