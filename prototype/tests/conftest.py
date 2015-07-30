@@ -50,6 +50,12 @@ def couchdb(testapp):
     with testapp.app_context():
         init_dbs()
 
+@pytest.fixture(scope="session")
+def mongodb(testapp):
+    pass
+    # Nothing needed here I think.
+    # Mongo creates dbs the first time you try to use them.
+
 
 @pytest.fixture()
 def db_reset(request):

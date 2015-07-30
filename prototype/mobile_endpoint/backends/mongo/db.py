@@ -19,10 +19,3 @@ def delete_db():
     c = client()
     db = c.get_db()
     c.drop_database(db)
-
-
-def init_dbs():
-    for cls in [MongoForm, MongoCase]:
-        db_name = current_app.config.get('COUCH_DBS')[cls.get_app_name()]
-        db = create_db(db_name)
-        cls.set_db(db)
