@@ -18,26 +18,16 @@ class MongoDao(AbsctractDao):
 
         # cases
         cases = case_result.cases if case_result else []
-        cases = [MongoCase.from_generic(case)[1] for case in cases]
         if cases:
+            collection = MongoCase._get_collection()
+            bulkop = collection.initialize_unordered_bulk_op()
             for case in cases:
-                case.save()
-            # TODO: Fix this
-            # collection = MongoCase._get_collection()
-            # bulkop = collection.initialize_unordered_bulk_op()
-            # for case in cases:
-            #     case.validate()
-            #     if isinstance(case.id, basestring):
-            #         raise Exception('why is this happening')
-            #     # TODO: Figure out if update or insert is needed instead of using upsert
-            #     c = case.to_mongo().to_dict()
-            #     c.pop('_id')  # TODO: Hmmm, this means inserts won't have the expected id.
-            #     bulkop.find({'_id': case.id}).upsert().replace_one(c)
-            # try:
-            #     result = bulkop.execute()
-            # except Exception as e:
-            #     import ipdb; ipdb.set_trace()
-
+                case = MongoCase.from_generic(case)[1]
+                case.validate()
+                case_son = case.to_mongo()
+                case_id = case_son.get('_id')
+                bulkop.find({'_id': case_id}).upsert().replace_one(case_son)
+            bulkop.execute()
 
         # todo sync logs
         # synclog = case_result.synclog if case_result else None
