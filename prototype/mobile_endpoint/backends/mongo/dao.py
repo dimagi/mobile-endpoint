@@ -1,16 +1,12 @@
-from collections import defaultdict
-from mongoengine import DoesNotExist, NotUniqueError
+from mongoengine import DoesNotExist
 from mobile_endpoint.dao import AbsctractDao, to_generic
 from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
-from couchdbkit import ResourceNotFound
 from mobile_endpoint.utils import get_with_lock
 
 
 class MongoDao(AbsctractDao):
 
     def commit_atomic_submission(self, xform, case_result):
-
-        docs_by_collection = defaultdict(list)
 
         # form
         _, form = MongoForm.from_generic(xform)
