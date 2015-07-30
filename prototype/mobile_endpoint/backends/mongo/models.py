@@ -8,6 +8,9 @@ from mobile_endpoint.models import ToFromGeneric
 
 # TODO: Fix this
 #connect(host=current_app.config.get('MONGO_URI'))
+from mobile_endpoint.synclog.checksum import Checksum
+from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
+
 connect(host="mongodb://localhost/mobile_endpoint_test")
 
 
@@ -85,5 +88,63 @@ class MongoCase(DynamicDocument, ToFromGeneric):
             # until document saving or validation (?). So, self.id will be a
             # string, not a UUID.
             new = True
+
+        return new, self
+
+
+class MongoSynclog(Document):
+    # TODO: This is basically the same as Synclog. Reuse code.
+
+    meta = {'collection': 'synclogs'}
+
+    id = UUIDField(primary_key=True)
+    date = DateTimeField()
+    domain = StringField()
+    user_id = UUIDField()
+    previous_log_id = UUIDField()
+    hash = BinaryField()
+    owner_ids_on_phone = ListField(UUIDField())
+    case_ids_on_phone = ListField(UUIDField())
+    dependent_case_ids_on_phone = ListField(UUIDField())
+    index_tree = DictField()  # TODO: Figure out what index_tree does and if this is the right type.
+
+    @property
+    def checksum(self):
+        return Checksum(initial_checksum=self.hash)
+
+    def to_generic(self):
+        synclog = SimplifiedSyncLog(
+            id=self.id and unicode(self.id),  # this converts UUIDs to strings, but preserves None
+            date=self.date,
+            domain=self.domain,
+            user_id=self.user_id and unicode(self.user_id),
+            previous_log_id=self.previous_log_id and unicode(self.previous_log_id),
+            owner_ids_on_phone=set(unicode(i) for i in self.owner_ids_on_phone),
+            case_ids_on_phone=set(unicode(i) for i in self.case_ids_on_phone),
+            dependent_case_ids_on_phone=set(unicode(i) for i in self.dependent_case_ids_on_phone),
+            index_tree=IndexTree(indices=self.index_tree or {})
+        )
+        synclog._hash = self.hash
+        synclog._self = self
+        return synclog
+
+    @classmethod
+    def from_generic(cls, generic, **kwargs):
+        if hasattr(generic, '_self'):
+            self = generic._self
+            new = False
+        else:
+            self = cls(id=generic.id)
+            new = True
+
+        for att in ['date', 'domain', 'user_id', 'previous_log_id', 'owner_ids_on_phone', 'case_ids_on_phone', 'dependent_case_ids_on_phone']:
+            new_att = getattr(generic, att)
+            # TODO: This is a hack and I hate it
+            if isinstance(new_att, set):
+                new_att = list(new_att)
+            setattr(self, att, new_att)
+
+        self.index_tree = generic.index_tree.indices
+        self.hash = generic.get_state_hash().hash
 
         return new, self
