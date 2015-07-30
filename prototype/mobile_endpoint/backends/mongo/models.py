@@ -50,7 +50,7 @@ class MongoForm(Document, ToFromGeneric):
     def to_dict(self):
         return {
             'domain': self.domain,
-            'recevied_on': self.received_on,
+            'received_on': self.received_on,
             'user_id': self.user_id,  # TODO: Should this be an ObjectID object?
             'md5': self.md5,
             'synclog_id': self.synclog_id,

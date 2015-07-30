@@ -5,7 +5,7 @@ from mobile_endpoint.backends.mongo.models import MongoForm
 from tests.conftest import mongo
 
 
-@pytest.mark.usefixtures("testapp", "couchdb")
+@pytest.mark.usefixtures("testapp", "mongodb")
 @mongo
 class TestConfig(object):
 

@@ -1,12 +1,12 @@
 import pytest
 from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
 from mobile_endpoint.backends.manager import BACKEND_MONGO
-from tests.conftest import couch
+from tests.conftest import mongo
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
 @pytest.mark.usefixtures("testapp", "client", "mongodb", "db_reset")
-@couch
+@mongo
 class TestMongoReceiver(ReceiverTestMixin):
     # TODO: This test is very simillar to the couch test. Reuse some code?
 
