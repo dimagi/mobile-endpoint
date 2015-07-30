@@ -49,7 +49,7 @@ class ReceiverTestMixin(object):
     def test_form_with_synclog(self, testapp, client):
         user_id = str(uuid4())
         form_id = str(uuid4())
-        synclog_id = create_synclog(DOMAIN, user_id)
+        synclog_id = create_synclog(self._get_backend(), DOMAIN, user_id)
         with testapp.app_context():
             result = post_case_blocks(self._get_backend(), client, '', form_extras={
                     'form_id': form_id,
@@ -69,7 +69,7 @@ class ReceiverTestMixin(object):
         user_id = str(uuid4())
         form_id = str(uuid4())
         case_id = str(uuid4())
-        synclog_id = create_synclog(DOMAIN, user_id)
+        synclog_id = create_synclog(self._get_backend(), DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
                 self._get_backend(),
@@ -101,7 +101,7 @@ class ReceiverTestMixin(object):
     def test_update_case(self, testapp, client):
         user_id = str(uuid4())
         case_id = str(uuid4())
-        synclog_id = create_synclog(DOMAIN, user_id)
+        synclog_id = create_synclog(self._get_backend(), DOMAIN, user_id)
         with testapp.app_context():
             factory = CaseFactory(
                 self._get_backend(),

@@ -48,6 +48,10 @@ class AbsctractDao(object):
         pass
 
     @abstractmethod
+    def save_synclog(self, generic):
+        pass
+
+    @abstractmethod
     def get_form(self, id):
         pass
     

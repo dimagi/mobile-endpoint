@@ -1,7 +1,9 @@
 from uuid import UUID
 from mongoengine import DoesNotExist
 from mobile_endpoint.dao import AbsctractDao, to_generic
-from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
+from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, \
+    MongoSynclog
+from mobile_endpoint.exceptions import NotFound
 from mobile_endpoint.utils import get_with_lock
 
 
@@ -80,3 +82,7 @@ class MongoDao(AbsctractDao):
 
     def get_synclog(self, id):
         pass
+
+    def save_synclog(self, generic):
+        _, synclog = MongoSynclog.from_generic(generic)
+        synclog.save()

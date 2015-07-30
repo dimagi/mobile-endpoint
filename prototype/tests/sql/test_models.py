@@ -6,6 +6,7 @@ import string
 from uuid import uuid4
 
 import pytest
+from mobile_endpoint.backends.manager import get_dao, BACKEND_SQL
 
 from mobile_endpoint.models import db, FormData, CaseData, Synclog, CaseIndex
 from mobile_endpoint.synclog.checksum import Checksum
@@ -90,7 +91,7 @@ class TestDetermineRowSizes(object):
         num_rows = 10000
 
         delete_all_data()
-        synclog_id = create_synclog(domain, str(uuid4()))
+        synclog_id = create_synclog(BACKEND_SQL, domain, str(uuid4()))
         forms = []
         for i in range(num_rows):
             attachments = _get_attachment_json(attachments_per_row)
