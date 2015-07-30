@@ -18,7 +18,7 @@ class Document(object):
         if isinstance(id, basestring):
             id = UUID(id)
         doc = cls.get_collection().find_one({'_id': id})
-        return cls.from_dict(doc)
+        return cls.from_dict(doc) if doc is not None else None
 
 
 class MongoForm(Document, ToFromGeneric):
@@ -31,7 +31,7 @@ class MongoForm(Document, ToFromGeneric):
             new = False
         else:
             self = cls()
-            self._id = generic.id
+            self._id = UUID(generic.id)
             new = True
 
         self.domain = generic.domain
@@ -58,6 +58,7 @@ class MongoForm(Document, ToFromGeneric):
         Return a dictionary representation of this object in a form suitable for
         saving in the database with the pymongo driver.
         """
+        # TODO: Consider some validation, like ensuring that _id is a UUID
         return {
             'domain': self.domain,
             'received_on': self.received_on,

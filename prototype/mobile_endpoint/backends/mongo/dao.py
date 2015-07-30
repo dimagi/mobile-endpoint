@@ -28,10 +28,7 @@ class MongoDao(AbsctractDao):
 
     @to_generic
     def get_form(self, id):
-        try:
-            return MongoForm.get(id)
-        except ResourceNotFound:  # TODO: Replace with the right exception
-            return None
+        return MongoForm.get(id)
 
     @to_generic
     def get_case(self, id, lock=False):
