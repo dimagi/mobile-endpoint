@@ -1,17 +1,11 @@
 import datetime
 from uuid import UUID
-from flask import current_app
 from mongoengine import *
 from mobile_endpoint.case.models import CommCareCase
 from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import ToFromGeneric
-
-# TODO: Fix this
-#connect(host=current_app.config.get('MONGO_URI'))
 from mobile_endpoint.synclog.checksum import Checksum
 from mobile_endpoint.synclog.models import SimplifiedSyncLog, IndexTree
-
-connect(host="mongodb://localhost/mobile_endpoint_test")
 
 
 class MongoForm(Document, ToFromGeneric):

@@ -1,4 +1,6 @@
+from flask import current_app
 from flask.ext.migrate import upgrade
+from mongoengine import connect
 import pytest
 from patch_path import patch_path
 patch_path()
@@ -54,9 +56,8 @@ def couchdb(testapp):
 def mongodb(testapp):
     # Maybe we should delete everything here?
     # Makes more sense to do it in db_reset I think.
-    pass
-    # Nothing needed here I think.
-    # Mongo creates dbs the first time you try to use them.
+    with testapp.app_context():
+        connect(host=current_app.config.get('MONGO_URI'))
 
 
 @pytest.fixture()
