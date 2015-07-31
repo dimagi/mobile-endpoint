@@ -12,6 +12,8 @@ if "PSYCOGREEN" in os.environ:
 
     # Do our monkey patching
     #
+    from restkit.session import set_session
+    set_session("gevent")
     from gevent.monkey import patch_all
     patch_all()
     from psycogreen.gevent import patch_psycopg
