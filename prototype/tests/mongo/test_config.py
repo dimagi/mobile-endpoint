@@ -1,11 +1,10 @@
 import uuid
 import pytest
-import pymongo
-from mobile_endpoint.backends.mongo.models import MongoForm
+from mobile_endpoint.backends.mongo.models import MongoCase
 from tests.conftest import mongo
 
 
-@pytest.mark.usefixtures("testapp", "couchdb")
+@pytest.mark.usefixtures("testapp", "mongodb")
 @mongo
 class TestConfig(object):
 
@@ -14,10 +13,9 @@ class TestConfig(object):
 
     def test_db_works(self, testapp):
         with testapp.app_context():
-            id = uuid.uuid4().hex
-            collection = MongoForm.get_collection()
-            collection.insert_one({'_id': id, 'prop': 'value'})
-            doc = collection.find_one({'_id': pymongo.ObjectId(id)})
-            assert doc['prop'] == 'value'
-            assert doc['_rev']
-            collection.remove(doc)
+            id = uuid.uuid4()
+            case = MongoCase(id=id, prop='value')
+            case.save()
+            doc = MongoCase.objects.get(id=id)
+            assert doc.prop == 'value'
+            doc.delete()

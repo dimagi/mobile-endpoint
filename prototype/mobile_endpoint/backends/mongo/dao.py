@@ -1,58 +1,70 @@
-from collections import defaultdict
+from uuid import UUID
+from mongoengine import DoesNotExist
 from mobile_endpoint.dao import AbsctractDao, to_generic
-from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase
-from couchdbkit import ResourceNotFound
+from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, \
+    MongoSynclog
+from mobile_endpoint.exceptions import NotFound
 from mobile_endpoint.utils import get_with_lock
 
 
 class MongoDao(AbsctractDao):
 
     def commit_atomic_submission(self, xform, case_result):
-
-        docs_by_collection = defaultdict(list)
+        # TODO: Save all in one bulk operation
+        # TODO: Are the forms, cases, and synclogs all supposed to be all or nothing?
 
         # form
         _, form = MongoForm.from_generic(xform)
-        docs_by_collection[MongoForm.get_collection()].append(form.to_dict())
+        form.save()
 
         # cases
         cases = case_result.cases if case_result else []
-        for case in cases:
-            docs_by_collection[MongoCase.get_collection()].append(MongoCase.from_generic(case)[1].to_dict())
+        if cases:
+            collection = MongoCase._get_collection()
+            bulkop = collection.initialize_unordered_bulk_op()
+            for case in cases:
+                case = MongoCase.from_generic(case)[1]
+                case.validate()
+                case_son = case.to_mongo()
+                case_id = case_son.get('_id')
+                bulkop.find({'_id': case_id}).upsert().replace_one(case_son)
+            bulkop.execute()
 
-        # todo sync logs
-        # synclog = case_result.synclog if case_result else None
-        for collection, docs in docs_by_collection.items():
-            collection.insert_many(docs)
+        # synclog
+        synclog = case_result.synclog if case_result else None
+        if synclog:
+            _, log = MongoSynclog.from_generic(synclog)
+            log.save()
 
 
     @to_generic
     def get_form(self, id):
         try:
-            return MongoForm.get(id)
-        except ResourceNotFound:  # TODO: Replace with the right exception
+            return MongoForm.objects.get(id=id)
+        except DoesNotExist:
             return None
+
 
     @to_generic
     def get_case(self, id, lock=False):
         def _get_case(id):
             try:
-                return MongoCase.get(id)
-            except ResourceNotFound:  # TODO: Replace with the right exception
+                return MongoCase.objects.get(id=id)
+            except DoesNotExist:
                 return None
-
         if lock:
             return get_with_lock('case_lock_{}'.format(id), lambda: _get_case(id))
         else:
             None, _get_case(id)
 
     def case_exists(self, id):
-        pass
-        # return MongoCase.get_db().doc_exist(id)
+        assert isinstance(id, UUID)
+        return MongoCase.objects(id=id).limit(1) is not None
+        # TODO: Test this
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
-        pass
+        return MongoCase.objects(id__in=case_ids).all()
 
     def get_reverse_indexed_cases(self, domain, case_ids):
         # todo
@@ -73,5 +85,13 @@ class MongoDao(AbsctractDao):
     def commit_restore(self, restore_state):
         pass
 
+    @to_generic
     def get_synclog(self, id):
-        pass
+        synclog = MongoSynclog.objects.get(id=id)
+        if not synclog:
+            raise NotFound()
+        return synclog
+
+    def save_synclog(self, generic):
+        _, synclog = MongoSynclog.from_generic(generic)
+        synclog.save()

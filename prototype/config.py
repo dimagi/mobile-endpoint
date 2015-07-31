@@ -12,6 +12,6 @@ REDIS_URL = "redis://localhost:6379/0"
 
 COUCH_URI = 'http://localhost:5984/mobile_endpoint'
 
-MONGO_URI = ''  # TODO: install mongo, get this uri.
+MONGO_URI = 'mongodb://localhost/mobile_endpoint'
 
 del os

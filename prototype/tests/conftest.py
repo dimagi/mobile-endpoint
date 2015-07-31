@@ -61,6 +61,7 @@ def mongodb(testapp):
 def db_reset(request):
     def teardown():
         from mobile_endpoint.backends.couch.db import delete_db
+        # TODO: Make a separate function for mongo?
         delete_all_data()
         db.session.remove()
         # todo: figure out how to get the context

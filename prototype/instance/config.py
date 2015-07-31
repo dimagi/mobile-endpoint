@@ -18,5 +18,7 @@ COUCH_DBS = {
     'forms': 'mobile_endpoint_forms',
     'cases': 'mobile_endpoint_cases'
 }
+# mongo settings
+MONGO_URI = 'mongodb://localhost/mobile_endpoint'
 
 del os

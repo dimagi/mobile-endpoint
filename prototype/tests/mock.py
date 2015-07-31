@@ -5,9 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 from xml.etree import ElementTree
 from flask.templating import render_template_string
-from mobile_endpoint.backends.couch.dao import CouchDao
 from mobile_endpoint.backends.manager import get_dao, get_submit_url
-from mobile_endpoint.backends.sql.dao import SQLDao
 from mobile_endpoint.case.xml import NS_VERSION_MAP, V2
 from mobile_endpoint.utils import json_format_datetime
 

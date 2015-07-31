@@ -7,7 +7,6 @@ import time
 from mobile_endpoint.case import const
 from mobile_endpoint.case.xml import V2
 
-from mobile_endpoint.models import Synclog
 from mobile_endpoint.restore import xml
 from tests.dummy import dummy_user, dummy_restore_xml
 from tests.mock import CaseFactory, CaseStructure
@@ -24,13 +23,25 @@ class RestoreTestMixin(object):
     def _get_backend(self):
         pass
 
+    @abstractmethod
+    def _get_all_synclogs(self):
+        pass
+
+    @abstractmethod
+    def _get_one_synclog(self):
+        pass
+
+    @abstractmethod
+    def _get_synclog_by_previous_id(self, id):
+        pass
+
     def test_user_restore(self, testapp, client):
-        assert 0 == len(Synclog.query.all())
+        assert 0 == len(self._get_all_synclogs())
 
         user = dummy_user(self.user_id)
         restore_payload = generate_restore_response(client, DOMAIN, user)
 
-        synclogs = Synclog.query.all()
+        synclogs = self._get_all_synclogs()
         assert len(synclogs) == 1
         synclog = synclogs[0]
         check_xml_line_by_line(
@@ -60,7 +71,7 @@ class RestoreTestMixin(object):
         user = dummy_user(self.user_id)
         restore_payload = generate_restore_response(client, DOMAIN, user)
 
-        synclog = Synclog.query.one()
+        synclog = self._get_one_synclog()
 
         case_xml = xml.get_case_xml(
             new_case, [
@@ -80,11 +91,11 @@ class RestoreTestMixin(object):
         self.test_user_restore_with_case(testapp, client)
         user = dummy_user(self.user_id)
 
-        synclog = Synclog.query.one()
+        synclog = self._get_one_synclog()
         synclog_id = synclog.id
 
         restore_payload = generate_restore_response(client, DOMAIN, user, since=synclog_id)
-        new_synclog = Synclog.query.filter(Synclog.previous_log_id == synclog_id).one()
+        new_synclog = self._get_synclog_by_previous_id(synclog_id)
         new_synclog_id = new_synclog.id
 
         # should no longer have a case block in the restore XML
@@ -112,7 +123,7 @@ class RestoreTestMixin(object):
 
         new_restore_payload = generate_restore_response(client, DOMAIN, user, since=new_synclog_id)
 
-        new_new_synclog = Synclog.query.filter(Synclog.previous_log_id == new_synclog_id).one()
+        new_new_synclog = self._get_synclog_by_previous_id(new_synclog_id)
 
         case_xml = xml.get_case_xml(updated_case, [const.CASE_ACTION_UPDATE], version=V2)
         # case block should come back

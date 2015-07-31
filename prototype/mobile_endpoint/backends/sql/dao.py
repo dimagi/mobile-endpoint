@@ -51,6 +51,11 @@ class SQLDao(AbsctractDao):
 
         return synclog
 
+    def save_synclog(self, generic):
+        with db.session.begin():
+            _, synclog = Synclog.from_generic(generic)
+            db.session.add(synclog)
+
     @to_generic
     def get_form(self, id):
         return FormData.query.get(id)

@@ -31,6 +31,10 @@ class CouchDao(AbsctractDao):
     def get_synclog(self, id):
         pass
 
+    def save_synclog(self, generic):
+        # TODO
+        pass
+
     @to_generic
     def get_form(self, id):
         try:
