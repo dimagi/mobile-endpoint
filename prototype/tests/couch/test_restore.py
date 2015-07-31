@@ -11,3 +11,6 @@ class TestCouchRestore(RestoreTestMixin):
 
     def _get_backend(self):
         return BACKEND_COUCH
+
+    def _get_restore_url_snippet(self):
+        return 'couch-restore'

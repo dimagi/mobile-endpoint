@@ -22,3 +22,6 @@ class TestMongoRestore(RestoreTestMixin):
 
     def _get_all_synclogs(self):
         return MongoSynclog.objects.all()
+
+    def _get_restore_url_snippet(self):
+        return 'mongo-restore'

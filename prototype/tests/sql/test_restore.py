@@ -21,3 +21,6 @@ class TestSQLRestore(RestoreTestMixin):
 
     def _get_synclog_by_previous_id(self, id):
         return Synclog.query.filter(Synclog.previous_log_id == id).one()
+
+    def _get_restore_url_snippet(self):
+        return 'restore'
