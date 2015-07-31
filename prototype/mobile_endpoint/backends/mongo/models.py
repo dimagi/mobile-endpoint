@@ -56,6 +56,11 @@ class MongoForm(Document, ToFromGeneric):
         return new, self
 
 
+class MongoCaseIndex(EmbeddedDocument):
+    identifier = StringField()
+    referenced_type = StringField()
+    referenced_id = UUIDField()
+
 class MongoCase(DynamicDocument, ToFromGeneric):
     meta = {'collection': 'cases'}
     id = UUIDField(primary_key=True)
@@ -64,16 +69,21 @@ class MongoCase(DynamicDocument, ToFromGeneric):
     owner_id = UUIDField()
     server_modified_on = DateTimeField()
     version = StringField()
+    indices = ListField(EmbeddedDocumentField(MongoCaseIndex))
 
     def to_generic(self):
         dict = self.to_mongo().to_dict()
+
         # TODO: This is such a hack...
         for key, value in dict.items():
             if isinstance(value, datetime.datetime):
                 dict[key] = value.isoformat()
             if isinstance(value, UUID):
                 dict[key] = str(value)
+        for index in dict['indices']:
+            index['referenced_id'] = str(index['referenced_id'])
         dict['id'] = dict.pop('_id')
+
         return CommCareCase.wrap(dict)
 
     @classmethod
@@ -83,6 +93,8 @@ class MongoCase(DynamicDocument, ToFromGeneric):
             new = False
         else:
             case_json = generic.to_json()
+            # Convert the case indexes to documents
+            case_json['indices'] = [MongoCaseIndex(**i) for i in case_json['indices']]
             self = cls(**case_json)
             # Looks like fields aren't cleaned/converted to the right type
             # until document saving or validation (?). So, self.id will be a
