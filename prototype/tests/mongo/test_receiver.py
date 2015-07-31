@@ -40,9 +40,10 @@ class TestMongoReceiver(ReceiverTestMixin):
             for index in mongo_case.indices:
                 mongo_indices[index['identifier']] = {
                     'referenced_type': index['referenced_type'],
-                    'referenced_id': UUID(index['referenced_id'])
+                    'referenced_id': unicode(index['referenced_id'])
                 }
-                assert mongo_indices == indices
+            # TODO: This fails, occasionally :(
+            assert mongo_indices == indices
 
         return mongo_case
 

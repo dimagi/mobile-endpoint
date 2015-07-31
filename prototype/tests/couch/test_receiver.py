@@ -37,7 +37,7 @@ class TestCouchReceiver(ReceiverTestMixin):
                     'referenced_type': index['referenced_type'],
                     'referenced_id': index['referenced_id']
                 }
-                assert couch_indices == indices
+            assert couch_indices == indices
 
         return couch_case
 
