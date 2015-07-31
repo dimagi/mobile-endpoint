@@ -64,7 +64,8 @@ class MongoDao(AbsctractDao):
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
-        return MongoCase.objects(id__in=case_ids).all()
+        for c in MongoCase.objects(id__in=case_ids):
+            yield c
 
     def get_reverse_indexed_cases(self, domain, case_ids):
         # todo
