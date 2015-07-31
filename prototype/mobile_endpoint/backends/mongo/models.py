@@ -118,7 +118,7 @@ class MongoSynclog(Document):
     owner_ids_on_phone = ListField(UUIDField())
     case_ids_on_phone = ListField(UUIDField())
     dependent_case_ids_on_phone = ListField(UUIDField())
-    index_tree = DictField()  # TODO: Figure out what index_tree does and if this is the right type.
+    index_tree = DictField()
 
     @property
     def checksum(self):

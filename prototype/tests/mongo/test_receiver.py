@@ -12,7 +12,6 @@ from tests.test_receiver import ReceiverTestMixin, DOMAIN
 @mongo
 class TestMongoReceiver(ReceiverTestMixin):
     # TODO: This test is very simillar to the couch test. Reuse some code?
-    # TODO: Clear the mongodb before use?
 
     def _get_backend(self):
         return BACKEND_MONGO
