@@ -7,13 +7,9 @@ from tests.conftest import mongo
 from tests.test_restore import RestoreTestMixin
 
 
-class MongoSyncLog(object):
-    pass
-
-
 @pytest.mark.usefixtures("testapp", "client", "mongodb", "db_reset")
 @mongo
-class TestCouchRestore(RestoreTestMixin):
+class TestMongoRestore(RestoreTestMixin):
 
     def _get_backend(self):
         return BACKEND_MONGO
