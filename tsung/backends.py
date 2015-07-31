@@ -22,6 +22,7 @@ class Backend(object):
     def __init__(self):
         self.settings = settings.BACKENDS[self.name]
         self.psql = get_psql(self.name)
+        self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
 
     def check_ssh_access(self):
         if settings.TEST_SERVER != 'localhost':
@@ -122,7 +123,6 @@ class Current(Backend):
         self.auth = HTTPBasicAuth(self.settings['COUCH_USERNAME'], self.settings['COUCH_PASSWORD'])
         self.user_ids = []
         self.case_ids = []
-        self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
         self.base_url = 'http://{host}:{port}'.format(
             host=self.settings['HOST'],
             port=self.settings['PORT'],
@@ -199,8 +199,6 @@ class PrototypeSQL(Backend):
 
     def __init__(self):
         super(PrototypeSQL, self).__init__()
-
-        self.submission_url = self.settings['SUBMISSION_URL']
 
     def reset_db(self):
         super(PrototypeSQL, self).reset_db()

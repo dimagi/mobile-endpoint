@@ -33,7 +33,7 @@ BACKENDS = {
         'PYTHON_ENV': '/home/cchq/www/tsung_hq_test/python_env',
     },
     'prototype-sql': {
-        'SUBMISSION_URL': '/ota/receiver',
+        'SUBMISSION_URL': '/ota/receiver/{domain}',
         'SUBMIT_WITH_AUTH': True,
         'HOST': '10.10.1.28',
         'PORT': '9011',
