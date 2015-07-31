@@ -1,6 +1,7 @@
 from __future__ import print_function
 from collections import namedtuple
 import json
+import os
 from uuid import uuid4
 
 import requests
@@ -44,12 +45,11 @@ class Backend(object):
                 with cd(self.settings['ENVIRONMENT_ROOT']):
                     sh.Command(python)(manage, command, _bg=kwargs.get('bg', False), *args)
             else:
-                for line in sh.ssh(settings.TEST_SERVER, '{ssh_command} {manage} {manage_command} {args}'.format(
+                sh.ssh(settings.TEST_SERVER, '{ssh_command} {manage} {manage_command} {args}'.format(
                     ssh_command='cd {} && {}'.format(self.settings['ENVIRONMENT_ROOT'], python),
                     manage=manage,
                     manage_command=command,
-                    args=' '.join(args)), _iter=True):
-                    print("    ", line)
+                    args=' '.join(args)), _iter=True)
         except Exception as e:
             if hasattr(e, 'stderr'):
                 print(e.stderr)
@@ -154,8 +154,9 @@ class Current(Backend):
         )
 
     def load_data(self, dest_folder):
+        db_path = os.path.join(dest_folder, 'casedb-{}.csv'.format(self.name))
         row_loader = CouchRowLoader(self.couch_url, self.auth)
-        loader = DataLoader(dest_folder, row_loader, row_loader, row_loader)
+        loader = DataLoader(db_path, row_loader, row_loader, row_loader)
         loader.run()
 
     def bootstrap_service(self):
@@ -210,7 +211,8 @@ class PrototypeSQL(Backend):
         )
 
     def load_data(self, dest_folder):
-        loader = DataLoader(dest_folder, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
+        db_path = os.path.join(dest_folder, 'casedb-{}.csv'.format(self.name))
+        loader = DataLoader(db_path, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
         loader.run()
 
     def _create_user(self):
