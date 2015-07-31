@@ -68,7 +68,9 @@ class MongoDao(AbsctractDao):
             yield c
 
     def get_reverse_indexed_cases(self, domain, case_ids):
-        # todo
+        """
+        Given a base list of case ids, gets all cases that reference the given cases (child cases)
+        """
         return []
 
     def get_open_case_ids(self, domain, owner_id):
@@ -78,9 +80,16 @@ class MongoDao(AbsctractDao):
         pass
 
     def get_indexed_case_ids(self, domain, case_ids):
+        """
+        Given a base list of case ids, gets all ids of cases they reference (parent cases)
+        """
         pass
 
     def get_last_modified_dates(self, domain, case_ids):
+        """
+        Given a list of case IDs, return a dict where the keys are the case ids
+        and the values are the last server modified date of that case.
+        """
         pass
 
     def commit_restore(self, restore_state):

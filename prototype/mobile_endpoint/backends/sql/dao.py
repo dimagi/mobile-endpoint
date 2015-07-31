@@ -114,6 +114,10 @@ class SQLDao(AbsctractDao):
         )]
 
     def get_last_modified_dates(self, domain, case_ids):
+        """
+        Given a list of case IDs, return a dict where the ids are keys and the
+        values are the last server modified date of that case.
+        """
         return dict(
             CaseData.query.with_entities(CaseData.id, CaseData.server_modified_on).filter(
                 CaseData.domain == domain,
