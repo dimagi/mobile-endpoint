@@ -71,29 +71,49 @@ class MongoDao(AbsctractDao):
         """
         Given a base list of case ids, gets all cases that reference the given cases (child cases)
         """
+        # TODO: There seems to be no test coverage for this function.
+        #       Returning an empty list still passes.
         return []
 
+
     def get_open_case_ids(self, domain, owner_id):
-        pass
+        # TODO: Build indexes on MongoCase fields!
+        assert isinstance(owner_id, basestring)
+        return [
+            unicode(c.id) for c in
+            MongoCase.objects(domain=domain, owner_id=UUID(owner_id), closed=False).only('id').all()
+        ]
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
-        pass
+        raise NotImplementedError
 
     def get_indexed_case_ids(self, domain, case_ids):
         """
         Given a base list of case ids, gets all ids of cases they reference (parent cases)
         """
-        pass
+        # NOTE: This seems to work even though case_ids are strings, which surprises me...
+        cases = MongoCase.objects(id__in=case_ids).only('indices__referenced_id')
+        parent_ids = set()
+        for c in cases:
+            parent_ids |= set(i.referenced_id for i in c.indices)
+        return list(parent_ids)
 
     def get_last_modified_dates(self, domain, case_ids):
         """
         Given a list of case IDs, return a dict where the keys are the case ids
         and the values are the last server modified date of that case.
         """
-        pass
+        # TODO: This is never called with a non empty case_ids...
+        # What type should case_ids be?
+        # Should this return a string or a datetime?
+        objs = MongoCase.objects(id__in=case_ids).only('id', 'server_modified_on')
+        return {unicode(o.id): o.server_modified_on for o in objs}
 
     def commit_restore(self, restore_state):
-        pass
+        synclog_generic = restore_state.current_sync_log
+        if synclog_generic:
+            _, synclog = MongoSynclog.from_generic(synclog_generic)
+            synclog.save()
 
     @to_generic
     def get_synclog(self, id):
