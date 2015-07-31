@@ -202,9 +202,8 @@ class DataLoader(object):
     * Loads the user_ids from the userdb.csv file
     * For each user create CASES_PER_USER cases
     """
-    def __init__(self, files_folder, form_loader, case_loader, sync_token_loader):
-        self.files_folder = files_folder
-        self.case_db_path = os.path.join(files_folder, 'casedb.csv')
+    def __init__(self, db_path, form_loader, case_loader, sync_token_loader):
+        self.case_db_path = db_path
 
         self.form_loader = form_loader
         self.case_loader = case_loader

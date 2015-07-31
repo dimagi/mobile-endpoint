@@ -48,8 +48,8 @@ def tsung_build(backend_name, user_rate=None, duration=None):
     context = {
         'dtd_path': settings.TSUNG_DTD_PATH,
         'phases': phases,
-        'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb.csv'),
-        'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb.csv'),
+        'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(backend_name)),
+        'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name)),
         'host': backend.settings['HOST'],
         'port': backend.settings['PORT'],
         'submission_url': backend.submission_url,
@@ -82,7 +82,7 @@ def load_db(backend_name):
         print('Creating test users')
         users = backend.create_users(settings.NUM_UNIQUE_USERS)
 
-        user_db = os.path.join(settings.DB_FILES_DIR, 'userdb.csv')
+        user_db = os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name))
         with open(user_db, "w") as file:
             for user in users:
                 file.write("{},{},{}\n".format(
