@@ -23,9 +23,9 @@ class MongoDao(AbsctractDao):
             collection = MongoCase._get_collection()
             bulkop = collection.initialize_unordered_bulk_op()
             for case in cases:
-                case = MongoCase.from_generic(case)[1]
-                case.validate()
-                case_son = case.to_mongo()
+                mcase = MongoCase.from_generic(case)[1]
+                mcase.validate()
+                case_son = mcase.to_mongo()
                 case_id = case_son.get('_id')
                 bulkop.find({'_id': case_id}).upsert().replace_one(case_son)
             bulkop.execute()
