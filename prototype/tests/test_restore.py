@@ -35,12 +35,15 @@ class RestoreTestMixin(object):
     def _get_synclog_by_previous_id(self, id):
         pass
 
+    @abstractmethod
+    def _get_restore_url_snippet(self):
+        pass
+
     def test_user_restore(self, testapp, client):
         assert 0 == len(self._get_all_synclogs())
 
         user = dummy_user(self.user_id)
-        restore_payload = generate_restore_response(client, DOMAIN, user)
-
+        restore_payload = generate_restore_response(client, DOMAIN, user, self._get_restore_url_snippet())
         synclogs = self._get_all_synclogs()
         assert len(synclogs) == 1
         synclog = synclogs[0]
@@ -69,7 +72,7 @@ class RestoreTestMixin(object):
             )
 
         user = dummy_user(self.user_id)
-        restore_payload = generate_restore_response(client, DOMAIN, user)
+        restore_payload = generate_restore_response(client, DOMAIN, user, self._get_restore_url_snippet())
 
         synclog = self._get_one_synclog()
 
@@ -94,7 +97,7 @@ class RestoreTestMixin(object):
         synclog = self._get_one_synclog()
         synclog_id = synclog.id
 
-        restore_payload = generate_restore_response(client, DOMAIN, user, since=synclog_id)
+        restore_payload = generate_restore_response(client, DOMAIN, user, self._get_restore_url_snippet(), since=synclog_id)
         new_synclog = self._get_synclog_by_previous_id(synclog_id)
         new_synclog_id = new_synclog.id
 
@@ -121,7 +124,7 @@ class RestoreTestMixin(object):
                 CaseStructure(self.case_id, attrs={'update': {'occupation': 'restaurant owner'}}),
             )
 
-        new_restore_payload = generate_restore_response(client, DOMAIN, user, since=new_synclog_id)
+        new_restore_payload = generate_restore_response(client, DOMAIN, user, self._get_restore_url_snippet(), since=new_synclog_id)
 
         new_new_synclog = self._get_synclog_by_previous_id(new_synclog_id)
 
@@ -133,10 +136,12 @@ class RestoreTestMixin(object):
         )
 
 
-def generate_restore_response(client, domain, user, since=None):
+def generate_restore_response(client, domain, user, url_snippet, since=None):
     headers = {'Authorization': 'Basic ' + base64.b64encode('{}:{}'.format(user.username, user.password))}
     result = client.get(
-        'ota/restore/{domain}?version=2.0&items=true&user_id={user_id}{since}'.format(
+        'ota/{url_snippet}/{domain}?version=2.0&items=true&user_id={user_id}{since}'.format(
+            # TODO: I'm sure there is a better way to get different urls for the different backends...
+            url_snippet=url_snippet,
             domain=domain,
             user_id=user.user_id,
             since='&since={}'.format(since) if since else ''),

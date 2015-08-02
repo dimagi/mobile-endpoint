@@ -1,4 +1,6 @@
+from flask import current_app
 from flask.ext.migrate import upgrade
+from mongoengine import connect
 import pytest
 from patch_path import patch_path
 patch_path()
@@ -52,20 +54,22 @@ def couchdb(testapp):
 
 @pytest.fixture(scope="session")
 def mongodb(testapp):
-    pass
-    # Nothing needed here I think.
-    # Mongo creates dbs the first time you try to use them.
+    # Maybe we should delete everything here?
+    # Makes more sense to do it in db_reset I think.
+    with testapp.app_context():
+        connect(host=current_app.config.get('MONGO_URI'))
 
 
 @pytest.fixture()
 def db_reset(request):
     def teardown():
-        from mobile_endpoint.backends.couch.db import delete_db
-        # TODO: Make a separate function for mongo?
+        # TODO: Get context or parameterize this fixture
         delete_all_data()
         db.session.remove()
-        # todo: figure out how to get the context
-        # delete_db('test')  # todo parameterize
+        from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, MongoSynclog
+        MongoForm._get_collection().drop()
+        MongoCase._get_collection().drop()
+        MongoSynclog._get_collection().drop()
     request.addfinalizer(teardown)
 
 

@@ -64,6 +64,9 @@ class CouchDao(AbsctractDao):
             yield row
 
     def get_reverse_indexed_cases(self, domain, case_ids):
+        """
+        Given a base list of case ids, gets all cases that reference the given cases (child cases)
+        """
         # todo
         return []
 

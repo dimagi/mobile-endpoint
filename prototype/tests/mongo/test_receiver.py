@@ -12,7 +12,6 @@ from tests.test_receiver import ReceiverTestMixin, DOMAIN
 @mongo
 class TestMongoReceiver(ReceiverTestMixin):
     # TODO: This test is very simillar to the couch test. Reuse some code?
-    # TODO: Clear the mongodb before use?
 
     def _get_backend(self):
         return BACKEND_MONGO
@@ -40,9 +39,10 @@ class TestMongoReceiver(ReceiverTestMixin):
             for index in mongo_case.indices:
                 mongo_indices[index['identifier']] = {
                     'referenced_type': index['referenced_type'],
-                    'referenced_id': UUID(index['referenced_id'])
+                    'referenced_id': unicode(index['referenced_id'])
                 }
-                assert mongo_indices == indices
+            # TODO: This fails, occasionally :(
+            assert mongo_indices == indices
 
         return mongo_case
 
