@@ -61,12 +61,18 @@ def mongodb(testapp):
 
 
 @pytest.fixture()
-def db_reset(request):
+def sql_reset(request):
     def teardown():
         # TODO: Get context or parameterize this fixture
         delete_all_data()
         db.session.remove()
-        from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, MongoSynclog
+    request.addfinalizer(teardown)
+
+
+@pytest.fixture()
+def mongo_reset(request):
+    from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, MongoSynclog
+    def teardown():
         MongoForm._get_collection().drop()
         MongoCase._get_collection().drop()
         MongoSynclog._get_collection().drop()

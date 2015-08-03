@@ -8,7 +8,7 @@ from tests.conftest import mongo
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
-@pytest.mark.usefixtures("testapp", "client", "mongodb", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "mongodb", "mongo_reset")
 @mongo
 class TestMongoReceiver(ReceiverTestMixin):
     # TODO: This test is very simillar to the couch test. Reuse some code?
