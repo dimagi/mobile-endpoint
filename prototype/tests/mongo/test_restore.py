@@ -7,7 +7,7 @@ from tests.conftest import mongo
 from tests.test_restore import RestoreTestMixin
 
 
-@pytest.mark.usefixtures("testapp", "client", "mongodb", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "mongodb", "mongo_reset")
 @mongo
 class TestMongoRestore(RestoreTestMixin):
 

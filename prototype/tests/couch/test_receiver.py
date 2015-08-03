@@ -5,7 +5,7 @@ from tests.conftest import couch
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
-@pytest.mark.usefixtures("testapp", "client", "couchdb", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "couchdb")
 @couch
 class TestCouchReceiver(ReceiverTestMixin):
 

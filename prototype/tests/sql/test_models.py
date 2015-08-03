@@ -15,7 +15,7 @@ from tests.conftest import delete_all_data, rowsize, sql
 from tests.utils import create_synclog
 
 
-@pytest.mark.usefixtures("testapp", "sqldb", "db_reset")
+@pytest.mark.usefixtures("testapp", "sqldb", "sql_reset")
 @sql
 class TestModels(object):
     def test_basic(self, testapp):
