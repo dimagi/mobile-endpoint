@@ -21,8 +21,16 @@ def delete_db(db_name):
     get_db(db_name).server.delete_db(db_name)
 
 
+def get_app_db_name(app_name):
+    return current_app.config.get('COUCH_DBS')[app_name]
+
+
+def get_app_db(app_name):
+    return get_db(get_app_db_name(app_name))
+
+
 def init_dbs():
     for cls in [CouchForm, CouchCase]:
-        db_name = current_app.config.get('COUCH_DBS')[cls.get_app_name()]
+        db_name = get_app_db_name(cls.get_app_name())
         db = create_db(db_name)
         cls.set_db(db)
