@@ -58,9 +58,8 @@ class MongoDao(AbsctractDao):
             None, _get_case(id)
 
     def case_exists(self, id):
-        assert isinstance(id, UUID)
-        return MongoCase.objects(id=id).limit(1) is not None
-        # TODO: Test this
+        # This method isn't ever used by the receiver
+        return MongoCase.objects(id=UUID(id)).limit(1) is not None
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
