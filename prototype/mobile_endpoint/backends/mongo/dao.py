@@ -62,8 +62,19 @@ class MongoDao(AbsctractDao):
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
-        for c in MongoCase.objects(id__in=case_ids):
-            yield c
+        # Assumes case_ids are strings.
+        cases = MongoCase.objects(id__in=case_ids)
+
+        if ordered:
+            # Mongo won't return the rows in any particular order so we need to order them ourselves
+            index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
+            ordered_cases = [None] * len(case_ids)
+            for case in cases:
+                ordered_cases[index_map[case.id]] = case
+            cases = ordered_cases
+
+        return cases
+
 
     @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
