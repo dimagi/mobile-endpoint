@@ -10,8 +10,7 @@ from mobile_endpoint.utils import get_with_lock
 class MongoDao(AbsctractDao):
 
     def commit_atomic_submission(self, xform, case_result):
-        # TODO: Save all in one bulk operation
-        # TODO: Are the forms, cases, and synclogs all supposed to be all or nothing?
+        # Ideally, the forms, cases, and synclogs would be saved all-or-nothing
 
         # form
         _, form = MongoForm.from_generic(xform)
@@ -101,9 +100,6 @@ class MongoDao(AbsctractDao):
         Given a list of case IDs, return a dict where the keys are the case ids
         and the values are the last server modified date of that case.
         """
-        # TODO: This is never called with a non empty case_ids...
-        # What type should case_ids be?
-        # Should this return a string or a datetime?
         objs = MongoCase.objects(id__in=case_ids).only('id', 'server_modified_on')
         return {unicode(o.id): o.server_modified_on for o in objs}
 
