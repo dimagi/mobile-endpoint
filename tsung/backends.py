@@ -154,9 +154,8 @@ class Current(Backend):
         )
 
     def load_data(self, dest_folder):
-        db_path = os.path.join(dest_folder, 'casedb-{}.csv'.format(self.name))
         row_loader = CouchRowLoader(self.couch_url, self.auth)
-        loader = DataLoader(db_path, row_loader, row_loader, row_loader)
+        loader = DataLoader(dest_folder, self.name, row_loader, row_loader, row_loader)
         loader.run()
 
     def bootstrap_service(self):
@@ -211,8 +210,7 @@ class PrototypeSQL(Backend):
         )
 
     def load_data(self, dest_folder):
-        db_path = os.path.join(dest_folder, 'casedb-{}.csv'.format(self.name))
-        loader = DataLoader(db_path, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
+        loader = DataLoader(dest_folder, self.name, FormLoaderSQL(self.psql), FullCaseLoaderSQL(self.psql), SynclogLoaderSQL(self.psql))
         loader.run()
 
     def _create_user(self):
