@@ -382,6 +382,7 @@ class DataLoader(object):
 
         with open(self.case_db_path, "a") as file:
             file.write("\n".join(case_selection))
+            file.write("\n")
 
         self.case_ids_gen = []
         self.case_forms.clear()
