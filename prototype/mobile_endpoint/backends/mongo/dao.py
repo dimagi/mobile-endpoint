@@ -67,13 +67,14 @@ class MongoDao(AbsctractDao):
         for c in MongoCase.objects(id__in=case_ids):
             yield c
 
+    @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
         """
         Given a base list of case ids, gets all cases that reference the given cases (child cases)
         """
-        # TODO: There seems to be no test coverage for this function.
-        #       Returning an empty list still passes.
-        return []
+        cases = MongoCase.objects(domain=domain, indices__referenced_id__in=case_ids)
+        for c in cases:
+            yield c
 
     def get_open_case_ids(self, domain, owner_id):
         assert isinstance(owner_id, basestring)

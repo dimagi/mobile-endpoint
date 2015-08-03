@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import abstractmethod
 from uuid import uuid4
+from mobile_endpoint.backends.manager import get_dao
 
 from mobile_endpoint.views.response import OPEN_ROSA_SUCCESS_RESPONSE
 from tests.mock import CaseFactory, CaseStructure, post_case_blocks, CaseRelationship
@@ -160,3 +161,32 @@ class ReceiverTestMixin(object):
                     'referenced_id': parent.id,
                 }
             })
+
+    def test_get_reverse_indexed_cases(self, testapp, client):
+        """
+        This tests Dao.get_reverse_indexed_cases().
+        Note that the result of get_reverse_indexed_cases() isn't actually
+        being used by the receiver.
+        """
+
+        user_id = str(uuid4())
+        owner_id = str(uuid4())
+        with testapp.app_context():
+            factory = CaseFactory(self._get_backend(), client, domain=DOMAIN, case_defaults={
+                'user_id': user_id,
+                'owner_id': owner_id,
+                'case_type': 'duck',
+            })
+            child, parent = factory.create_or_update_case(
+                CaseStructure(
+                    attrs={'create': True, 'case_type': 'duckling'},
+                    relationships=[
+                        CaseRelationship(
+                            CaseStructure(attrs={'case_type': 'duck'})
+                        ),
+                    ])
+            )
+
+            dao = get_dao(self._get_backend())
+            reverse_indexed_case_ids = [c.id for c in dao.get_reverse_indexed_cases(DOMAIN, [parent.id])]
+            assert [child.id] == reverse_indexed_case_ids
