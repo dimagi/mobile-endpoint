@@ -76,7 +76,6 @@ class MongoDao(AbsctractDao):
         return []
 
     def get_open_case_ids(self, domain, owner_id):
-        # TODO: Build indexes on MongoCase fields!
         assert isinstance(owner_id, basestring)
         return [
             unicode(c.id) for c in
