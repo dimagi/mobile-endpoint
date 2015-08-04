@@ -10,8 +10,7 @@ from mobile_endpoint.utils import get_with_lock
 class MongoDao(AbsctractDao):
 
     def commit_atomic_submission(self, xform, case_result):
-        # TODO: Save all in one bulk operation
-        # TODO: Are the forms, cases, and synclogs all supposed to be all or nothing?
+        # Ideally, the forms, cases, and synclogs would be saved all-or-nothing
 
         # form
         _, form = MongoForm.from_generic(xform)
@@ -58,25 +57,35 @@ class MongoDao(AbsctractDao):
             None, _get_case(id)
 
     def case_exists(self, id):
-        assert isinstance(id, UUID)
-        return MongoCase.objects(id=id).limit(1) is not None
-        # TODO: Test this
+        # This method isn't ever used by the receiver
+        return MongoCase.objects(id=UUID(id)).limit(1) is not None
 
     @to_generic
     def get_cases(self, case_ids, ordered=True):
-        for c in MongoCase.objects(id__in=case_ids):
-            yield c
+        # Assumes case_ids are strings.
+        cases = MongoCase.objects(id__in=case_ids)
 
+        if ordered:
+            # Mongo won't return the rows in any particular order so we need to order them ourselves
+            index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
+            ordered_cases = [None] * len(case_ids)
+            for case in cases:
+                ordered_cases[index_map[case.id]] = case
+            cases = ordered_cases
+
+        return cases
+
+
+    @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
         """
         Given a base list of case ids, gets all cases that reference the given cases (child cases)
         """
-        # TODO: There seems to be no test coverage for this function.
-        #       Returning an empty list still passes.
-        return []
+        cases = MongoCase.objects(domain=domain, indices__referenced_id__in=case_ids)
+        for c in cases:
+            yield c
 
     def get_open_case_ids(self, domain, owner_id):
-        # TODO: Build indexes on MongoCase fields!
         assert isinstance(owner_id, basestring)
         return [
             unicode(c.id) for c in
@@ -102,9 +111,6 @@ class MongoDao(AbsctractDao):
         Given a list of case IDs, return a dict where the keys are the case ids
         and the values are the last server modified date of that case.
         """
-        # TODO: This is never called with a non empty case_ids...
-        # What type should case_ids be?
-        # Should this return a string or a datetime?
         objs = MongoCase.objects(id__in=case_ids).only('id', 'server_modified_on')
         return {unicode(o.id): o.server_modified_on for o in objs}
 

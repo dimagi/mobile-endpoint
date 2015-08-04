@@ -55,8 +55,16 @@ class MongoCaseIndex(EmbeddedDocument):
     referenced_type = StringField()
     referenced_id = UUIDField()
 
+
 class MongoCase(DynamicDocument, ToFromGeneric):
-    meta = {'collection': 'cases'}
+    meta = {
+        'collection': 'cases',
+        'indexes': [
+            'domain',
+            'owner_id',
+            'closed',
+        ],
+    }
     id = UUIDField(primary_key=True)
     domain = StringField()
     closed = BooleanField(default=False)

@@ -4,12 +4,14 @@ import base64
 from uuid import uuid4
 
 import time
+import datetime
+from mobile_endpoint.backends.manager import get_dao
 from mobile_endpoint.case import const
 from mobile_endpoint.case.xml import V2
 
 from mobile_endpoint.restore import xml
 from tests.dummy import dummy_user, dummy_restore_xml
-from tests.mock import CaseFactory, CaseStructure
+from tests.mock import CaseFactory, CaseStructure, CaseRelationship
 from tests.utils import check_xml_line_by_line
 
 DOMAIN = 'test_domain'
@@ -86,6 +88,36 @@ class RestoreTestMixin(object):
             dummy_restore_xml(user, synclog.id, case_xml=case_xml, items=4),
             restore_payload,
         )
+
+    def test_get_last_modified_dates(self, testapp, client):
+        """
+        I was having a little trouble manufacturing a scenario that would call
+        this Dao.get_last_modified_dates() with meaningful parameters, so I'm
+        testing it directly.
+        """
+
+        user_id = str(uuid4())
+        owner_id = str(uuid4())
+        with testapp.app_context():
+            factory = CaseFactory(self._get_backend(), client, domain=DOMAIN, case_defaults={
+                'user_id': user_id,
+                'owner_id': owner_id,
+                'case_type': 'duck',
+            })
+            child, parent = factory.create_or_update_case(
+                CaseStructure(
+                    attrs={'create': True, 'case_type': 'duckling'},
+                    relationships=[
+                        CaseRelationship(
+                            CaseStructure(attrs={'case_type': 'duck'})
+                        ),
+                    ])
+            )
+
+            ids = [child.id, parent.id]
+            dao = get_dao(self._get_backend())
+            id_date_map = dao.get_last_modified_dates(DOMAIN, ids)
+            assert set(id_date_map.keys()) == set(ids)
 
     def test_sync_token(self, testapp, client):
         """
