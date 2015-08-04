@@ -35,6 +35,8 @@ class MongoDao(AbsctractDao):
             _, log = MongoSynclog.from_generic(synclog)
             log.save()
 
+        # TODO: commit dirtyness flags
+
 
     @to_generic
     def get_form(self, id):

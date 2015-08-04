@@ -25,6 +25,8 @@ class CouchDao(AbsctractDao):
         for db, docs in docs_by_db.items():
             db.save_docs(docs)
 
+        # TODO: commit dirtyness flags
+
     def commit_restore(self, restore_state):
         pass
 

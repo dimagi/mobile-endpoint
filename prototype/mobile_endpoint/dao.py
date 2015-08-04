@@ -97,6 +97,29 @@ class AbsctractDao(object):
         """
         pass
 
+    @abstractmethod
+    def get_flags(self, domain, ids):
+        """
+        Return ownership cleanliness flags where domain is domain and owner_id
+        is in ids.
+        """
+        pass
+
+    @abstractmethod
+    def get_flags_to_update(self, domain, ids):
+        """
+        Return ownership cleanliness flags where domain is domain, owner_id is
+        in ids, and is_clean is True or hint is None.
+        """
+        pass
+
+    @abstractmethod
+    def save_flags(self, flags_to_update):
+        """
+        Save the given OwnershipCleanlinessFlags
+        """
+        pass
+
 
 class CaseDbCache(object):
     """

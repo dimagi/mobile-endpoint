@@ -1,10 +1,12 @@
 from uuid import UUID
-
+from sqlalchemy import or_
 from sqlalchemy.orm import contains_eager, defer
+from sqlalchemy.sql import exists
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
-from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex, cls_for_doc_type
+from mobile_endpoint.models import db, Synclog, FormData, CaseData, CaseIndex, cls_for_doc_type, \
+    OwnershipCleanlinessFlag
 from mobile_endpoint.utils import get_with_lock
 
 
@@ -32,7 +34,7 @@ class SQLDao(AbsctractDao):
                     db.session.add(doc)
 
             if case_result:
-                case_result.commit_dirtiness_flags()
+                case_result.commit_dirtiness_flags(self)
 
 
     def commit_restore(self, restore_state):
@@ -124,6 +126,41 @@ class SQLDao(AbsctractDao):
                 CaseData.id.in_(case_ids)
             )
         )
+
+    # TODO: Add to_generic decorator?
+    def get_flags(self, domain, ids):
+        """
+        Return ownership cleanliness flags where domain is domain and owner_id
+        is in ids.
+        """
+        return OwnershipCleanlinessFlag.query.filter(
+            OwnershipCleanlinessFlag.domain == domain,
+            OwnershipCleanlinessFlag.owner_id.in_(ids),
+        )
+
+    # TODO: Add to_generic decorator?
+    def get_flags_to_update(self, domain, ids):
+        """
+        Return ownership cleanliness flags where domain is domain, owner_id is
+        in ids, and is_clean is True or hint is None.
+        """
+        return OwnershipCleanlinessFlag.query.filter(
+            OwnershipCleanlinessFlag.domain == domain,
+            OwnershipCleanlinessFlag.owner_id.in_(ids),
+            or_(
+                OwnershipCleanlinessFlag.is_clean == True,
+                OwnershipCleanlinessFlag.hint == None
+            )
+        )
+
+    def save_flags(self, flags_to_update):
+        """
+        Save the given OwnershipCleanlinessFlags
+        """
+        with db.session.begin(subtransactions=True):
+            for flag in flags_to_update:
+                db.session.add(flag)
+
 
 
 
