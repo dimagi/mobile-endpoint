@@ -68,7 +68,7 @@ class SQLDao(AbsctractDao):
             None, CaseData.query.get(id)
 
     def case_exists(self, id):
-        return CaseData.query.filter_by(id=id).exists()
+        return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()
 
     @to_generic
     def get_cases(self, case_ids, ordered=False):
