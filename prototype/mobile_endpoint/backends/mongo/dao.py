@@ -61,7 +61,7 @@ class MongoDao(AbsctractDao):
         return MongoCase.objects(id=UUID(id)).limit(1) is not None
 
     @to_generic
-    def get_cases(self, case_ids, ordered=True):
+    def get_cases(self, case_ids, ordered=False):
         # Assumes case_ids are strings.
         cases = MongoCase.objects(id__in=case_ids)
 
@@ -73,7 +73,8 @@ class MongoDao(AbsctractDao):
                 ordered_cases[index_map[case.id]] = case
             cases = ordered_cases
 
-        return cases
+        for c in cases:
+            yield c
 
 
     @to_generic
@@ -89,7 +90,7 @@ class MongoDao(AbsctractDao):
         assert isinstance(owner_id, basestring)
         return [
             unicode(c.id) for c in
-            MongoCase.objects(domain=domain, owner_id=UUID(owner_id), closed=False).only('id').all()
+            MongoCase.objects(domain=domain, owner_id=UUID(owner_id), closed=False).only('id')
         ]
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):

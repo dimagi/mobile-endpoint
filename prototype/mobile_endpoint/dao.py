@@ -64,7 +64,7 @@ class AbsctractDao(object):
         pass
 
     @abstractmethod
-    def get_cases(self, case_ids, ordered=True):
+    def get_cases(self, case_ids, ordered=False):
         pass
 
     @abstractmethod

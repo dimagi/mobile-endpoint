@@ -59,7 +59,7 @@ class CouchDao(AbsctractDao):
         return CouchCase.get_db().doc_exist(id)
 
     @to_generic
-    def get_cases(self, case_ids, ordered=True):
+    def get_cases(self, case_ids, ordered=False):
         for row in CouchCase.view('_all_docs', keys=case_ids, include_docs=True):
             yield row
 
