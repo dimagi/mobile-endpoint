@@ -72,7 +72,6 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def get_cases(self, case_ids, ordered=False):
-        # TODO: Should this function really be changing the default value of ordered (GenericDao has ordered=True)?
         cases = CaseData.query.filter(CaseData.id.in_(case_ids)).all()
         if ordered:
             # SQL won't return the rows in any particular order so we need to order them ourselves

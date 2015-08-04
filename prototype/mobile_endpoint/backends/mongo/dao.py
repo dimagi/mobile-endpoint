@@ -61,7 +61,7 @@ class MongoDao(AbsctractDao):
         return MongoCase.objects(id=UUID(id)).limit(1) is not None
 
     @to_generic
-    def get_cases(self, case_ids, ordered=True):
+    def get_cases(self, case_ids, ordered=False):
         # Assumes case_ids are strings.
         cases = MongoCase.objects(id__in=case_ids)
 
