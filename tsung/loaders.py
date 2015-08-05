@@ -117,7 +117,8 @@ class MongoDocLoader(RowLoader):
 
     def flush(self):
         collection = self.client.get_default_database()[self.collection]
-        collection.insert_many(self.queue)
+        if self.queue:
+            collection.insert_many(self.queue)
         self.queue = []
 
     def doc_to_mongo(self, doc):
