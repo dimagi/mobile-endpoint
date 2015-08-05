@@ -143,8 +143,10 @@ class MongoCaseLoader(MongoDocLoader):
     collection = 'cases'
 
     def doc_to_mongo(self, doc):
-        import ipdb; ipdb.set_trace()
-        raise NotImplementedError
+        doc['_id'] = UUID(doc['id'])
+        doc['owner_id'] = UUID(doc['owner_id'])
+        doc['server_modified_on'] = dateutil.parser.parse(doc['server_modified_on'])
+        return doc
 
 
 class MongoSynclogLoader(MongoDocLoader):
