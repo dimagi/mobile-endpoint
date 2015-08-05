@@ -9,9 +9,10 @@ from requests.auth import HTTPBasicAuth
 import sh
 import time
 
-from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL
+from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL, \
+    MongoFormLoader, MongoCaseLoader, MongoSynclogLoader
 import settings
-from utils import get_psql, cd
+from utils import get_psql, cd, get_mongo
 
 
 User = namedtuple('User', 'id username password')
@@ -215,3 +216,38 @@ class PrototypeSQL(Backend):
 
     def _create_user(self):
         return User(id=str(uuid4()), username='admin', password='secret')
+
+
+class PrototypeMongo(Backend):
+    name = 'prototype-mongo'
+
+    def __init__(self):
+        super(PrototypeMongo, self).__init__()
+        self.mongo = get_mongo(self.name)
+
+    def _create_user(self):
+        return User(id=str(uuid4()), username='admin', password='secret')
+
+    def reset_db(self):
+        super(PrototypeMongo, self).reset_db()
+
+        print('Dropping mongo')
+        self.mongo(eval="'db.dropDatabase()'")
+        # TODO: Check for success/response
+        # Mongo dbs are created automatically on first use, so no need to explicitly create one now.
+
+        # print('Running db upgrade')
+        # self._run_manage_py(
+        #     'db',
+        #     'upgrade',
+        # )
+
+    def load_data(self, dest_folder):
+        loader = DataLoader(
+            dest_folder,
+            self.name,
+            MongoFormLoader(self.name),
+            MongoCaseLoader(self.name),
+            MongoSynclogLoader(self.name)
+        )
+        loader.run()

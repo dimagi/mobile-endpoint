@@ -8,6 +8,7 @@ import json
 import os
 import random
 from uuid import uuid4
+from pymongo import MongoClient
 
 import requests
 
@@ -95,6 +96,55 @@ class CouchRowLoader(RowLoader):
         self.queue.append(doc)
         if len(self.queue) > 100:
             self.flush()
+
+
+class MongoDocLoader(RowLoader):
+    collection = None
+
+    def __init__(self, backend):
+        self.queue = []
+        self.client = MongoClient(settings.BACKENDS[backend]['MONGO_URI'])
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super(MongoDocLoader, self).__exit__(exc_type, exc_val, exc_tb)
+        self.client.close()
+
+    def put_doc(self, doc):
+        self.queue.append(self.doc_to_mongo(doc))
+        if len(self.queue) > 100:
+            self.flush()
+
+    def flush(self):
+        collection = self.client.get_default_database()[self.collection]
+        collection.insert_many(self.queue)
+        self.queue = []
+
+    def doc_to_mongo(self, doc):
+        raise NotImplementedError
+
+
+class MongoFormLoader(MongoDocLoader):
+    collection = 'forms'
+
+    def doc_to_mongo(self, doc):
+        import ipdb; ipdb.set_trace()
+        raise NotImplementedError
+
+
+class MongoCaseLoader(MongoDocLoader):
+    collection = 'cases'
+
+    def doc_to_mongo(self, doc):
+        import ipdb; ipdb.set_trace()
+        raise NotImplementedError
+
+
+class MongoSynclogLoader(MongoDocLoader):
+    collection = 'synclogs'
+
+    def doc_to_mongo(self, doc):
+        import ipdb; ipdb.set_trace()
+        raise NotImplementedError
 
 
 class FormLoaderSQL(SQLRowLoader):
