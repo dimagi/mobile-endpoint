@@ -17,6 +17,7 @@ def _get_backend(backend_name):
     return {
         "current": backends.Current,
         "prototype-sql": backends.PrototypeSQL,
+        "prototype-mongo": backends.PrototypeMongo,
     }[backend_name]()
 
 
