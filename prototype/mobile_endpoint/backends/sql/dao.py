@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy.orm import contains_eager, defer
+from sqlalchemy.sql import exists
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -68,7 +69,7 @@ class SQLDao(AbsctractDao):
             None, CaseData.query.get(id)
 
     def case_exists(self, id):
-        return CaseData.query.filter_by(id=id).exists()
+        return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()
 
     @to_generic
     def get_cases(self, case_ids, ordered=False):

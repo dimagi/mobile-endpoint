@@ -80,6 +80,10 @@ class AbsctractDao(object):
 
     @abstractmethod
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
+        """
+        Return a list containing the id of each case in the given domain, with
+        the given owner, and that was modified after the given date.
+        """
         pass
 
     @abstractmethod
