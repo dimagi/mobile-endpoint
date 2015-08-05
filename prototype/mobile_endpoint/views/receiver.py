@@ -42,6 +42,5 @@ def _receiver(domain, backend):
             case_result = process_cases_in_form(xform, dao)
 
         dao.commit_atomic_submission(xform, case_result)
-        # This doesn't do anything with dirtyness flags. Should it?
 
     return get_open_rosa_response(xform, None, None)
