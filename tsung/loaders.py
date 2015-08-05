@@ -128,8 +128,14 @@ class MongoFormLoader(MongoDocLoader):
     collection = 'forms'
 
     def doc_to_mongo(self, doc):
-        import ipdb; ipdb.set_trace()
-        raise NotImplementedError
+        return {
+            '_id': UUID(doc['_id']),
+            'domain': doc['domain'],
+            'received_on': dateutil.parser.parse(doc['received_on']),
+            'user_id': UUID(doc['form']['metadata']['userID']),
+            'md5': 'wat',
+            'synclog_id': UUID(doc['last_sync_token'])
+        }
 
 
 class MongoCaseLoader(MongoDocLoader):
