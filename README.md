@@ -78,6 +78,11 @@ $ sudo make install
 
 ## Running tests on indiacloud8
 
+### Initial setup
+* give commcarehq user access to all postgresql databases
+* create pgpass file in cchq home so we don't need to handle password input
+* increase max connections in pgbouncer
+
 Use the `awesome_test` task to run the tests. e.g.
 ```
 $ sudo -iu cchq bash

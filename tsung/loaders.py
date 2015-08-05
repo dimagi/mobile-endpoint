@@ -202,9 +202,9 @@ class DataLoader(object):
     * Loads the user_ids from the userdb.csv file
     * For each user create CASES_PER_USER cases
     """
-    def __init__(self, files_folder, form_loader, case_loader, sync_token_loader):
-        self.files_folder = files_folder
-        self.case_db_path = os.path.join(files_folder, 'casedb.csv')
+    def __init__(self, files_folder, backend_name, form_loader, case_loader, sync_token_loader):
+        self.case_db_path = os.path.join(files_folder, 'casedb-{}.csv'.format(backend_name))
+        self.user_db_path = os.path.join(files_folder, 'userdb-{}.csv'.format(backend_name))
 
         self.form_loader = form_loader
         self.case_loader = case_loader
@@ -235,7 +235,7 @@ class DataLoader(object):
         self.num_users = len(self.user_ids)
 
     def _load_user_ids(self):
-        with open(os.path.join(self.files_folder, 'userdb.csv')) as f:
+        with open(self.user_db_path) as f:
             user_data = f.readlines()
 
         self.user_ids = [
@@ -382,6 +382,7 @@ class DataLoader(object):
 
         with open(self.case_db_path, "a") as file:
             file.write("\n".join(case_selection))
+            file.write("\n")
 
         self.case_ids_gen = []
         self.case_forms.clear()

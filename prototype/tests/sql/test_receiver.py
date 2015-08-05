@@ -6,7 +6,7 @@ from tests.conftest import sql
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
 
 
-@pytest.mark.usefixtures("testapp", "client", "sqldb", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "sqldb", "sql_reset")
 @sql
 class TestPostgresReceiver(ReceiverTestMixin):
 

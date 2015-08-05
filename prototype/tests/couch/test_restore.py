@@ -5,7 +5,7 @@ from tests.conftest import couch
 from tests.test_restore import RestoreTestMixin
 
 
-@pytest.mark.usefixtures("testapp", "client", "couchdb", "db_reset")
+@pytest.mark.usefixtures("testapp", "client", "couchdb")
 @couch
 class TestCouchRestore(RestoreTestMixin):
 
