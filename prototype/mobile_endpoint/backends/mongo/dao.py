@@ -97,7 +97,14 @@ class MongoDao(AbsctractDao):
         ]
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
-        raise NotImplementedError
+        return [
+            unicode(c.id) for c in
+            MongoCase.objects(
+                domain=domain,
+                owner_id=UUID(owner_id),
+                server_modified_on__gt=reference_date
+            ).only('id')
+        ]
 
     def get_indexed_case_ids(self, domain, case_ids):
         """
