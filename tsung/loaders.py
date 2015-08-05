@@ -133,7 +133,7 @@ class MongoFormLoader(MongoDocLoader):
             '_id': UUID(doc['_id']),
             'domain': doc['domain'],
             'received_on': dateutil.parser.parse(doc['received_on']),
-            'user_id': UUID(doc['form']['metadata']['userID']),
+            'user_id': UUID(doc['form']['meta']['userID']),
             'md5': 'wat',
             'synclog_id': UUID(doc['last_sync_token'])
         }
