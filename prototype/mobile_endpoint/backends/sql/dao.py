@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy.orm import contains_eager, defer
+from sqlalchemy.sql import exists
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
