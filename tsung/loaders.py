@@ -3,11 +3,12 @@ from Queue import Queue
 from abc import ABCMeta, abstractmethod
 from copy import copy, deepcopy
 from datetime import datetime
+import dateutil.parser
 import hashlib
 import json
 import os
 import random
-from uuid import uuid4
+from uuid import uuid4, UUID
 from pymongo import MongoClient
 
 import requests
@@ -143,8 +144,23 @@ class MongoSynclogLoader(MongoDocLoader):
     collection = 'synclogs'
 
     def doc_to_mongo(self, doc):
-        import ipdb; ipdb.set_trace()
-        raise NotImplementedError
+        return {
+            '_id': UUID(doc['_id']),
+            'date': dateutil.parser.parse(doc['date']),
+            'user_id': UUID(doc['user_id']),
+            'previous_log_id': UUID(doc['previous_log_id']) if doc['previous_log_id'] else None,
+            'owner_ids_on_phone': [UUID(i) for i in doc['owner_ids_on_phone']],
+            'domain': settings.DOMAIN,
+        }
+        # Properties that (I think) doc contains that we are throwing out:
+        #   - strict
+        #   - last_seq
+        #   - cases_on_phone (not sure what type these are)
+        #   - dependent_cases_on_phone (not sure what type these are)
+        # Properties that MongoSynclog spec contains that we are missing:
+        #   - case_ids_on_phone
+        #   - dependent_case_ids_on_phone
+        #   - index_tree
 
 
 class FormLoaderSQL(SQLRowLoader):
