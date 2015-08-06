@@ -3,13 +3,15 @@ from collections import namedtuple
 import json
 import os
 from uuid import uuid4
+from pymongo import MongoClient
 
 import requests
 from requests.auth import HTTPBasicAuth
 import sh
 import time
 
-from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL
+from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL, \
+    MongoFormLoader, MongoCaseLoader, MongoSynclogLoader
 import settings
 from utils import get_psql, cd
 
@@ -215,3 +217,29 @@ class PrototypeSQL(Backend):
 
     def _create_user(self):
         return User(id=str(uuid4()), username='admin', password='secret')
+
+
+class PrototypeMongo(Backend):
+    name = 'prototype-mongo'
+
+    def _create_user(self):
+        return User(id=str(uuid4()), username='admin', password='secret')
+
+    def reset_db(self):
+        super(PrototypeMongo, self).reset_db()
+
+        print('Dropping mongo')
+        client = MongoClient(settings.BACKENDS[self.name]['MONGO_URI'])
+        db = client.get_default_database()
+        client.drop_database(db)
+        # Mongo dbs are created automatically on first use, so no need to explicitly create one now.
+
+    def load_data(self, dest_folder):
+        loader = DataLoader(
+            dest_folder,
+            self.name,
+            MongoFormLoader(self.name),
+            MongoCaseLoader(self.name),
+            MongoSynclogLoader(self.name)
+        )
+        loader.run()

@@ -3,11 +3,13 @@ from Queue import Queue
 from abc import ABCMeta, abstractmethod
 from copy import copy, deepcopy
 from datetime import datetime
+import dateutil.parser
 import hashlib
 import json
 import os
 import random
-from uuid import uuid4
+from uuid import uuid4, UUID
+from pymongo import MongoClient
 
 import requests
 
@@ -95,6 +97,71 @@ class CouchRowLoader(RowLoader):
         self.queue.append(doc)
         if len(self.queue) > 100:
             self.flush()
+
+
+class MongoDocLoader(RowLoader):
+    collection = None
+
+    def __init__(self, backend):
+        self.queue = []
+        self.client = MongoClient(settings.BACKENDS[backend]['MONGO_URI'])
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super(MongoDocLoader, self).__exit__(exc_type, exc_val, exc_tb)
+        self.client.close()
+
+    def put_doc(self, doc):
+        self.queue.append(self.doc_to_mongo(doc))
+        if len(self.queue) > 100:
+            self.flush()
+
+    def flush(self):
+        collection = self.client.get_default_database()[self.collection]
+        if self.queue:
+            collection.insert_many(self.queue)
+        self.queue = []
+
+    def doc_to_mongo(self, doc):
+        raise NotImplementedError
+
+
+class MongoFormLoader(MongoDocLoader):
+    collection = 'forms'
+
+    def doc_to_mongo(self, doc):
+        return {
+            '_id': UUID(doc['_id']),
+            'domain': doc['domain'],
+            'received_on': dateutil.parser.parse(doc['received_on']),
+            'user_id': UUID(doc['form']['meta']['userID']),
+            'md5': 'wat',
+            'synclog_id': UUID(doc['last_sync_token'])
+        }
+
+
+class MongoCaseLoader(MongoDocLoader):
+    collection = 'cases'
+
+    def doc_to_mongo(self, doc):
+        doc['_id'] = UUID(doc['_id'])
+        doc['owner_id'] = UUID(doc['owner_id'])
+        doc['server_modified_on'] = dateutil.parser.parse(doc['server_modified_on'])
+        return doc
+
+
+class MongoSynclogLoader(MongoDocLoader):
+    collection = 'synclogs'
+
+    def doc_to_mongo(self, doc):
+        return {
+            '_id': UUID(doc['_id']),
+            'date': dateutil.parser.parse(doc['date']),
+            'user_id': UUID(doc['user_id']),
+            'previous_log_id': UUID(doc['previous_log_id']) if doc['previous_log_id'] else None,
+            'owner_ids_on_phone': [UUID(i) for i in doc['owner_ids_on_phone']],
+            'domain': settings.DOMAIN,
+        }
+        # NOTE: Doesn't save cases_on_phone or dependent_cases_on_phone
 
 
 class FormLoaderSQL(SQLRowLoader):
