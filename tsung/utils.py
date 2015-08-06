@@ -20,12 +20,6 @@ def get_psql(backend):
     return sh.psql.bake(**pg_conf)
 
 
-def get_mongo(backend):
-    uri = settings.BACKENDS[backend]['MONGO_URI']
-    name = uri.strip("mongodb://")
-    return sh.mongo.bake(name)
-
-
 def load_json(filename):
     with open(os.path.join(settings.JSON_DIR, filename)) as f:
         return json.load(f)

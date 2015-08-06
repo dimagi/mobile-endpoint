@@ -13,7 +13,7 @@ import time
 from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL, \
     MongoFormLoader, MongoCaseLoader, MongoSynclogLoader
 import settings
-from utils import get_psql, cd, get_mongo
+from utils import get_psql, cd
 
 
 User = namedtuple('User', 'id username password')
@@ -221,10 +221,6 @@ class PrototypeSQL(Backend):
 
 class PrototypeMongo(Backend):
     name = 'prototype-mongo'
-
-    def __init__(self):
-        super(PrototypeMongo, self).__init__()
-        self.mongo = get_mongo(self.name)
 
     def _create_user(self):
         return User(id=str(uuid4()), username='admin', password='secret')
