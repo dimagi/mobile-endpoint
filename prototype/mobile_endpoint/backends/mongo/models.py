@@ -21,11 +21,11 @@ class MongoForm(Document, ToFromGeneric):
 
     def to_generic(self):
         generic = XFormInstance(
-            id=self.id,
+            id=unicode(self.id),
             domain=self.domain,
             received_on=self.received_on,
-            user_id=self.user_id,
-            last_sync_token=self.synclog_id
+            user_id=unicode(self.user_id),
+            last_sync_token=unicode(self.synclog_id)
         )
         generic._self = self
         generic._md5 = self.md5

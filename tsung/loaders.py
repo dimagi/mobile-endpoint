@@ -163,6 +163,7 @@ class MongoSynclogLoader(MongoDocLoader):
         }
         # NOTE: Doesn't save cases_on_phone or dependent_cases_on_phone
 
+
 class FormLoaderSQL(SQLRowLoader):
     table = 'form_data'
     columns = ['id', 'domain', 'received_on', 'user_id', 'md5', 'synclog_id', 'attachments']
