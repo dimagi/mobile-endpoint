@@ -3,6 +3,7 @@ from collections import namedtuple
 import json
 import os
 from uuid import uuid4
+from pymongo import MongoClient
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -232,7 +233,12 @@ class PrototypeMongo(Backend):
         super(PrototypeMongo, self).reset_db()
 
         print('Dropping mongo')
-        self.mongo(eval="'db.dropDatabase()'")
+        client = MongoClient(settings.BACKENDS[self.name]['MONGO_URI'])
+        db = client.get_default_database()
+        client.drop_database(db)
+
+
+        #self.mongo(eval="'db.dropDatabase()'")
         # TODO: Check for success/response
         # Mongo dbs are created automatically on first use, so no need to explicitly create one now.
 
