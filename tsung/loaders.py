@@ -146,6 +146,14 @@ class MongoCaseLoader(MongoDocLoader):
         doc['_id'] = UUID(doc['_id'])
         doc['owner_id'] = UUID(doc['owner_id'])
         doc['server_modified_on'] = dateutil.parser.parse(doc['server_modified_on'])
+        doc['indices'] = [
+            {
+                'identifier': i['identifier'],
+                'referenced_type': i['referenced_type'],
+                'referenced_id': UUID(i['referenced_id']),
+            }
+            for i in doc['indices']
+        ]
         return doc
 
 
