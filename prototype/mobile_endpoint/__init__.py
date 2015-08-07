@@ -3,6 +3,7 @@ import logging
 import logging.config
 
 from flask import Flask
+from mongoengine import connect
 
 from mobile_endpoint.views import ota_mod
 from mobile_endpoint.models import db, migrate
@@ -27,6 +28,8 @@ def create_app(extra_config=None):
     redis_store.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
+
+    connect(host=app.config.get('MONGO_URI'))
 
     # register our blueprints
     app.register_blueprint(ota_mod, url_prefix='/ota')
