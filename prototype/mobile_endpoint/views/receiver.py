@@ -1,8 +1,5 @@
-from flask import request, current_app
-from mongoengine import connect
-from mobile_endpoint.backends.couch.dao import CouchDao
+from flask import request
 from mobile_endpoint.backends.manager import get_dao
-from mobile_endpoint.backends.sql.dao import SQLDao
 
 from mobile_endpoint.case.case_processing import process_cases_in_form
 
@@ -26,7 +23,6 @@ def couch_receiver(domain):
 @ota_mod.route('/mongo-receiver/<domain>', methods=['POST'])
 @requires_auth
 def mongo_receiver(domain):
-    connect(host=current_app.config.get('MONGO_URI'))
     return _receiver(domain, backend='mongo')
 
 

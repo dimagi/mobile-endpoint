@@ -1,5 +1,4 @@
-from flask import request, current_app
-from mongoengine import connect
+from flask import request
 from mobile_endpoint.backends.manager import get_dao
 
 from mobile_endpoint.extensions import requires_auth
@@ -23,7 +22,6 @@ def couch_restore(domain):
 @ota_mod.route('/mongo-restore/<domain>', methods=['GET'])
 @requires_auth
 def mongo_restore(domain):
-    connect(host=current_app.config.get('MONGO_URI'))
     return _ota_restore(domain, backend='mongo')
 
 
