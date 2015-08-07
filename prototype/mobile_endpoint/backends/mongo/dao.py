@@ -29,6 +29,8 @@ class MongoDao(AbsctractDao):
                     print e
                     print "SERVER_MODIFIED_ON:", mcase.server_modified_on
                     print "TYPE:", type(mcase.server_modified_on)
+                    raise e
+
                 case_son = mcase.to_mongo()
                 case_id = case_son.get('_id')
                 bulkop.find({'_id': case_id}).upsert().replace_one(case_son)
