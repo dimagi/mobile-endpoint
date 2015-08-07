@@ -335,7 +335,7 @@ class OwnershipCleanlinessFlag(db.Model):
     owner_id = db.Column(UUID(), primary_key=True)
     is_clean = db.Column(db.Boolean(), nullable=False, default=False)
     last_checked = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
-    hint = db.Column(UUID(), db.ForeignKey('case_data.id'))
+    hint = db.Column(UUID())
 
     @classmethod
     def get_or_create(cls, domain, owner_id, defaults=None):
@@ -343,7 +343,7 @@ class OwnershipCleanlinessFlag(db.Model):
         if instance:
             return instance
         else:
-            instance = OwnershipCleanlinessFlag(domain=domain, owner_id=owner_id)
+            instance = cls(domain=domain, owner_id=owner_id)
             if defaults:
                 for field, value in defaults.items():
                     setattr(instance, field, value)
