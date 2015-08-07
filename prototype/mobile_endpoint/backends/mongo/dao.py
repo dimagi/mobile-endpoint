@@ -1,5 +1,5 @@
 from uuid import UUID
-from mongoengine import DoesNotExist
+from mongoengine import DoesNotExist, ValidationError
 from mobile_endpoint.dao import AbsctractDao, to_generic
 from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, \
     MongoSynclog
@@ -23,7 +23,12 @@ class MongoDao(AbsctractDao):
             bulkop = collection.initialize_unordered_bulk_op()
             for case in cases:
                 mcase = MongoCase.from_generic(case)[1]
-                mcase.validate()
+                try:
+                    mcase.validate()
+                except ValidationError as e:
+                    print e
+                    print "SERVER_MODIFIED_ON:", mcase.server_modified_on
+                    print "TYPE:", type(mcase.server_modified_on)
                 case_son = mcase.to_mongo()
                 case_id = case_son.get('_id')
                 bulkop.find({'_id': case_id}).upsert().replace_one(case_son)
