@@ -232,7 +232,10 @@ class PrototypeMongo(Backend):
         client = MongoClient(settings.BACKENDS[self.name]['MONGO_URI'])
         db = client.get_default_database()
         client.drop_database(db)
+
         # Mongo dbs are created automatically on first use, so no need to explicitly create one now.
+        print('Running mongo db sync')
+        self._run_manage_py('syncmongo')
 
     def load_data(self, dest_folder):
         loader = DataLoader(
