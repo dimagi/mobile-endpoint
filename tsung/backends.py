@@ -237,6 +237,11 @@ class PrototypeMongo(Backend):
         print('Running mongo db sync')
         self._run_manage_py('syncmongo')
 
+        # The mongo backend uses sql for some things, like OwnershipCleanlinessFlags
+        print('Running db upgrade')
+        self._run_manage_py('db', 'upgrade',)
+
+
     def load_data(self, dest_folder):
         loader = DataLoader(
             dest_folder,
