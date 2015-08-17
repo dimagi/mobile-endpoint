@@ -1,10 +1,16 @@
 from couchdbkit import Document
+from jsonobject.properties import DateTimeProperty, StringProperty, ListProperty, BooleanProperty
 from mobile_endpoint.case.models import CommCareCase
 from mobile_endpoint.form.models import XFormInstance
 from mobile_endpoint.models import ToFromGeneric
 
 
 class CouchForm(Document, ToFromGeneric):
+
+    domain = StringProperty()
+    received_on = DateTimeProperty()
+    user_id = StringProperty()
+    synclog_id = StringProperty()
 
     @staticmethod
     def get_app_name():
@@ -39,7 +45,19 @@ class CouchForm(Document, ToFromGeneric):
         return new, self
 
 
+class CouchCaseIndex(Document):
+    identifier = StringProperty()
+    referenced_type = StringProperty()
+    referenced_id = StringProperty()
+
+
 class CouchCase(Document, ToFromGeneric):
+    domain = StringProperty()
+    closed = BooleanProperty(default=False)
+    owner_id = StringProperty()
+    server_modified_on = DateTimeProperty()
+    version = StringProperty()
+    indices = ListProperty(CouchCaseIndex)
 
     @staticmethod
     def get_app_name():
