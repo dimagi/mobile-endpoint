@@ -1,7 +1,9 @@
 from collections import defaultdict
 from couchdbkit import ResourceNotFound
-from mobile_endpoint.backends.couch.models import CouchForm, CouchCase
+from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, \
+    CouchSynclog
 from mobile_endpoint.dao import AbsctractDao, to_generic
+from mobile_endpoint.exceptions import NotFound
 from mobile_endpoint.utils import get_with_lock, json_format_datetime
 
 
@@ -20,23 +22,34 @@ class CouchDao(AbsctractDao):
         for case in cases:
             docs_by_db[CouchCase.get_db()].append(CouchCase.from_generic(case)[1].to_json())
 
-        # todo sync logs
-        # synclog = case_result.synclog if case_result else None
+        synclog = case_result.synclog if case_result else None
+        if synclog:
+            _, log = CouchSynclog.from_generic(synclog)
+            docs_by_db[CouchSynclog.get_db()].append(log.to_json())
+
         for db, docs in docs_by_db.items():
             db.save_docs(docs)
 
         if case_result:
+            # TODO: Do I need to do anything special for dirtiness flags with couch?
             case_result.commit_dirtiness_flags()
 
     def commit_restore(self, restore_state):
-        pass
+        synclog_generic = restore_state.current_sync_log
+        if synclog_generic:
+            _, synclog = CouchSynclog.from_generic(synclog_generic)
+            synclog.save()
 
+    @to_generic
     def get_synclog(self, id):
-        pass
+        try:
+            return CouchSynclog.get(id)
+        except ResourceNotFound:
+            raise NotFound()
 
     def save_synclog(self, generic):
-        # TODO
-        pass
+        _, synclog = CouchSynclog.from_generic(generic)
+        synclog.save()
 
     @to_generic
     def get_form(self, id):
@@ -80,23 +93,13 @@ class CouchDao(AbsctractDao):
         )
 
     def get_open_case_ids(self, domain, owner_id):
-        if owner_id is not None and type is None:
-            key = ["open owner", domain, owner_id]
-        else:
-            key = ["open type owner", domain]
-            if type is not None:
-                key += [type]
-            if owner_id is not None:
-                key += [owner_id]
-
-        case_ids = [row['id'] for row in CouchCase.get_db().view(
-            'cases/open_cases',
-            startkey=key,
-            endkey=key + [{}],
+        # TODO: Not positive that this works properly yet.
+        return [row['id'] for row in CouchCase.get_db().view(
+            'cases/by_owner',
+            key=[owner_id, False],
             reduce=False,
             include_docs=False
         )]
-        return case_ids
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
         """
@@ -112,7 +115,6 @@ class CouchDao(AbsctractDao):
                 reduce=False
             )
         ]
-        pass
 
     def get_indexed_case_ids(self, domain, case_ids):
         """

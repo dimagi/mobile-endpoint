@@ -1,7 +1,8 @@
 import os
 from couchdbkit import Database, push
 from flask import current_app
-from mobile_endpoint.backends.couch.models import CouchForm, CouchCase
+from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, \
+    CouchSynclog
 
 
 def create_db(db_name):
@@ -31,7 +32,7 @@ def get_app_db(app_name):
 
 
 def init_dbs():
-    for cls in [CouchForm, CouchCase]:
+    for cls in [CouchForm, CouchCase, CouchSynclog]:
         db_name = get_app_db_name(cls.get_app_name())
         db = create_db(db_name)
         cls.set_db(db)

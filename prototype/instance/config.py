@@ -16,7 +16,8 @@ RESTORE_DIR = 'restore_tmp'
 COUCH_URI = 'http://localhost:5984'
 COUCH_DBS = {
     'forms': 'mobile_endpoint_forms',
-    'cases': 'mobile_endpoint_cases'
+    'cases': 'mobile_endpoint_cases',
+    'synclogs': 'mobile_endpoint_synclogs',
 }
 # mongo settings
 MONGO_URI = 'mongodb://localhost/mobile_endpoint'
