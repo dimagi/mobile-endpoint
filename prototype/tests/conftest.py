@@ -1,3 +1,4 @@
+from couchdbkit import ResourceNotFound
 from flask import current_app
 from flask.ext.migrate import upgrade
 from mongoengine import connect
@@ -7,6 +8,7 @@ patch_path()
 
 from mobile_endpoint import create_app
 from mobile_endpoint.models import db
+import mobile_endpoint.backends.couch.db
 
 couch = pytest.mark.couch
 sql = pytest.mark.sql
@@ -35,8 +37,8 @@ def pytest_runtest_setup(item):
 @pytest.fixture(scope="session")
 def testapp():
     app = create_app('testconfig.py')
-
     db.app = app
+    mobile_endpoint.backends.couch.db.APP = app
     return app
 
 
@@ -76,6 +78,19 @@ def mongo_reset(request):
         MongoForm._get_collection().drop()
         MongoCase._get_collection().drop()
         MongoSynclog._get_collection().drop()
+    request.addfinalizer(teardown)
+
+
+@pytest.fixture()
+def couch_reset(request):
+    from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, CouchSynclog
+    def teardown():
+        for doctype in [CouchForm, CouchCase, CouchSynclog]:
+            for doc in doctype.view('_all_docs'):
+                if not doc._id.startswith('_design'):
+                    # This is sorta hacky. A better move might be to do a full
+                    # database deletion and recreate the db on each function.
+                    doc.delete()
     request.addfinalizer(teardown)
 
 

@@ -4,7 +4,7 @@ from mobile_endpoint.backends.couch.models import CouchForm
 from tests.conftest import couch
 
 
-@pytest.mark.usefixtures("testapp", "couchdb")
+@pytest.mark.usefixtures("testapp", "couchdb", "couch_reset")
 @couch
 class TestConfig(object):
 
