@@ -20,7 +20,7 @@ class TestCouchRestore(RestoreTestMixin):
         return [log.to_generic() for log in CouchSynclog.view('_all_docs', include_docs=True)]
 
     def _get_one_synclog(self):
-        return CouchSynclog.view('all_docs', include_docs=True).first().to_generic()
+        return CouchSynclog.view('_all_docs', include_docs=True).first().to_generic()
 
     def _get_synclog_by_previous_id(self, id):
         raise NotImplementedError
