@@ -93,10 +93,9 @@ class CouchDao(AbsctractDao):
         )
 
     def get_open_case_ids(self, domain, owner_id):
-        # TODO: Not positive that this works properly yet.
         return [row['id'] for row in CouchCase.get_db().view(
             'cases/by_owner',
-            key=[owner_id, False],
+            key=[domain, owner_id, False],
             reduce=False,
             include_docs=False
         )]
@@ -132,10 +131,12 @@ class CouchDao(AbsctractDao):
         Given a list of case IDs, return a dict where the ids are keys and the
         values are the last server modified date of that case.
         """
+        raise NotImplementedError
         keys = [[domain, case_id] for case_id in case_ids]
         return dict([
             (row['id'], iso_string_to_datetime(row['value']))
             for row in CouchCase.get_db().view(
+                # TODO: Write this view
                 'cases_by_server_date/by_server_modified_on',
                 keys=keys,
                 include_docs=False,

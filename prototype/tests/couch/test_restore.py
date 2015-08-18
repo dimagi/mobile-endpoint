@@ -17,10 +17,20 @@ class TestCouchRestore(RestoreTestMixin):
         return 'couch-restore'
 
     def _get_all_synclogs(self):
-        return [log.to_generic() for log in CouchSynclog.view('_all_docs', include_docs=True)]
+        return [
+            log.to_generic() for log in CouchSynclog.view('_all_docs', include_docs=True)
+            if not log._id.startswith('_design')
+        ]
 
     def _get_one_synclog(self):
-        return CouchSynclog.view('_all_docs', include_docs=True).first().to_generic()
+        for doc in CouchSynclog.view('_all_docs', include_docs=True):
+            if not doc._id.startswith("_design"):
+                return doc.to_generic()
 
     def _get_synclog_by_previous_id(self, id):
-        raise NotImplementedError
+        return CouchSynclog.view(
+            'synclogs/by_previous_log_id',
+            key=id,
+            include_docs=True,
+            reduce=False,
+        ).one().to_generic()
