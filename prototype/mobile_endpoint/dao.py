@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import functools
 import types
+import collections
 import redis
 
 from mobile_endpoint.exceptions import IllegalCaseId
@@ -20,9 +21,13 @@ def to_generic(fn):
     @functools.wraps(fn)
     def _inner(*args, **kwargs):
         obj = fn(*args, **kwargs)
+        try:
+            return obj.to_generic()
+        except AttributeError:
+            pass
         if isinstance(obj, (list, tuple)):
             return [_wrap(ob) for ob in obj]
-        elif isinstance(obj, types.GeneratorType):
+        elif isinstance(obj, (types.GeneratorType, collections.Iterable)):
             return (_wrap(ob) for ob in obj)
         else:
             return _wrap(obj)

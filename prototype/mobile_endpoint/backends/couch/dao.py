@@ -66,6 +66,7 @@ class CouchDao(AbsctractDao):
         for row in CouchCase.view('_all_docs', keys=case_ids, include_docs=True):
             yield row
 
+    @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
         """
         Given a base list of case ids, gets all cases that reference the given cases (child cases)
