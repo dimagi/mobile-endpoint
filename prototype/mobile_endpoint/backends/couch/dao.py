@@ -1,5 +1,6 @@
 from collections import defaultdict
 from couchdbkit import ResourceNotFound
+import dateutil
 from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, \
     CouchSynclog
 from mobile_endpoint.dao import AbsctractDao, to_generic
@@ -31,7 +32,6 @@ class CouchDao(AbsctractDao):
             db.save_docs(docs)
 
         if case_result:
-            # TODO: Do I need to do anything special for dirtiness flags with couch?
             case_result.commit_dirtiness_flags()
 
     def commit_restore(self, restore_state):
@@ -131,13 +131,12 @@ class CouchDao(AbsctractDao):
         Given a list of case IDs, return a dict where the ids are keys and the
         values are the last server modified date of that case.
         """
-        raise NotImplementedError
         keys = [[domain, case_id] for case_id in case_ids]
         return dict([
-            (row['id'], iso_string_to_datetime(row['value']))
+            (row['id'], dateutil.parser.parse(row['value']))
             for row in CouchCase.get_db().view(
                 # TODO: Write this view
-                'cases_by_server_date/by_server_modified_on',
+                'cases/by_server_modified_on',
                 keys=keys,
                 include_docs=False,
                 reduce=False
