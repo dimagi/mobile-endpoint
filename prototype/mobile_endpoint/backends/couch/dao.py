@@ -1,8 +1,11 @@
 from collections import defaultdict
 from couchdbkit import ResourceNotFound
-from mobile_endpoint.backends.couch.models import CouchForm, CouchCase
+import dateutil
+from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, \
+    CouchSynclog
 from mobile_endpoint.dao import AbsctractDao, to_generic
-from mobile_endpoint.utils import get_with_lock
+from mobile_endpoint.exceptions import NotFound
+from mobile_endpoint.utils import get_with_lock, json_format_datetime
 
 
 class CouchDao(AbsctractDao):
@@ -20,8 +23,11 @@ class CouchDao(AbsctractDao):
         for case in cases:
             docs_by_db[CouchCase.get_db()].append(CouchCase.from_generic(case)[1].to_json())
 
-        # todo sync logs
-        # synclog = case_result.synclog if case_result else None
+        synclog = case_result.synclog if case_result else None
+        if synclog:
+            _, log = CouchSynclog.from_generic(synclog)
+            docs_by_db[CouchSynclog.get_db()].append(log.to_json())
+
         for db, docs in docs_by_db.items():
             db.save_docs(docs)
 
@@ -29,14 +35,21 @@ class CouchDao(AbsctractDao):
             case_result.commit_dirtiness_flags()
 
     def commit_restore(self, restore_state):
-        pass
+        synclog_generic = restore_state.current_sync_log
+        if synclog_generic:
+            _, synclog = CouchSynclog.from_generic(synclog_generic)
+            synclog.save()
 
+    @to_generic
     def get_synclog(self, id):
-        pass
+        try:
+            return CouchSynclog.get(id)
+        except ResourceNotFound:
+            raise NotFound()
 
     def save_synclog(self, generic):
-        # TODO
-        pass
+        _, synclog = CouchSynclog.from_generic(generic)
+        synclog.save()
 
     @to_generic
     def get_form(self, id):
@@ -66,21 +79,66 @@ class CouchDao(AbsctractDao):
         for row in CouchCase.view('_all_docs', keys=case_ids, include_docs=True):
             yield row
 
+    @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
         """
         Given a base list of case ids, gets all cases that reference the given cases (child cases)
         """
-        # todo
-        return []
+        keys = [[domain, case_id, 'reverse_index'] for case_id in case_ids]
+        return CouchCase.view(
+            'cases/related',
+            keys=keys,
+            reduce=False,
+            include_docs=True,
+        )
 
     def get_open_case_ids(self, domain, owner_id):
-        pass
+        return [row['id'] for row in CouchCase.get_db().view(
+            'cases/by_owner',
+            key=[domain, owner_id, False],
+            reduce=False,
+            include_docs=False
+        )]
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
-        pass
+        """
+        Gets all cases with a specified owner ID that have been modified
+        since a particular reference_date (using the server's timestamp)
+        """
+        return [
+            row['id'] for row in CouchCase.get_db().view(
+                'cases/by_owner_server_modified_on',
+                startkey=[domain, owner_id, json_format_datetime(reference_date)],
+                endkey=[domain, owner_id, {}],
+                include_docs=False,
+                reduce=False
+            )
+        ]
 
     def get_indexed_case_ids(self, domain, case_ids):
-        pass
+        """
+        Given a base list of case ids, gets all ids of cases they reference (parent cases)
+        """
+        keys = [[domain, case_id, 'index'] for case_id in case_ids]
+        return [r['value']['referenced_id'] for r in CouchCase.get_db().view(
+            'cases/related',
+            keys=keys,
+            reduce=False,
+        )]
 
     def get_last_modified_dates(self, domain, case_ids):
-        pass
+        """
+        Given a list of case IDs, return a dict where the ids are keys and the
+        values are the last server modified date of that case.
+        """
+        keys = [[domain, case_id] for case_id in case_ids]
+        return dict([
+            (row['id'], dateutil.parser.parse(row['value']))
+            for row in CouchCase.get_db().view(
+                # TODO: Write this view
+                'cases/by_server_modified_on',
+                keys=keys,
+                include_docs=False,
+                reduce=False
+            )
+        ])
