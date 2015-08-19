@@ -13,20 +13,21 @@ def create_db(db_name):
     return get_db(db_name, create=True)
 
 
-def get_db(db_name, create=False):
+def get_db(db_name, create=False, app=None):
     """
     Get the couch database by name. Assumes all databases share the same cluster.
     """
-    app = APP or current_app
-    return Database('{}/{}'.format(app.config.get('COUCH_URI'), db_name), create=create)
+    _app = app or APP or current_app
+    return Database('{}/{}'.format(_app.config.get('COUCH_URI'), db_name), create=create)
 
 
 def delete_db(db_name):
     get_db(db_name).server.delete_db(db_name)
 
 
-def get_app_db_name(app_name):
-    return current_app.config.get('COUCH_DBS')[app_name]
+def get_app_db_name(app_name, app=None):
+    app = app or current_app
+    return app.config.get('COUCH_DBS')[app_name]
 
 
 def get_app_db(app_name):

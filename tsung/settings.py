@@ -32,6 +32,25 @@ BACKENDS = {
         'ENVIRONMENT_ROOT': '/home/cchq/www/tsung_hq_test/code_root',
         'PYTHON_ENV': '/home/cchq/www/tsung_hq_test/python_env',
     },
+    'prototype-couch': {
+        'SUBMISSION_URL': '/ota/couch-receiver/{domain}',
+        'SUBMIT_WITH_AUTH': True,
+        'HOST': '10.10.1.28',
+        'PORT': '9011',
+
+        'COUCH_HOST': '10.10.1.28',
+        'COUCH_PORT': '5984',
+        'COUCH_USERNAME': 'commcarehq',
+        'COUCH_PASSWORD': 'commcarehq',
+
+        'PG_HOST': '10.10.1.28',
+        'PG_PORT': '5432',
+        'PG_DATABASE': 'prototype_sql',
+        'PG_USERNAME': 'commcarehq',
+
+        'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
+        'PYTHON_ENV': '/home/cchq/prototype/python_env',
+    },
     'prototype-sql': {
         'SUBMISSION_URL': '/ota/receiver/{domain}',
         'SUBMIT_WITH_AUTH': True,

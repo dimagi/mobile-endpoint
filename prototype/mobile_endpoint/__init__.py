@@ -4,6 +4,9 @@ import logging.config
 
 from flask import Flask
 from mongoengine import connect
+from mobile_endpoint.backends.couch.db import get_app_db_name, get_db
+from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, \
+    CouchSynclog
 
 from mobile_endpoint.views import ota_mod
 from mobile_endpoint.models import db, migrate
@@ -30,6 +33,11 @@ def create_app(extra_config=None):
     migrate.init_app(app, db)
 
     connect(host=app.config.get('MONGO_URI'))
+
+    for cls in [CouchForm, CouchCase, CouchSynclog]:
+        db_name = get_app_db_name(cls.get_app_name(), app)
+        couchdb = get_db(db_name, app=app)
+        cls.set_db(couchdb)
 
     # register our blueprints
     app.register_blueprint(ota_mod, url_prefix='/ota')
