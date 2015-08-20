@@ -61,7 +61,7 @@ class Backend(object):
     def reset_db(self):
         common_args = ['-h', self.settings['PG_HOST'], '-U', self.settings['PG_USERNAME']]
         print('Dropping postgres', self.settings['PG_DATABASE'])
-        sh.dropdb(self.settings['PG_DATABASE'], *common_args, _ok_code=[0, 1])
+        sh.dropdb(self.settings['PG_DATABASE'], *common_args)
         print('Creating postgres', self.settings['PG_DATABASE'])
         sh.createdb(self.settings['PG_DATABASE'], *common_args)
 
