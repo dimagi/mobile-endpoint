@@ -159,8 +159,12 @@ class CaseProcessingResult(object):
                             if owner_id in flags_to_save:
                                 flag.is_clean = False
                                 flag.hint = flags_to_save[owner_id]
-                            # flag.save()
-                            db.session.add(flag)
+                            try:
+                                flag.save()
+                            except Exception as e:
+                                import ipdb; ipdb.set_trace()
+                                raise e
+                            #db.session.add(flag)
                         else:
                             # updating - only save if we are marking dirty or setting a hint
                             flag = to_update[owner_id]
