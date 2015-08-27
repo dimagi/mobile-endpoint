@@ -34,6 +34,7 @@ BACKENDS = {
     },
     'prototype-couch': {
         'SUBMISSION_URL': '/ota/couch-receiver/{domain}',
+        'RESTORE_URL': '/ota/couch-restore/{domain}',
         'SUBMIT_WITH_AUTH': True,
         'HOST': '10.10.1.28',
         'PORT': '9011',
@@ -86,6 +87,9 @@ BACKENDS = {
 }
 
 DOMAIN = 'load-test-domain'
+LOCAL_SYNC_LOG_DB_URL = 'http://localhost:5984/tsung/_design/tokens/_view/by_user_id'
+LOCAL_SYNC_LOG_UPDATE_URL = 'http://localhost:5984/tsung/'
+
 
 ##### SCALE FACTORS #####
 # Number of uses to test against

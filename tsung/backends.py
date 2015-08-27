@@ -27,6 +27,7 @@ class Backend(object):
         self.settings = settings.BACKENDS[self.name]
         self.psql = get_psql(self.name)
         self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
+        self.restore_url = self.settings['RESTORE_URL'].format(domain=settings.DOMAIN)
 
     def check_ssh_access(self):
         if settings.TEST_SERVER != 'localhost':
