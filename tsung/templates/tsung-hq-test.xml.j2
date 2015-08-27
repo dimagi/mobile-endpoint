@@ -24,7 +24,7 @@
 
     <sessions>
 
-        <session probability="40" name="form-submission-new-case" type="ts_http">
+        <session probability="45" name="form-submission-new-case" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -61,7 +61,7 @@
             </transaction>
         </session>
 
-        <session probability="40" name="form-submission-update-case" type="ts_http">
+        <session probability="45" name="form-submission-update-case" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -112,20 +112,21 @@
 
             <!-- Get last sync id for user -->
             <request subst="true">
-              <dyn_variable name="last_sync_id" jsonpath="$.rows[0].value"></dyn_variable>
-              <dyn_variable name="couch_doc_id" jsonpath="$.rows[0].id"></dyn_variable>
-                <dyn_variable name="rev" jsonpath="$.rows[0].doc._rev"></dyn_variable>
-              <http url="{{ local_sync_log_db_url }}?key=%22%%_user_id%%%22"
-                    method="GET"
-                    version="1.0"
-              ></http>
+                <dyn_variable name="last_sync_id" jsonpath="$.rows[0].value"></dyn_variable>
+                <dyn_variable name="couch_doc_id" jsonpath="$.rows[0].id"></dyn_variable>
+                <dyn_variable name="couch_rev" jsonpath="$.rows[0].doc._rev"></dyn_variable>
+                <http url="{{ local_sync_log_db_url }}?key=%22%%_user_id%%%22&amp;include_docs=true"
+                      method="GET"
+                      version="1.0"
+                ></http>
             </request>
 
             <!-- do a sync -->
             <transaction name="restore">
                 <request subst="true">
-                    <dyn_variable name="new_sync_id"></dyn_variable>
-                    <http url="{{ restore_url }}?version=2.0&items=true&user_id=%%_user_id%%&since=%%_last_sync_id%%"
+                    <!--<dyn_variable name="new_sync_id" xpath="//restore_id[1]"></dyn_variable>-->
+                    <dyn_variable name="new_sync_id" re="&lt;restore_id&gt;(.*)&lt;/restore_id&gt;"></dyn_variable>
+                    <http url="{{ restore_url }}?version=2.0&amp;items=true&amp;user_id=%%_user_id%%&amp;since=%%_last_sync_id%%"
                           method="GET"
                           version="1.1"
                     >
@@ -140,9 +141,9 @@
             <!-- save the new sync tokem -->
             <request subst="true">
                 <http url="{{ local_sync_log_update_url }}%%_couch_doc_id%%"
-                      method="POST"
+                      method="PUT"
                       version="1.1"
-                      contents="{'id':'%%_couch_doc_id%%', '_rev':'%%_rev%%', 'user_id':'%%_user_id%%', 'restore_id':'%%_new_sync_id%%'}"
+                      contents='{"_id":"%%_couch_doc_id%%", "_rev":"%%_couch_rev%%", "user_id":"%%_user_id%%", "restore_id":"%%_new_sync_id%%"}'
                 >
                     <http_header name="Content-Type" value="application/json"/>
                 </http>
