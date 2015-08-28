@@ -56,8 +56,6 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         'port': backend.settings['PORT'],
         'submission_url': backend.submission_url,
         'restore_url': backend.restore_url,
-        'local_sync_log_db_url': settings.LOCAL_SYNC_LOG_DB_URL,
-        'local_sync_log_update_url': settings.LOCAL_SYNC_LOG_UPDATE_URL,
         'domain': settings.DOMAIN,
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),

@@ -99,7 +99,7 @@
         </session>
 
 
-        <session probability="10" name="sync" type="ts_http">
+        <session probability="10" name="restore-session" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -107,26 +107,10 @@
                 <var name="password" />
             </setdynvars>
 
-            <!-- TODO: create docs for each user before running tsung -->
-            <!-- TODO: create db and design doc for synclogs before running tsung-->
-
-            <!-- Get last sync id for user -->
-            <request subst="true">
-                <dyn_variable name="last_sync_id" jsonpath="$.rows[0].value"></dyn_variable>
-                <dyn_variable name="couch_doc_id" jsonpath="$.rows[0].id"></dyn_variable>
-                <dyn_variable name="couch_rev" jsonpath="$.rows[0].doc._rev"></dyn_variable>
-                <http url="{{ local_sync_log_db_url }}?key=%22%%_user_id%%%22&amp;include_docs=true"
-                      method="GET"
-                      version="1.0"
-                ></http>
-            </request>
-
             <!-- do a sync -->
             <transaction name="restore">
                 <request subst="true">
-                    <!--<dyn_variable name="new_sync_id" xpath="//restore_id[1]"></dyn_variable>-->
-                    <dyn_variable name="new_sync_id" re="&lt;restore_id&gt;(.*)&lt;/restore_id&gt;"></dyn_variable>
-                    <http url="{{ restore_url }}?version=2.0&amp;items=true&amp;user_id=%%_user_id%%&amp;since=%%_last_sync_id%%"
+                    <http url="{{ restore_url }}?version=2.0&amp;items=true&amp;user_id=%%_user_id%%"
                           method="GET"
                           version="1.1"
                     >
@@ -137,17 +121,6 @@
                     </http>
                 </request>
             </transaction>
-
-            <!-- save the new sync tokem -->
-            <request subst="true">
-                <http url="{{ local_sync_log_update_url }}%%_couch_doc_id%%"
-                      method="PUT"
-                      version="1.1"
-                      contents='{"_id":"%%_couch_doc_id%%", "_rev":"%%_couch_rev%%", "user_id":"%%_user_id%%", "restore_id":"%%_new_sync_id%%"}'
-                >
-                    <http_header name="Content-Type" value="application/json"/>
-                </http>
-            </request>
 
         </session>
 
