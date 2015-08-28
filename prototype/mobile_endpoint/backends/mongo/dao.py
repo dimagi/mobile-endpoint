@@ -114,7 +114,7 @@ class MongoDao(AbsctractDao):
         cases = MongoCase.objects(id__in=case_ids).only('indices__referenced_id')
         parent_ids = set()
         for c in cases:
-            parent_ids |= set(i.referenced_id for i in c.indices)
+            parent_ids |= set(unicode(i.referenced_id) for i in c.indices)
         return list(parent_ids)
 
     def get_last_modified_dates(self, domain, case_ids):
