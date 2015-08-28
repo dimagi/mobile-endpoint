@@ -1,0 +1,9 @@
+<transaction name="update_case">
+    <request subst="true">
+        <pgsql type="sql">
+            UPDATE case_data
+            SET case_json='%%_case_json%%', server_modified_on=now()
+            WHERE case_data.id ='%%_case_id%%';
+        </pgsql>
+    </request>
+</transaction>
