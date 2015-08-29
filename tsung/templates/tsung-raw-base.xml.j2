@@ -1,11 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE tsung SYSTEM "{{ dtd_path }}" [
-    <!ENTITY connect_auth SYSTEM "{{ transactions_dir }}/connect_auth.xml">
-    <!ENTITY new_case SYSTEM "{{ transactions_dir }}/new_case.xml">
-    <!ENTITY update_case SYSTEM "{{ transactions_dir }}/update_case.xml">
-    <!ENTITY cases_by_owner_modified SYSTEM "{{ transactions_dir }}/get_cases_by_owner_modified.xml">
-    <!ENTITY related_cases SYSTEM "{{ transactions_dir }}/get_related_cases.xml">
-    <!ENTITY disconnect SYSTEM "{{ transactions_dir }}/disconnect.xml">
+    {% block entities %}
+    {% endblock %}
 ]>
 <tsung loglevel="debug">
     <clients>
@@ -72,10 +68,8 @@
             </setdynvars>
             {% endraw %}
 
-            &connect_auth;
-            &new_case;
-            &cases_by_owner_modified;
-            &disconnect;
+            {% block new_case_recipe %}
+            {% endblock %}
         </session>
 
         <session probability="50" name="update-case-get-related" type="{{ session_type }}">
@@ -93,11 +87,8 @@
                 <var name="case_id" />
             </setdynvars>
 
-            &connect_auth;
-            &update_case;
-            &related_cases;
-            &disconnect;
-
+            {% block update_case_recipe %}
+            {% endblock %}
         </session>
 
     </sessions>

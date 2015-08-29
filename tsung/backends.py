@@ -341,7 +341,7 @@ class PrototypeCouch(Backend):
 
 
 class RawSQL(PrototypeSQL):
-    tsung_test_template = 'tsung-raw.xml.j2'
+    tsung_test_template = 'tsung-raw-sql.xml.j2'
     transactions_dir = 'postgres'
 
     def tsung_template_context(self, phases):
