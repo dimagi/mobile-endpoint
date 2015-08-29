@@ -19,12 +19,14 @@ def _get_backend(backend_name):
         "prototype-sql": backends.PrototypeSQL,
         "prototype-mongo": backends.PrototypeMongo,
         "prototype-couch": backends.PrototypeCouch,
+        "raw-sql": backends.RawSQL,
     }[backend_name]()
 
 
-def _render_template(filename, context):
+def _render_template(filename, context, searchpath=None):
     from jinja2 import Environment, FileSystemLoader
-    env = Environment(loader=FileSystemLoader(settings.TEMPLATE_DIR))
+    searchpath = searchpath or []
+    env = Environment(loader=FileSystemLoader([settings.TEMPLATE_DIR] + searchpath))
     template = env.get_template(filename)
     return template.render(**context)
 
@@ -47,25 +49,24 @@ def tsung_build(backend_name, user_rate=None, duration=None):
     else:
         phases = [main_phase]
 
-    context = {
-        'dtd_path': settings.TSUNG_DTD_PATH,
-        'phases': phases,
-        'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(backend_name)),
-        'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name)),
-        'host': backend.settings['HOST'],
-        'port': backend.settings['PORT'],
-        'submission_url': backend.submission_url,
-        'domain': settings.DOMAIN,
-        'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
-        'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
-        'do_auth': backend.settings['SUBMIT_WITH_AUTH']
-    }
-    filename = 'tsung-hq-test.xml.j2'
+    context = backend.tsung_template_context(phases)
+
+    filename = backend.tsung_test_template
     new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
     with open(new_filename, 'w') as f:
         f.write(_render_template(filename, context))
         print("Built config: {}".format(new_filename))
 
+    if backend.transactions_dir:
+        transactions_dir = os.path.join(settings.BASEDIR, settings.RAW_TRANSACTION_DIR_NAME, backend.transactions_dir)
+        transactions_build_dir = os.path.join(settings.BUILD_DIR, settings.RAW_TRANSACTION_DIR_NAME, backend.transactions_dir)
+        if not os.path.exists(transactions_build_dir):
+            os.makedirs(transactions_build_dir)
+        for transaction in os.listdir(transactions_dir):
+            new_file = os.path.join(transactions_build_dir, transaction)
+            with open(new_file, 'w') as f:
+                f.write(_render_template(transaction, context, [transactions_dir]))
+                print("Built tranasaction {}".format(transaction))
 
 @task
 def load_db(backend_name):
@@ -106,7 +107,8 @@ def awesome_test(backend, user_rate, duration, load=False, notes=None):
         backend.restart()
 
     log_dir = None
-    args = ("-f", "build/tsung-hq-test.xml", "start")
+    test_file = "build/{}".format(backend.tsung_test_template[:-3])
+    args = ("-f", test_file, "start")
     try:
         for line in sh.tsung(*args, _iter=True):
             sys.stdout.write(line)

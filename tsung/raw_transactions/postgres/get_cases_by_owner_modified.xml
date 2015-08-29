@@ -2,9 +2,9 @@
     <request subst="true">
         <pgsql type="sql">
             SELECT case_json FROM case_data
-            WHERE domain = %%_domain%%
-            AND owner_id = %%_user_id%%
-            AND server_modified_on > %%_reference_date%%;
+            WHERE domain = '%%_domain%%'
+            AND owner_id = '%%_user_id%%'
+            AND server_modified_on > '%%_modified_since%%';
         </pgsql>
     </request>
 </transaction>

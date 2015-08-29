@@ -5,6 +5,7 @@ TEMPLATE_DIR = os.path.join(BASEDIR, 'templates')
 BUILD_DIR = os.path.join(BASEDIR, 'build')
 DB_FILES_DIR = os.path.join(BUILD_DIR, 'files')
 JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
+RAW_TRANSACTION_DIR_NAME = "raw_transactions"
 
 BACKENDS = {
     'current': {

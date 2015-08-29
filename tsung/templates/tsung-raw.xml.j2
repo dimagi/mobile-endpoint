@@ -3,13 +3,13 @@
     <!ENTITY connect_auth SYSTEM "{{ transactions_dir }}/connect_auth.xml">
     <!ENTITY new_case SYSTEM "{{ transactions_dir }}/new_case.xml">
     <!ENTITY update_case SYSTEM "{{ transactions_dir }}/update_case.xml">
-    <!ENTITY cases_by_owner_modified SYSTEM "{{ transactions_dir }}/get_cases_by_owner_modified_on.xml">
+    <!ENTITY cases_by_owner_modified SYSTEM "{{ transactions_dir }}/get_cases_by_owner_modified.xml">
     <!ENTITY related_cases SYSTEM "{{ transactions_dir }}/get_related_cases.xml">
     <!ENTITY disconnect SYSTEM "{{ transactions_dir }}/disconnect.xml">
 ]>
-<tsung loglevel="info">
+<tsung loglevel="debug">
     <clients>
-        <client host="localhost" use_controller_vm="true" maxusers="30000"/>
+        <client host="localhost" use_controller_vm="true" maxusers="1000"/>
     </clients>
 
     <servers>
@@ -26,11 +26,15 @@
 
     <options>
         <option name="file_server" id="casedb" value="{{ casedb }}"></option>
-        <option name="file_server" id="formdb" value="{{ formdb }}"></option>
+        <option name="file_server" id="userdb" value="{{ userdb }}"></option>
     </options>
 
     <sessions>
         <session probability="50" name="new-case-get-by-owner-modified" type="{{ session_type }}">
+            <setdynvars sourcetype="value" value="{{ domain }}">
+                <var name="domain" />
+            </setdynvars>
+
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
                 <var name="username" />
@@ -43,6 +47,31 @@
               <var name="case_id" />
             </setdynvars>
 
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:universal_time(),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="utcnow" />
+            </setdynvars>
+            {% endraw %}
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    NowSecs = calendar:datetime_to_gregorian_seconds(calendar:universal_time()),
+                    MinsAgo = NowSecs - (1 * 60),
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:gregorian_seconds_to_datetime(MinsAgo),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="modified_since" />
+            </setdynvars>
+            {% endraw %}
+
             &connect_auth;
             &new_case;
             &cases_by_owner_modified;
@@ -50,6 +79,10 @@
         </session>
 
         <session probability="50" name="update-case-get-related" type="{{ session_type }}">
+            <setdynvars sourcetype="value" value="{{ domain }}">
+                <var name="domain" />
+            </setdynvars>
+
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
                 <var name="username" />
