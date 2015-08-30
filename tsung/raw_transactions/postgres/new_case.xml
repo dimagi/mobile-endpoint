@@ -2,8 +2,8 @@
     <request subst="true">
         <dyn_variable name="case_id" pgsql_expr="data_row[1][1]"/>
         <pgsql type="sql">
-            INSERT INTO case_data (id, domain, owner_id, server_modified_on, case_json, attachments)
-            VALUES (%%_case_id%%, %%_domain%%, %%_user_id%%, now(), %%_case_json%%, '{}')
+            INSERT INTO case_data (id, domain, closed, owner_id, server_modified_on, case_json, attachments)
+            VALUES ('%%_case_id%%', '%%_domain%%', false, '%%_user_id%%', now(), '%%_case_json%%', '{}')
         </pgsql>
     </request>
 </transaction>

@@ -5,6 +5,7 @@ TEMPLATE_DIR = os.path.join(BASEDIR, 'templates')
 BUILD_DIR = os.path.join(BASEDIR, 'build')
 DB_FILES_DIR = os.path.join(BUILD_DIR, 'files')
 JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
+RAW_TRANSACTIONS_DIR = os.path.join(BASEDIR, 'raw_transactions')
 
 BACKENDS = {
     'current': {
@@ -83,6 +84,25 @@ BACKENDS = {
         'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
         'PYTHON_ENV': '/home/cchq/prototype/python_env',
     },
+
+    # Raw database tests. Do not require a full HQ setup
+    'postgres': {
+        # Must match the values in localconfig.py file
+        'PG_HOST': '10.10.1.28',
+        'PG_PORT': '5432',
+        'PG_DATABASE': 'prototype_sql',
+        'PG_PASSWORD': 'commcarehq',
+        'PG_USERNAME': 'commcarehq',
+        'SESSION_TYPE': 'ts_pgsql',
+    },
+    'couch': {
+        'COUCH_HOST': '10.10.1.28',
+        'COUCH_PORT': '5984',
+        'COUCH_USERNAME': 'commcarehq',
+        'COUCH_PASSWORD': 'commcarehq',
+        'COUCH_DATABASE': 'prototype_couch',
+        'SESSION_TYPE': 'ts_http',
+    }
 }
 
 DOMAIN = 'load-test-domain'

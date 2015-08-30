@@ -300,6 +300,7 @@ class DataLoader(object):
         # these get cleared after each user's data has been created
         self.case_ids_gen = []  # list of case ID for current user
         self.case_forms = {}  # list of forms that have updated each case for current user
+        self.cases = {} # case_ids that map to its case json
 
         self.num_forms = 0
         self.num_cases = 0
@@ -441,6 +442,7 @@ class DataLoader(object):
                     is_child_case = random.random() < settings.CHILD_CASE_RATIO
                     forms = self.case_forms[case_id]
                     case = self.get_case(user_id, case_id, forms, is_child_case)
+                    self.cases[case_id] = case
                     loader.put_doc(case)
                     update_progress('Cases:', (j + 1) / num_cases)
 
@@ -453,7 +455,10 @@ class DataLoader(object):
 
         case_ids = list(self.case_forms.keys())
         random.shuffle(case_ids)
-        case_selection = case_ids[:export_case_ids_per_user]
+        case_selection = map(
+            lambda case_id: '"{}","{}"'.format(case_id, json.dumps(self.cases[case_id])),
+            case_ids[:export_case_ids_per_user],
+        )
 
         with open(self.case_db_path, "a") as file:
             file.write("\n".join(case_selection))

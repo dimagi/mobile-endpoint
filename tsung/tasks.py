@@ -19,6 +19,8 @@ def _get_backend(backend_name):
         "prototype-sql": backends.PrototypeSQL,
         "prototype-mongo": backends.PrototypeMongo,
         "prototype-couch": backends.PrototypeCouch,
+        "couch": backends.RawCouch,
+        "postgres": backends.RawSQL,
     }[backend_name]()
 
 
@@ -29,19 +31,14 @@ def _render_template(filename, context):
     return template.render(**context)
 
 
-@task
-def tsung_build(backend_name, user_rate=None, duration=None):
-    if not os.path.isdir(settings.BUILD_DIR):
-        os.makedirs(settings.BUILD_DIR)
-
-    backend = _get_backend(backend_name)
-    duration = int(duration)
+def _common_context(user_rate=None, duration=None):
     user_rate = int(user_rate)
+    duration = int(duration)
     main_phase = Phase(duration=duration, arrival_rate=user_rate)
     if duration > 120:
         phases = [
-            Phase(duration=60, arrival_rate=int(user_rate/4)),
-            Phase(duration=60, arrival_rate=int(user_rate/2)),
+            Phase(duration=60, arrival_rate=int(user_rate / 4)),
+            Phase(duration=60, arrival_rate=int(user_rate / 2)),
             main_phase,
         ]
     else:
@@ -50,21 +47,89 @@ def tsung_build(backend_name, user_rate=None, duration=None):
     context = {
         'dtd_path': settings.TSUNG_DTD_PATH,
         'phases': phases,
-        'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(backend_name)),
-        'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name)),
+    }
+    return context
+
+
+def _setup_build():
+    if not os.path.isdir(settings.BUILD_DIR):
+        os.makedirs(settings.BUILD_DIR)
+
+
+def _build_config(filename, context):
+    new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
+    with open(new_filename, 'w') as f:
+        f.write(_render_template(filename, context))
+        print("Built config: {}".format(new_filename))
+
+
+def _render_readme(log_dir, title, notes, user_rate, duration):
+    print("Creating README in log directory")
+    context = {
+        'notes': notes,
+        'settings': get_settings_for_readme(),
+        'user_rate': user_rate,
+        'duration': duration
+    }
+    with open(os.path.join(log_dir, 'README.md'), 'w') as f:
+        f.write(_render_template('README.md.j2', context))
+
+
+def _render_report(log_dir):
+    print("Generating report")
+    with cd(log_dir):
+        sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)
+
+        print(sh.cat('README.md'))
+
+@task
+def tsung_build(backend_name, user_rate=None, duration=None):
+    _setup_build()
+
+    backend = _get_backend(backend_name)
+
+    context = _common_context(user_rate, duration)
+    context.update({
         'host': backend.settings['HOST'],
         'port': backend.settings['PORT'],
+        'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(backend_name)),
+        'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name)),
         'submission_url': backend.submission_url,
         'domain': settings.DOMAIN,
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
         'do_auth': backend.settings['SUBMIT_WITH_AUTH']
-    }
-    filename = 'tsung-hq-test.xml.j2'
-    new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
-    with open(new_filename, 'w') as f:
-        f.write(_render_template(filename, context))
-        print("Built config: {}".format(new_filename))
+    })
+    _build_config('tsung-hq-test.xml.j2', context)
+
+
+@task
+def tsung_build_raw(backend_name, user_rate, duration):
+    """
+    Build the config file for raw database testing.
+    """
+    _setup_build()
+    context = _common_context(user_rate, duration)
+    backend = _get_backend(backend_name)
+    if backend.name == 'couch':
+        prefix = 'COUCH_'
+    elif backend.name == 'postgres':
+        prefix = 'PG_'
+    else:
+        print 'Not supported, please choose either couch or postgres'
+
+    context.update({
+        'transactions_dir': os.path.join(settings.RAW_TRANSACTIONS_DIR, backend_name),
+        'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(backend_name)),
+        'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name)),
+        'host': backend.settings['{}HOST'.format(prefix)],
+        'port': backend.settings['{}PORT'.format(prefix)],
+        'username': backend.settings['{}USERNAME'.format(prefix)],
+        'password': backend.settings['{}PASSWORD'.format(prefix)],
+        'database': backend.settings['{}DATABASE'.format(prefix)],
+        'session_type': backend.settings['SESSION_TYPE'],
+    })
+    _build_config('tsung-raw.xml.j2', context)
 
 
 @task
@@ -120,21 +185,39 @@ def awesome_test(backend, user_rate, duration, load=False, notes=None):
             raise
 
     if log_dir:
-        print("Creating README in log directory")
-        context = {
-            'notes': notes,
-            'settings': get_settings_for_readme(),
-            'user_rate': user_rate,
-            'duration': duration
-        }
-        with open(os.path.join(log_dir, 'README.md'), 'w') as f:
-            f.write(_render_template('README.md.j2', context))
-
-        print("Generating report")
         title = 'Awesome Test: backend={}, user_rate={}, duration={}'.format(
             backend.name, user_rate, duration
         )
-        with cd(log_dir):
-            sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)
+        _render_readme(log_dir, title, notes, user_rate, duration)
+        #_render_report(log_dir)
 
-            print(sh.cat('README.md'))
+
+@task
+def raw_test(backend_name, user_rate, duration, load=False, notes=None):
+    if load:
+        load_db(backend_name)
+
+    backend = _get_backend(backend_name)
+    tsung_build_raw(backend_name, user_rate, duration)
+
+    log_dir = None
+    args = ("-f", "build/tsung-raw.xml", "start")
+    try:
+        for line in sh.tsung(*args, _iter=True):
+            sys.stdout.write(line)
+            if 'Log directory' in line:
+                log_dir = line.split(':')[1].strip()
+                log_dir = log_dir.replace('"', '')
+    except Exception as e:
+        if hasattr(e, 'stderr'):
+            print(e.stderr)
+        else:
+            raise
+
+    if log_dir:
+        title = 'Raw Test: backend={}, user_rate={}, duration={}'.format(
+            backend.name, user_rate, duration
+        )
+        _render_readme(log_dir, title, notes, user_rate, duration)
+        #_render_report(log_dir)
+    sh.pbcopy(sh.echo("less {}/tsung_controller@`hostname -s`.log".format(log_dir)))

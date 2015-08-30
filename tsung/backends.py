@@ -322,3 +322,126 @@ class PrototypeCouch(Backend):
         )
         loader.run()
 
+
+class RawBackend(Backend):
+    """
+    Raw backend connects directly to a database and runs queries against that using a Tsung configuration
+    """
+
+    def __init__(self):
+        self.settings = settings.BACKENDS[self.name]
+        self.psql = get_psql(self.name)
+
+    def reset_db(self):
+        raise NotImplementedError()
+
+    def check_ssh_access(self):
+        if settings.TEST_SERVER != 'localhost':
+            sh.ssh(settings.TEST_SERVER, 'echo ping!')
+
+    def stop(self):
+        pass
+
+    def bootstrap_service(self):
+        pass
+
+    def start(self):
+        pass
+
+    def is_running(self):
+        return True
+
+    def create_users(self, number):
+        users = []
+        for i in range(number):
+            print('Creating user {} of {}'.format(i, number))
+            users.append(self._create_user())
+
+        return users
+
+    def _create_user(self):
+        return User(id=str(uuid4()), username='admin', password='secret')
+
+
+class RawSQL(RawBackend):
+    name = 'postgres'
+
+    def reset_db(self):
+        common_args = ['-h', self.settings['PG_HOST'], '-U', self.settings['PG_USERNAME']]
+        print('Dropping postgres', self.settings['PG_DATABASE'])
+        out = sh.dropdb(self.settings['PG_DATABASE'], *common_args, _ok_code=[0, 1])
+        print('Creating postgres', self.settings['PG_DATABASE'])
+        try:
+            sh.createdb(self.settings['PG_DATABASE'], *common_args)
+        except:
+            print('DB already created?')
+
+        # verify DB is accessible
+        self.psql(c="SELECT 1")
+
+        self._run_manage_py(
+            'db',
+            'upgrade',
+        )
+
+    def load_data(self, dest_folder):
+        loader = DataLoader(
+            dest_folder,
+            self.name,
+            FormLoaderSQL(self.psql),
+            FullCaseLoaderSQL(self.psql),
+            SynclogLoaderSQL(self.psql)
+        )
+        loader.run()
+
+
+class RawCouch(object):
+    name = "couch"
+    dbs = {
+        'forms': 'mobile_endpoint_forms',
+        'cases': 'mobile_endpoint_cases',
+        'synclogs': 'mobile_endpoint_synclogs',
+    }
+
+    def _get_couch_url(self, db, credentials=False):
+        creds = ""
+        if credentials:
+            creds = "{}:{}@".format(self.settings['COUCH_USERNAME'], self.settings['COUCH_PASSWORD'])
+        return "http://{creds}{host}:{port}/{db}".format(
+            creds=creds,
+            host=self.settings['COUCH_HOST'],
+            port=self.settings['COUCH_PORT'],
+            db=db,
+        )
+
+    def load_data(self, dest_folder):
+        loader = DataLoader(
+            dest_folder,
+            self.name,
+            CouchRowLoader(self._get_couch_url(self.dbs.get('forms')), self.auth),
+            CouchRowLoader(self._get_couch_url(self.dbs.get('cases')), self.auth),
+            CouchRowLoader(self._get_couch_url(self.dbs.get('synclogs')), self.auth),
+        )
+        loader.run()
+
+    def reset_db(self):
+        for db in self.dbs.values():
+            url = self._get_couch_url(db)
+            print('Dropping couch', url)
+            response = requests.delete(url, auth=self.auth)
+            if response.status_code not in (200, 404):
+                raise Exception("Failed to delete couch database: {}\n{}".format(url, response.text))
+
+        for db in self.dbs.values():
+            url = self._get_couch_url(db)
+            print('Creating couch', url)
+            response = requests.put(url, auth=self.auth)
+            if not response.status_code == 201:
+                raise Exception("Failed to create couch database: {}\n{}".format(url, response.text))
+
+        # create views
+        # This is hacky and I hate it
+        design_dir = os.path.join( os.path.dirname(__file__), '..', 'prototype', 'mobile_endpoint', 'backends', 'couch', '_designs',)
+        for app_name in os.listdir(design_dir):
+            folder = os.path.join(design_dir, app_name)
+            push(folder, Database(self._get_couch_url(self.dbs[app_name], credentials=True)), force=True, docid='_design/{}'.format(app_name))
