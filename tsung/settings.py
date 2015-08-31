@@ -10,6 +10,7 @@ RAW_TRANSACTION_DIR_NAME = "raw_transactions"
 PG_HOST = '10.10.1.28'
 PG_PORT = '5432'
 PG_USERNAME = 'commcarehq'
+PG_PASSWORD = ''
 
 BACKENDS = {
     'current': {

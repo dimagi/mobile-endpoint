@@ -350,7 +350,7 @@ class RawSQL(PrototypeSQL):
             'port': settings.PG_PORT,
             'pg_database': self.settings['PG_DATABASE'],
             'pg_username': settings.PG_USERNAME,
-            'pg_password': '',
+            'pg_password': settings.PG_PASSWORD,
         })
         return context
 
@@ -368,7 +368,7 @@ class RawCouch(PrototypeCouch):
             'port': self.settings['COUCH_PORT'],
             'pg_database': self.settings['PG_DATABASE'],
             'pg_username': self.settings['PG_USERNAME'],
-            'pg_password': '',
+            'pg_password': settings.PG_PASSWORD,
             'couch_form_db': self.dbs['forms'],
             'couch_case_db': self.dbs['cases'],
         })

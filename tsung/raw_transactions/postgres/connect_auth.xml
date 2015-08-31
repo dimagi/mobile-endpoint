@@ -2,9 +2,9 @@
     <request>
         <pgsql type="connect" database="{{ pg_database }}" username="{{ pg_username }}" />
     </request>
-    <!--
+    {% if pg_password %}
     <request>
         <pgsql type="authenticate" password="{{ pg_password }}"/>
     </request>
-    -->
+    {% endif %}
 </transaction>
