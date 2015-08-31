@@ -24,10 +24,12 @@ class Backend(object):
     name = None
     tsung_test_template = 'tsung-hq-test.xml.j2'
     transactions_dir = None
+    settings_key = None
 
     def __init__(self):
-        self.settings = settings.BACKENDS[self.name]
-        self.psql = get_psql(self.name)
+        settings_key = self.settings_key or self.anme
+        self.settings = settings.BACKENDS[settings_key]
+        self.psql = get_psql(settings_key)
         self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
 
     def tsung_template_context(self, phases):
@@ -338,8 +340,10 @@ class PrototypeCouch(Backend):
 
 
 class RawSQL(PrototypeSQL):
+    name = 'raw-sql'
     tsung_test_template = 'tsung-raw-sql.xml.j2'
     transactions_dir = 'postgres'
+    settings_key = 'prototype-sql'
 
     def tsung_template_context(self, phases):
         context = super(RawSQL, self).tsung_template_context(phases)
@@ -358,6 +362,7 @@ class RawCouch(PrototypeCouch):
     tsung_test_template = 'tsung-raw-couch.xml.j2'
     transactions_dir = 'couch'
     name = 'raw-couch'
+    settings_key = 'prototype-couch'
 
     def tsung_template_context(self, phases):
         context = super(RawCouch, self).tsung_template_context(phases)
@@ -367,7 +372,7 @@ class RawCouch(PrototypeCouch):
             'host': self.settings['COUCH_HOST'],
             'port': self.settings['COUCH_PORT'],
             'pg_database': self.settings['PG_DATABASE'],
-            'pg_username': self.settings['PG_USERNAME'],
+            'pg_username': settings.PG_USERNAME,
             'pg_password': settings.PG_PASSWORD,
             'couch_form_db': self.dbs['forms'],
             'couch_case_db': self.dbs['cases'],
