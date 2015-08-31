@@ -87,6 +87,31 @@
                 <var name="case_id" />
             </setdynvars>
 
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:universal_time(),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="utcnow" />
+            </setdynvars>
+            {% endraw %}
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    NowSecs = calendar:datetime_to_gregorian_seconds(calendar:universal_time()),
+                    MinsAgo = NowSecs - (1 * 60),
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:gregorian_seconds_to_datetime(MinsAgo),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="modified_since" />
+            </setdynvars>
+            {% endraw %}
+
             {% block update_case_recipe %}
             {% endblock %}
         </session>
