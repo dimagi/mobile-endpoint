@@ -217,9 +217,6 @@ class Current(Backend):
 class PrototypeSQL(Backend):
     name = 'prototype-sql'
 
-    def __init__(self):
-        super(PrototypeSQL, self).__init__()
-
     def reset_db(self):
         super(PrototypeSQL, self).reset_db()
 
@@ -354,5 +351,25 @@ class RawSQL(PrototypeSQL):
             'pg_database': self.settings['PG_DATABASE'],
             'pg_username': self.settings['PG_USERNAME'],
             'pg_password': '',
+        })
+        return context
+
+class RawCouch(PrototypeCouch):
+    tsung_test_template = 'tsung-raw-couch.xml.j2'
+    transactions_dir = 'couch'
+    name = 'raw-couch'
+
+    def tsung_template_context(self, phases):
+        context = super(RawCouch, self).tsung_template_context(phases)
+        context.update({
+            'transactions_dir': os.path.join(settings.BUILD_DIR, settings.RAW_TRANSACTION_DIR_NAME, self.transactions_dir),
+            'session_type': 'ts_http',
+            'host': self.settings['COUCH_HOST'],
+            'port': self.settings['COUCH_PORT'],
+            'pg_database': self.settings['PG_DATABASE'],
+            'pg_username': self.settings['PG_USERNAME'],
+            'pg_password': '',
+            'couch_form_db': self.dbs['forms'],
+            'couch_case_db': self.dbs['cases'],
         })
         return context
