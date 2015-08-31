@@ -20,6 +20,7 @@ def _get_backend(backend_name):
         "prototype-mongo": backends.PrototypeMongo,
         "prototype-couch": backends.PrototypeCouch,
         "raw-sql": backends.RawSQL,
+        "raw-couch": backends.RawCouch,
     }[backend_name]()
 
 
