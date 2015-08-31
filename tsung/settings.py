@@ -7,6 +7,10 @@ DB_FILES_DIR = os.path.join(BUILD_DIR, 'files')
 JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
 RAW_TRANSACTION_DIR_NAME = "raw_transactions"
 
+PG_HOST = '10.10.1.28'
+PG_PORT = '5432'
+PG_USERNAME = 'commcarehq'
+
 BACKENDS = {
     'current': {
         'SUBMISSION_URL': '/a/{domain}/receiver/',
@@ -22,10 +26,7 @@ BACKENDS = {
         'COUCH_PASSWORD': 'commcarehq',
 
         # These must match the values in the Django localsettings.py file
-        'PG_HOST': '10.10.1.28',
-        'PG_PORT': '5432',
         'PG_DATABASE': 'commcarehq',
-        'PG_USERNAME': 'commcarehq',
 
         'SUPERUSER_USERNAME': 'load_test@dimagi.com',
         'SUPERUSER_PASSWORD': 'load_test',
@@ -44,10 +45,7 @@ BACKENDS = {
         'COUCH_USERNAME': 'commcarehq',
         'COUCH_PASSWORD': 'commcarehq',
 
-        'PG_HOST': '10.10.1.28',
-        'PG_PORT': '5432',
         'PG_DATABASE': 'prototype_sql',
-        'PG_USERNAME': 'commcarehq',
 
         'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
         'PYTHON_ENV': '/home/cchq/prototype/python_env',
@@ -59,10 +57,7 @@ BACKENDS = {
         'PORT': '9011',
 
         # Must match the values in localconfig.py file
-        'PG_HOST': '10.10.1.28',
-        'PG_PORT': '5432',
         'PG_DATABASE': 'prototype_sql',
-        'PG_USERNAME': 'commcarehq',
 
         'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
         'PYTHON_ENV': '/home/cchq/prototype/python_env',
@@ -76,10 +71,7 @@ BACKENDS = {
         'MONGO_URI': 'mongodb://10.10.1.28:27017/mobile_endpoint',
         # Mongo URI should include the database
 
-        'PG_HOST': '10.10.1.28',
-        'PG_PORT': '5432',
         'PG_DATABASE': 'prototype_sql',
-        'PG_USERNAME': 'commcarehq',
 
         'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
         'PYTHON_ENV': '/home/cchq/prototype/python_env',

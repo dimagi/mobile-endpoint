@@ -76,7 +76,7 @@ class Backend(object):
             raise
 
     def reset_db(self):
-        common_args = ['-h', self.settings['PG_HOST'], '-U', self.settings['PG_USERNAME']]
+        common_args = ['-h', settings.PG_HOST, '-U', settings.PG_USERNAME]
         print('Dropping postgres', self.settings['PG_DATABASE'])
         sh.dropdb(self.settings['PG_DATABASE'], *common_args, _ok_code=[0, 1])
         print('Creating postgres', self.settings['PG_DATABASE'])
@@ -346,10 +346,10 @@ class RawSQL(PrototypeSQL):
         context.update({
             'transactions_dir': os.path.join(settings.BUILD_DIR, settings.RAW_TRANSACTION_DIR_NAME, self.transactions_dir),
             'session_type': 'ts_pgsql',
-            'host': self.settings['PG_HOST'],
-            'port': self.settings['PG_PORT'],
+            'host': settings.PG_HOST,
+            'port': settings.PG_PORT,
             'pg_database': self.settings['PG_DATABASE'],
-            'pg_username': self.settings['PG_USERNAME'],
+            'pg_username': settings.PG_USERNAME,
             'pg_password': '',
         })
         return context
