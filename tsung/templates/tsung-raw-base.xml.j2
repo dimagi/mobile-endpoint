@@ -3,7 +3,7 @@
     {% block entities %}
     {% endblock %}
 ]>
-<tsung loglevel="debug">
+<tsung loglevel={% if host == 'localhost' %}"debug"{% else %}"info"{% endif %}>
     <clients>
         <client host="localhost" use_controller_vm="true" maxusers="1000"/>
     </clients>
