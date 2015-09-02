@@ -318,8 +318,8 @@ class PrototypeCouch(Backend):
             dest_folder,
             self.name,
             CouchRowLoader(self._get_couch_url(self.dbs.get('forms')), self.auth),
-            CouchRowLoader(self._get_couch_url(self.dbs.get('cases')), self.auth),
-            CouchRowLoader(self._get_couch_url(self.dbs.get('synclogs')), self.auth),
+            CouchRowLoader(self._get_couch_url(self.dbs.get('cases')), self.auth, ['cases/by_owner']),
+            CouchRowLoader(self._get_couch_url(self.dbs.get('synclogs')), self.auth, ['synclogs/by_previous_log_id']),
         )
         loader.run()
 

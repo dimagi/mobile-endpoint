@@ -78,10 +78,15 @@ class SQLRowLoader(RowLoader):
 
 
 class CouchRowLoader(RowLoader):
-    def __init__(self, db_url, auth):
+    def __init__(self, db_url, auth, views_to_update=None):
         self.db_url = db_url
         self.auth = auth
         self.queue = []
+        self.views_to_update = []
+        if views_to_update:
+            for view in views_to_update:
+                design, view = view.split('/')
+                self.views_to_update.append('_design/{}/_view/{}'.format(design, view))
 
     def flush(self):
         data = json.dumps({
@@ -92,6 +97,14 @@ class CouchRowLoader(RowLoader):
         })
         assert result.status_code == 201, '{},{}'.format(result.status_code, result.text)
         self.queue = []
+        if self.views_to_update:
+            self.update_views()
+
+    def update_views(self):
+        params = {'reduce': 'false', 'limit': '1'}
+        for view in self.views_to_update:
+            result = requests.get('{}/{}'.format(self.db_url, view), params, auth=self.auth)
+            assert result.status_code == 200, '{}: {},{}'.format(view, result.status_code, result.text)
 
     def put_doc(self, doc):
         self.queue.append(doc)
