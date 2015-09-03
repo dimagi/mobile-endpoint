@@ -31,6 +31,7 @@ class Backend(object):
         self.settings = settings.BACKENDS[settings_key]
         self.psql = get_psql(settings_key)
         self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
+        self.restore_url = self.settings['RESTORE_URL'].format(domain=settings.DOMAIN)
 
     def tsung_template_context(self, phases):
         return {
@@ -333,8 +334,8 @@ class PrototypeCouch(Backend):
             dest_folder,
             self.name,
             CouchRowLoader(self._get_couch_url(self.dbs.get('forms')), self.auth),
-            CouchRowLoader(self._get_couch_url(self.dbs.get('cases')), self.auth),
-            CouchRowLoader(self._get_couch_url(self.dbs.get('synclogs')), self.auth),
+            CouchRowLoader(self._get_couch_url(self.dbs.get('cases')), self.auth, ['cases/by_owner']),
+            CouchRowLoader(self._get_couch_url(self.dbs.get('synclogs')), self.auth, ['synclogs/by_previous_log_id']),
         )
         loader.run()
 

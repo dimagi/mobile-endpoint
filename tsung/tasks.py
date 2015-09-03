@@ -33,6 +33,11 @@ def _render_template(filename, context, searchpath=None):
 
 
 @task
+def clean_build():
+    if os.path.isdir(settings.BUILD_DIR):
+        os.rmdir(settings.BUILD_DIR)
+
+@task
 def tsung_build(backend_name, user_rate=None, duration=None):
     if not os.path.isdir(settings.BUILD_DIR):
         os.makedirs(settings.BUILD_DIR)
@@ -99,6 +104,7 @@ def load_db(backend_name):
 @task
 def awesome_test(backend, user_rate, duration, load=False, notes=None):
     if load:
+        clean_build()
         load_db(backend)
 
     tsung_build(backend, user_rate, duration)

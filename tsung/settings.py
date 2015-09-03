@@ -15,6 +15,7 @@ PG_PASSWORD = ''
 BACKENDS = {
     'current': {
         'SUBMISSION_URL': '/a/{domain}/receiver/',
+        'RESTORE_URL': '/a/{domain}/phone/restore/',
         'SUBMIT_WITH_AUTH': False,
         'HOST': '10.10.1.28',
         'PORT': '9010',
@@ -37,6 +38,7 @@ BACKENDS = {
     },
     'prototype-couch': {
         'SUBMISSION_URL': '/ota/couch-receiver/{domain}',
+        'RESTORE_URL': '/ota/couch-restore/{domain}',
         'SUBMIT_WITH_AUTH': True,
         'HOST': '10.10.1.28',
         'PORT': '9011',
@@ -53,6 +55,7 @@ BACKENDS = {
     },
     'prototype-sql': {
         'SUBMISSION_URL': '/ota/receiver/{domain}',
+        'RESTORE_URL': '/ota/restore/{domain}',
         'SUBMIT_WITH_AUTH': True,
         'HOST': '10.10.1.28',
         'PORT': '9011',
@@ -65,6 +68,7 @@ BACKENDS = {
     },
     'prototype-mongo': {
         'SUBMISSION_URL': '/ota/mongo-receiver/{domain}',
+        'RESTORE_URL': '/ota/mongo-restore/{domain}',
         'SUBMIT_WITH_AUTH': True,
         'HOST': '10.10.1.28',
         'PORT': '9011',
@@ -83,10 +87,10 @@ DOMAIN = 'load-test-domain'
 
 ##### SCALE FACTORS #####
 # Number of uses to test against
-NUM_UNIQUE_USERS = 10
+NUM_UNIQUE_USERS = 150
 
 # Number of cases to create per user
-CASES_PER_USER = 1500
+CASES_PER_USER = 100
 
 # Number of forms to be submitted against each case
 FORMS_PER_CASE = 1.5
