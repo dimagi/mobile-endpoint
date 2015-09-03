@@ -1,8 +1,6 @@
 <transaction name="get_cases_by_owner_modified">
     <request subst="true">
-        <match do="dump" when="match">total_rows</match>
-        <match do="dump" when="nomatch">total_rows</match>
-        <http method="GET" url="http://{{ host }}:{{ port }}/{{ couch_case_db }}/_design/cases/_view/by_owner_server_modified_on?startkey%3D%5B%22%%_domain%%%22%2C%22%%_user_id%%%22%2C%22%%_modified_since%%%22%5D%26endkey%3D%5B%22%%_domain%%%22%2C%22%%_user_id%%%22%2C%7B%7D%5D"></http>
+        <http method="GET" url="http://{{ host }}:{{ port }}/{{ couch_case_db }}/_design/cases/_view/by_owner_server_modified_on?startkey=[&quot;%%_domain%%&quot;,&quot;%%_user_id%%&quot;,&quot;%%_modified_since%%&quot;]&amp;endkey=[&quot;%%_domain%%&quot;, &quot;%%_user_id%%&quot;, {}]"></http>
     </request>
 </transaction>
 
