@@ -24,7 +24,7 @@
 
     <sessions>
 
-        <session probability="50" name="form-submission-new-case" type="ts_http">
+        <session probability="45" name="form-submission-new-case" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -61,7 +61,7 @@
             </transaction>
         </session>
 
-        <session probability="50" name="form-submission-update-case" type="ts_http">
+        <session probability="45" name="form-submission-update-case" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -98,7 +98,31 @@
             </transaction>
         </session>
 
-        <!-- TODO: QUESTION: Will these form trigger the sync log updates?-->
+
+        <session probability="10" name="restore-session" type="ts_http">
+
+            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
+                <var name="user_id" />
+                <var name="username" />
+                <var name="password" />
+            </setdynvars>
+
+            <!-- do a sync -->
+            <transaction name="restore">
+                <request subst="true">
+                    <http url="{{ restore_url }}?version=2.0&amp;items=true&amp;user_id=%%_user_id%%"
+                          method="GET"
+                          version="1.1"
+                    >
+                        {% if do_auth %}
+                        <www_authenticate userid="%%_username%%" passwd="%%_password%%"/>
+                        {% endif %}
+                        <http_header name="Content-Type" value="application/xml"/>
+                    </http>
+                </request>
+            </transaction>
+
+        </session>
 
     </sessions>
 </tsung>

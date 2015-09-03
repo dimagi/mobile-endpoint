@@ -30,6 +30,11 @@ def _render_template(filename, context):
 
 
 @task
+def clean_build():
+    if os.path.isdir(settings.BUILD_DIR):
+        os.rmdir(settings.BUILD_DIR)
+
+@task
 def tsung_build(backend_name, user_rate=None, duration=None):
     if not os.path.isdir(settings.BUILD_DIR):
         os.makedirs(settings.BUILD_DIR)
@@ -55,6 +60,7 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         'host': backend.settings['HOST'],
         'port': backend.settings['PORT'],
         'submission_url': backend.submission_url,
+        'restore_url': backend.restore_url,
         'domain': settings.DOMAIN,
         'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
         'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
@@ -97,6 +103,7 @@ def load_db(backend_name):
 @task
 def awesome_test(backend, user_rate, duration, load=False, notes=None):
     if load:
+        clean_build()
         load_db(backend)
 
     tsung_build(backend, user_rate, duration)
