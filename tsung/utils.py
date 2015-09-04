@@ -20,6 +20,11 @@ def get_psql(backend):
     return sh.psql.bake(**pg_conf)
 
 
+def execute_sql_file(psql, file):
+    print(os.path.join(settings.SQLDIR, file))
+    return psql(f=os.path.join(settings.SQLDIR, file))
+
+
 def load_json(filename):
     with open(os.path.join(settings.JSON_DIR, filename)) as f:
         return json.load(f)

@@ -14,7 +14,7 @@ import time
 from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL, \
     MongoFormLoader, MongoCaseLoader, MongoSynclogLoader
 import settings
-from utils import get_psql, cd
+from utils import get_psql, cd, execute_sql_file
 
 
 User = namedtuple('User', 'id username password')
@@ -358,6 +358,12 @@ class RawSQL(PrototypeSQL):
             'pg_password': settings.PG_PASSWORD,
         })
         return context
+
+    def reset_db(self):
+        super(PrototypeSQL, self).reset_db()
+
+        print('Running db upgrade')
+        execute_sql_file(self.psql, 'raw_case_data.sql')
 
 class RawCouch(PrototypeCouch):
     tsung_test_template = 'tsung-raw-couch.xml.j2'
