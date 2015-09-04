@@ -39,6 +39,11 @@ class RowLoader(object):
         pass
 
 
+class MockRowLoader(RowLoader):
+    def put_doc(self, doc):
+        pass
+
+
 class SQLRowLoader(RowLoader):
     __metaclass__ = ABCMeta
     table = None
@@ -205,6 +210,18 @@ class CaseLoaderSQL(SQLRowLoader):
         case_json = case_json.replace('"', '\\"')
         return [
             [doc['_id'], doc['domain'], 'false', doc['owner_id'], datetime.utcnow().isoformat(), case_json, '{}']
+        ]
+
+
+class RawCaseLoaderSQL(CaseLoaderSQL):
+    table = 'case_data'
+    columns = ['case_id', 'domain', 'closed', 'owner_id', 'server_modified_on', 'case_json']
+
+    def doc_to_rows(self, doc):
+        case_json = json.dumps(doc)
+        case_json = case_json.replace('"', '\\"')
+        return [
+            [doc['_id'], doc['domain'], 'false', doc['owner_id'], datetime.utcnow().isoformat(), case_json]
         ]
 
 

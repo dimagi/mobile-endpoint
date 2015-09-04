@@ -12,7 +12,7 @@ import sh
 import time
 
 from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL, \
-    MongoFormLoader, MongoCaseLoader, MongoSynclogLoader
+    MongoFormLoader, MongoCaseLoader, MongoSynclogLoader, MockRowLoader, RawCaseLoaderSQL
 import settings
 from utils import get_psql, cd, execute_sql_file
 
@@ -364,6 +364,10 @@ class RawSQL(PrototypeSQL):
 
         print('Running db upgrade')
         execute_sql_file(self.psql, 'raw_case_data.sql')
+
+    def load_data(self, dest_folder):
+        loader = DataLoader(dest_folder, self.name, MockRowLoader(), RawCaseLoaderSQL(self.psql), MockRowLoader())
+        loader.run()
 
 class RawCouch(PrototypeCouch):
     tsung_test_template = 'tsung-raw-couch.xml.j2'
