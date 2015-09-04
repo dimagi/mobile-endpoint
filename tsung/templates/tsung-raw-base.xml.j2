@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "{{ dtd_path }}" [
+    {% block entities %}
+    {% endblock %}
+]>
+<tsung loglevel={% if host == 'localhost' %}"debug"{% else %}"info"{% endif %}>
+    <clients>
+        <client host="localhost" use_controller_vm="true" maxusers="1000"/>
+    </clients>
+
+    <servers>
+        <server host="{{ host }}" port="{{ port }}" type="tcp"></server>
+    </servers>
+
+    <load>
+        {% for phase in phases %}
+        <arrivalphase phase="{{ loop.index }}" duration="{{ phase.duration }}" unit="second">
+            <users arrivalrate="{{ phase.arrival_rate}}" unit="second"></users>
+        </arrivalphase>
+        {% endfor %}
+    </load>
+
+    <options>
+        <option name="file_server" id="casedb" value="{{ casedb }}"></option>
+        <option name="file_server" id="userdb" value="{{ userdb }}"></option>
+    </options>
+
+    <sessions>
+        <session probability="50" name="new-case-get-by-owner-modified" type="{{ session_type }}">
+            <setdynvars sourcetype="value" value="{{ domain }}">
+                <var name="domain" />
+            </setdynvars>
+
+            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
+                <var name="user_id" />
+                <var name="username" />
+                <var name="password" />
+            </setdynvars>
+
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="case_id" />
+            </setdynvars>
+
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:universal_time(),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="utcnow" />
+            </setdynvars>
+            {% endraw %}
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    NowSecs = calendar:datetime_to_gregorian_seconds(calendar:universal_time()),
+                    MinsAgo = NowSecs - (1 * 60),
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:gregorian_seconds_to_datetime(MinsAgo),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="modified_since" />
+            </setdynvars>
+            {% endraw %}
+
+            {% block new_case_recipe %}
+            {% endblock %}
+        </session>
+
+        <session probability="50" name="update-case-get-related" type="{{ session_type }}">
+            <setdynvars sourcetype="value" value="{{ domain }}">
+                <var name="domain" />
+            </setdynvars>
+
+            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
+                <var name="user_id" />
+                <var name="username" />
+                <var name="password" />
+            </setdynvars>
+
+            <setdynvars sourcetype="file" fileid="casedb" delimiter="," order="random">
+                <var name="case_id" />
+            </setdynvars>
+
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:universal_time(),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="utcnow" />
+            </setdynvars>
+            {% endraw %}
+            {% raw %}
+            <setdynvars sourcetype="eval"
+                code="fun({Pid,DynVars})->
+                    NowSecs = calendar:datetime_to_gregorian_seconds(calendar:universal_time()),
+                    MinsAgo = NowSecs - (1 * 60),
+                    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:gregorian_seconds_to_datetime(MinsAgo),
+                    iolist_to_binary(
+                        io_lib:format(
+                            &quot;~.4.0w-~.2.0w-~.2.0wT~.2.0w:~.2.0w:~.2.0wZ&quot;,
+                            [Year, Month, Day, Hour, Min, Sec])) end.">
+                <var name="modified_since" />
+            </setdynvars>
+            {% endraw %}
+
+            {% block update_case_recipe %}
+            {% endblock %}
+        </session>
+
+    </sessions>
+
+</tsung>

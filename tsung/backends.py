@@ -22,12 +22,31 @@ User = namedtuple('User', 'id username password')
 
 class Backend(object):
     name = None
+    tsung_test_template = 'tsung-hq-test.xml.j2'
+    transactions_dir = None
+    settings_key = None
 
     def __init__(self):
-        self.settings = settings.BACKENDS[self.name]
-        self.psql = get_psql(self.name)
+        settings_key = self.settings_key or self.anme
+        self.settings = settings.BACKENDS[settings_key]
+        self.psql = get_psql(settings_key)
         self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
         self.restore_url = self.settings['RESTORE_URL'].format(domain=settings.DOMAIN)
+
+    def tsung_template_context(self, phases):
+        return {
+            'dtd_path': settings.TSUNG_DTD_PATH,
+            'phases': phases,
+            'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(self.name)),
+            'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(self.name)),
+            'host': self.settings['HOST'],
+            'port': self.settings['PORT'],
+            'submission_url': self.submission_url,
+            'domain': settings.DOMAIN,
+            'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
+            'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
+            'do_auth': self.settings['SUBMIT_WITH_AUTH']
+        }
 
     def check_ssh_access(self):
         if settings.TEST_SERVER != 'localhost':
@@ -60,7 +79,7 @@ class Backend(object):
             raise
 
     def reset_db(self):
-        common_args = ['-h', self.settings['PG_HOST'], '-U', self.settings['PG_USERNAME']]
+        common_args = ['-h', settings.PG_HOST, '-U', settings.PG_USERNAME]
         print('Dropping postgres', self.settings['PG_DATABASE'])
         sh.dropdb(self.settings['PG_DATABASE'], *common_args, _ok_code=[0, 1])
         print('Creating postgres', self.settings['PG_DATABASE'])
@@ -201,9 +220,6 @@ class Current(Backend):
 class PrototypeSQL(Backend):
     name = 'prototype-sql'
 
-    def __init__(self):
-        super(PrototypeSQL, self).__init__()
-
     def reset_db(self):
         super(PrototypeSQL, self).reset_db()
 
@@ -323,3 +339,43 @@ class PrototypeCouch(Backend):
         )
         loader.run()
 
+
+class RawSQL(PrototypeSQL):
+    name = 'raw-sql'
+    tsung_test_template = 'tsung-raw-sql.xml.j2'
+    transactions_dir = 'postgres'
+    settings_key = 'prototype-sql'
+
+    def tsung_template_context(self, phases):
+        context = super(RawSQL, self).tsung_template_context(phases)
+        context.update({
+            'transactions_dir': os.path.join(settings.BUILD_DIR, settings.RAW_TRANSACTION_DIR_NAME, self.transactions_dir),
+            'session_type': 'ts_pgsql',
+            'host': settings.PG_HOST,
+            'port': settings.PG_PORT,
+            'pg_database': self.settings['PG_DATABASE'],
+            'pg_username': settings.PG_USERNAME,
+            'pg_password': settings.PG_PASSWORD,
+        })
+        return context
+
+class RawCouch(PrototypeCouch):
+    tsung_test_template = 'tsung-raw-couch.xml.j2'
+    transactions_dir = 'couch'
+    name = 'raw-couch'
+    settings_key = 'prototype-couch'
+
+    def tsung_template_context(self, phases):
+        context = super(RawCouch, self).tsung_template_context(phases)
+        context.update({
+            'transactions_dir': os.path.join(settings.BUILD_DIR, settings.RAW_TRANSACTION_DIR_NAME, self.transactions_dir),
+            'session_type': 'ts_http',
+            'host': self.settings['COUCH_HOST'],
+            'port': self.settings['COUCH_PORT'],
+            'pg_database': self.settings['PG_DATABASE'],
+            'pg_username': settings.PG_USERNAME,
+            'pg_password': settings.PG_PASSWORD,
+            'couch_form_db': self.dbs['forms'],
+            'couch_case_db': self.dbs['cases'],
+        })
+        return context

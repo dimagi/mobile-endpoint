@@ -1,0 +1,24 @@
+{% extends "tsung-raw-base.xml.j2" %}
+
+{% block entities %}
+    <!ENTITY connect_auth SYSTEM "{{ transactions_dir }}/connect_auth.xml">
+    <!ENTITY new_case SYSTEM "{{ transactions_dir }}/new_case.xml">
+    <!ENTITY update_case SYSTEM "{{ transactions_dir }}/update_case.xml">
+    <!ENTITY cases_by_owner_modified SYSTEM "{{ transactions_dir }}/get_cases_by_owner_modified.xml">
+    <!ENTITY disconnect SYSTEM "{{ transactions_dir }}/disconnect.xml">
+{% endblock %}
+
+{% block new_case_recipe %}
+    &connect_auth;
+    &new_case;
+    &cases_by_owner_modified;
+    &disconnect;
+{% endblock %}
+
+
+{% block update_case_recipe %}
+    &connect_auth;
+    &update_case;
+    &cases_by_owner_modified;
+    &disconnect;
+{% endblock %}

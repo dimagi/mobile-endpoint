@@ -9,13 +9,13 @@ import settings
 
 def get_psql(backend):
     pg_conf = {
-        'p': settings.BACKENDS[backend]['PG_PORT'],
+        'p': settings.PG_PORT,
         'd': settings.BACKENDS[backend]['PG_DATABASE'],
-        'U': settings.BACKENDS[backend]['PG_USERNAME'],
+        'U': settings.PG_USERNAME,
     }
 
-    if settings.BACKENDS[backend]['PG_HOST']:
-        pg_conf['h'] = settings.BACKENDS[backend]['PG_HOST']
+    if settings.PG_HOST:
+        pg_conf['h'] = settings.PG_HOST
 
     return sh.psql.bake(**pg_conf)
 
