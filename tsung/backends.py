@@ -27,7 +27,7 @@ class Backend(object):
     settings_key = None
 
     def __init__(self):
-        settings_key = self.settings_key or self.anme
+        settings_key = self.settings_key or self.name
         self.settings = settings.BACKENDS[settings_key]
         self.psql = get_psql(settings_key)
         self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
