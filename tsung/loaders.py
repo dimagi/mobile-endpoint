@@ -458,7 +458,8 @@ class DataLoader(object):
                     if create_case:
                         num_cases_user += 1
 
-                    update_progress('Forms:', num_forms_user / forms_per_user)
+                    if num_forms_user % 50 == 0:
+                        update_progress('Forms:', num_forms_user / forms_per_user)
 
             self.num_forms += num_forms_user
             self.num_cases += num_cases_user
@@ -472,7 +473,10 @@ class DataLoader(object):
                     forms = self.case_forms[case_id]
                     case = self.get_case(user_id, case_id, forms, is_child_case)
                     loader.put_doc(case)
-                    update_progress('Cases:', (j + 1) / num_cases)
+
+                    cases_created = j + 1
+                    if cases_created % 50 == 0:
+                        update_progress('Cases:', cases_created / num_cases)
 
             self.save_database_and_clear()
 
