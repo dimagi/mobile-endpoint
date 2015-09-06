@@ -39,6 +39,11 @@ class RowLoader(object):
         pass
 
 
+class MockRowLoader(RowLoader):
+    def put_doc(self, doc):
+        pass
+
+
 class SQLRowLoader(RowLoader):
     __metaclass__ = ABCMeta
     table = None
@@ -205,6 +210,18 @@ class CaseLoaderSQL(SQLRowLoader):
         case_json = case_json.replace('"', '\\"')
         return [
             [doc['_id'], doc['domain'], 'false', doc['owner_id'], datetime.utcnow().isoformat(), case_json, '{}']
+        ]
+
+
+class RawCaseLoaderSQL(CaseLoaderSQL):
+    table = 'case_data'
+    columns = ['case_id', 'domain', 'closed', 'owner_id', 'server_modified_on', 'case_json']
+
+    def doc_to_rows(self, doc):
+        case_json = json.dumps(doc)
+        case_json = case_json.replace('"', '\\"')
+        return [
+            [doc['_id'], doc['domain'], 'false', doc['owner_id'], datetime.utcnow().isoformat(), case_json]
         ]
 
 
@@ -441,7 +458,8 @@ class DataLoader(object):
                     if create_case:
                         num_cases_user += 1
 
-                    update_progress('Forms:', num_forms_user / forms_per_user)
+                    if num_forms_user % 50 == 0:
+                        update_progress('Forms:', num_forms_user / forms_per_user)
 
             self.num_forms += num_forms_user
             self.num_cases += num_cases_user
@@ -455,7 +473,10 @@ class DataLoader(object):
                     forms = self.case_forms[case_id]
                     case = self.get_case(user_id, case_id, forms, is_child_case)
                     loader.put_doc(case)
-                    update_progress('Cases:', (j + 1) / num_cases)
+
+                    cases_created = j + 1
+                    if cases_created % 50 == 0:
+                        update_progress('Cases:', cases_created / num_cases)
 
             self.save_database_and_clear()
 

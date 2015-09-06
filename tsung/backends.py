@@ -12,9 +12,9 @@ import sh
 import time
 
 from loaders import DataLoader, CouchRowLoader, FormLoaderSQL, FullCaseLoaderSQL, SynclogLoaderSQL, \
-    MongoFormLoader, MongoCaseLoader, MongoSynclogLoader
+    MongoFormLoader, MongoCaseLoader, MongoSynclogLoader, MockRowLoader, RawCaseLoaderSQL
 import settings
-from utils import get_psql, cd
+from utils import get_psql, cd, execute_sql_file
 
 
 User = namedtuple('User', 'id username password')
@@ -27,7 +27,7 @@ class Backend(object):
     settings_key = None
 
     def __init__(self):
-        settings_key = self.settings_key or self.anme
+        settings_key = self.settings_key or self.name
         self.settings = settings.BACKENDS[settings_key]
         self.psql = get_psql(settings_key)
         self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
@@ -358,6 +358,16 @@ class RawSQL(PrototypeSQL):
             'pg_password': settings.PG_PASSWORD,
         })
         return context
+
+    def reset_db(self):
+        super(PrototypeSQL, self).reset_db()
+
+        print('Running db upgrade')
+        execute_sql_file(self.psql, 'raw_case_data.sql')
+
+    def load_data(self, dest_folder):
+        loader = DataLoader(dest_folder, self.name, MockRowLoader(), RawCaseLoaderSQL(self.psql), MockRowLoader())
+        loader.run()
 
 class RawCouch(PrototypeCouch):
     tsung_test_template = 'tsung-raw-couch.xml.j2'

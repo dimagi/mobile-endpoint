@@ -5,6 +5,7 @@ TEMPLATE_DIR = os.path.join(BASEDIR, 'templates')
 BUILD_DIR = os.path.join(BASEDIR, 'build')
 DB_FILES_DIR = os.path.join(BUILD_DIR, 'files')
 JSON_DIR = os.path.join(TEMPLATE_DIR, "json")
+SQLDIR = os.path.join(BASEDIR, 'sql')
 RAW_TRANSACTION_DIR_NAME = "raw_transactions"
 
 PG_HOST = '10.10.1.28'
