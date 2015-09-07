@@ -42,6 +42,7 @@ class Backend(object):
             'host': self.settings['HOST'],
             'port': self.settings['PORT'],
             'submission_url': self.submission_url,
+            'restore_url': self.restore_url,
             'domain': settings.DOMAIN,
             'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
             'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
