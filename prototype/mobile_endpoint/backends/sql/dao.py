@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy.orm import contains_eager, defer
-from sqlalchemy.sql import exists
+from sqlalchemy.sql import exists, text
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -63,10 +63,20 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def get_case(self, id, lock=False):
+        def _get_case():
+            sel = text(
+                'select id, domain, closed, owner_id, server_modified_on, version, case_json, attachments'
+                'from get_case_by_id(:case_id)'
+            )
+            sel = sel.bindparams(case_id=id)
+            row = list(db.session.execute(sel))[0]
+            kwargs = dict(row.items())
+            return CaseData(**kwargs)
+
         if lock:
-            return get_with_lock('case_lock_{}'.format(id), lambda: CaseData.query.get(id))
+            return get_with_lock('case_lock_{}'.format(id), _get_case)
         else:
-            None, CaseData.query.get(id)
+            None, _get_case()
 
     def case_exists(self, id):
         return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()
