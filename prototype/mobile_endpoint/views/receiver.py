@@ -32,7 +32,7 @@ def _receiver(domain, backend):
     request_meta = get_request_metadata(request)
     request_meta['domain'] = domain
 
-    xform_lock = create_xform(instance, attachments, request_meta, dao)
+    xform_lock = create_xform(domain, instance, attachments, request_meta, dao)
 
     with xform_lock as xform:
         case_result = None

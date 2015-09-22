@@ -71,7 +71,7 @@ class CleanOwnerCaseSyncOperation(object):
             ids = pop_ids(case_ids_to_sync, chunk_size)
             case_batch = filter(
                 partial(case_needs_to_sync, last_sync_log=self.restore_state.last_sync_log),
-                self.dao.get_cases(ids)
+                self.dao.get_cases(self.restore_state.domain, ids)
             )
             updates = get_case_sync_updates(
                 self.restore_state.domain, case_batch, self.restore_state.last_sync_log

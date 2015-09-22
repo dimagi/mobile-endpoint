@@ -67,7 +67,7 @@ def get_instance_and_attachments(request):
     return instance, attachments
 
 
-def create_xform(instance_xml, attachments, request_meta, dao):
+def create_xform(domain, instance_xml, attachments, request_meta, dao):
     json_form = _get_xform_json(instance_xml)
     adjust_datetimes(json_form)
 
@@ -97,7 +97,7 @@ def create_xform(instance_xml, attachments, request_meta, dao):
                 except ValueError:
                     raise INVALID_ID(form_id)
                 else:
-                    existing_form = dao.get_form(form_id)
+                    existing_form = dao.get_form(domain, form_id)
                     if existing_form:
                         raise DuplicateFormException(existing_form)
     except DuplicateFormException as e:

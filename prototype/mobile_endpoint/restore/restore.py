@@ -284,7 +284,7 @@ class RestoreState(object):
     def last_sync_log(self):
         if self.params.sync_log_id:
             try:
-                sync_log = self.dao.get_synclog(self.params.sync_log_id)
+                sync_log = self.dao.get_synclog(self.domain, self.params.sync_log_id)
             except NotFound:
                 # if we are in loose mode, return an HTTP 412 so that the phone will
                 # just force a fresh sync

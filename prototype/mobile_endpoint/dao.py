@@ -49,7 +49,7 @@ class AbsctractDao(object):
         pass
 
     @abstractmethod
-    def get_synclog(self, id):
+    def get_synclog(self, domain, id):
         pass
 
     @abstractmethod
@@ -57,19 +57,19 @@ class AbsctractDao(object):
         pass
 
     @abstractmethod
-    def get_form(self, id):
+    def get_form(self, domain, id):
         pass
     
     @abstractmethod
-    def get_case(self, id, lock=False):
+    def get_case(self, domain, id, lock=False):
         pass
 
     @abstractmethod
-    def case_exists(self, id):
+    def case_exists(self, domain, id):
         pass
 
     @abstractmethod
-    def get_cases(self, case_ids, ordered=False):
+    def get_cases(self, domain, case_ids, ordered=False):
         pass
 
     @abstractmethod
@@ -158,7 +158,7 @@ class CaseDbCache(object):
         if case_id in self.cache:
             return self.cache[case_id]
 
-        case_doc, lock = self.dao.get_case(case_id, self.lock)
+        case_doc, lock = self.dao.get_case(self.domain, case_id, self.lock)
         if lock:
             self.locks.append(lock)
 
@@ -173,7 +173,7 @@ class CaseDbCache(object):
         self.cache[case_id] = case
 
     def doc_exist(self, case_id):
-        return case_id in self.cache or self.dao.case_exists(case_id)
+        return case_id in self.cache or self.dao.case_exists(self.domain, case_id)
 
     def in_cache(self, case_id):
         return case_id in self.cache
@@ -185,7 +185,7 @@ class CaseDbCache(object):
         Does NOT overwrite what is already in the cache if there is already something there.
         """
         case_ids = set(case_ids) - set(self.cache.keys())
-        for case in self.dao.get_cases(case_ids):
+        for case in self.dao.get_cases(self.domain, case_ids):
             self.set(case['id'], case)
 
     def mark_changed(self, case):

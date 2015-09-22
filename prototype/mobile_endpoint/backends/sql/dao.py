@@ -45,7 +45,7 @@ class SQLDao(AbsctractDao):
                 db.session.add(synclog)
 
     @to_generic
-    def get_synclog(self, id):
+    def get_synclog(self, domain, id):
         synclog = Synclog.query.get(id)
         if not synclog:
             raise NotFound()
@@ -58,21 +58,21 @@ class SQLDao(AbsctractDao):
             db.session.add(synclog)
 
     @to_generic
-    def get_form(self, id):
+    def get_form(self, domain, id):
         return FormData.query.get(id)
 
     @to_generic
-    def get_case(self, id, lock=False):
+    def get_case(self, domain, id, lock=False):
         if lock:
             return get_with_lock('case_lock_{}'.format(id), lambda: CaseData.query.get(id))
         else:
             None, CaseData.query.get(id)
 
-    def case_exists(self, id):
+    def case_exists(self, domain, id):
         return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()
 
     @to_generic
-    def get_cases(self, case_ids, ordered=False):
+    def get_cases(self, domain, case_ids, ordered=False):
         cases = CaseData.query.filter(CaseData.id.in_(case_ids)).all()
         if ordered:
             # SQL won't return the rows in any particular order so we need to order them ourselves

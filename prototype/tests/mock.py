@@ -371,4 +371,4 @@ class CaseFactory(object):
         )
 
         case_ids = [id for structure in case_structures for id in structure.walk_ids()]
-        return list(self.dao.get_cases(case_ids, ordered=True))
+        return list(self.dao.get_cases(self.domain, case_ids, ordered=True))

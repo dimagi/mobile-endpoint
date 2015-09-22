@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 def process_cases_in_form(xform, dao):
-    with CaseDbCache(dao, domain=xform['domain'],
+    domain = xform['domain']
+    with CaseDbCache(dao, domain=domain,
                      lock=True, deleted_ok=True, xforms=[xform]) as case_db:
         case_result = _get_or_update_cases([xform], case_db)
         cases = case_result.cases
@@ -37,7 +38,7 @@ def process_cases_in_form(xform, dao):
         # TODO prototype: check that cases haven't been modified since we loaded them (why not use locking?)
 
         if xform.last_sync_token:
-            relevant_log = case_db.dao.get_synclog(xform.last_sync_token)
+            relevant_log = case_db.dao.get_synclog(domain, xform.last_sync_token)
             if relevant_log:
                 if relevant_log.update_phone_lists(xform, cases):
                     case_result.set_synclog(relevant_log)

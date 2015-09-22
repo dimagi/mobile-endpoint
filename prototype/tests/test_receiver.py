@@ -98,7 +98,7 @@ class ReceiverTestMixin(object):
         self._assert_form(form_id, user_id, synclog_id)
         self._assert_case(case_id, user_id)
         self._assert_synclog(synclog_id, case_ids=[case_id])
-        assert get_dao(self._get_backend()).case_exists(case_id) is True
+        assert get_dao(self._get_backend()).case_exists(DOMAIN, case_id) is True
 
     def test_update_case(self, testapp, client):
         user_id = str(uuid4())
