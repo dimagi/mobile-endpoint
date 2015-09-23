@@ -48,11 +48,11 @@ class FormData(db.Model, ToFromGeneric):
 
     def to_generic(self):
         generic = XFormInstance(
-            id=self.id,
+            id=str(self.id),
             domain=self.domain,
             received_on=self.received_on,
-            user_id=self.user_id,
-            last_sync_token=self.synclog_id
+            user_id=str(self.user_id),
+            last_sync_token=str(self.synclog_id)
         )
         generic._self = self
         generic._md5 = self.md5
@@ -164,7 +164,7 @@ class CaseData(db.Model, ToFromGeneric):
         else:
             generic = CommCareCase()
 
-        generic.id = self.id
+        generic.id = str(self.id)
         generic.owner_id = self.owner_id
         generic.closed = self.closed
         generic.domain = self.domain

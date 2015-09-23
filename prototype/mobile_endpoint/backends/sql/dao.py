@@ -1,7 +1,10 @@
+import json
 from uuid import UUID
 
 from sqlalchemy.orm import contains_eager, defer
 from sqlalchemy.sql import exists, text
+from mobile_endpoint.backends.sql.db_accessors import get_case_by_id, get_form_by_id, create_form, \
+    create_or_update_case, create_or_update_case_indices
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -16,38 +19,16 @@ class SQLDao(AbsctractDao):
 
         with db.session.begin(subtransactions=True):
 
-            def get_indices():
-                for case in cases:
-                    for index in case.indices:
-                        yield CaseIndex.from_generic(index, case.domain, case.id)
+            create_form(xform)
 
-            new_form, xform_sql = cls_for_doc_type(xform.doc_type).from_generic(xform)
-            case_docs = map(lambda doc: CaseData.from_generic(doc, xform_sql), cases)
+            for case in cases:
+                create_or_update_case(case)
+                create_or_update_case_indices(case)
 
-            for is_new, case in case_docs:
-                if is_new:
-                    sel = text(
-                        'select insert_case(:case_id, :domain, :closed, :owner_id, :server_modified_on, :version, :case_json, :attachments)'
-                    )
-                    sel = sel.bindparams(
-                        case_id=id,
-                        domain=case.domain,
-                        closed=case.closed,
-                        owner_id=case.owner_id,
-                        server_modified_on=case.server_modified_on,
-                        version=0,
-                        case_json=case.case_json,
-                        attachments=case.attachments
-                    )
-                    print list(db.session.execute(sel))
-
-            combined = [(new_form, xform_sql)] + list(get_indices())
             if synclog:
-                combined.append(Synclog.from_generic(synclog))
-
-            for is_new, doc in combined:
+                is_new, synclog_sql = Synclog.from_generic(synclog)
                 if is_new:
-                    db.session.add(doc)
+                    db.session.add(synclog_sql)
 
             if case_result:
                 case_result.commit_dirtiness_flags()
@@ -76,24 +57,14 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def get_form(self, id):
-        return FormData.query.get(id)
+        return get_form_by_id(id)
 
     @to_generic
     def get_case(self, id, lock=False):
-        def _get_case():
-            sel = text(
-                'select id, domain, closed, owner_id, server_modified_on, version, case_json, attachments'
-                'from get_case_by_id(:case_id)'
-            )
-            sel = sel.bindparams(case_id=id)
-            row = list(db.session.execute(sel))[0]
-            kwargs = dict(row.items())
-            return CaseData(**kwargs)
-
         if lock:
-            return get_with_lock('case_lock_{}'.format(id), _get_case)
+            return get_with_lock('case_lock_{}'.format(id), lambda: get_case_by_id(id))
         else:
-            None, _get_case()
+            None, get_case_by_id(id)
 
     def case_exists(self, id):
         return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()

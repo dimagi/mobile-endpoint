@@ -17,8 +17,6 @@ depends_on = None
 from alembic import op
 import sqlalchemy as sa
 
-extension_plproxy = 'CREATE EXTENSION IF NOT EXISTS plproxy'
-
 def upgrade(engine_name):
     globals()["upgrade_%s" % engine_name]()
 
@@ -27,13 +25,8 @@ def downgrade(engine_name):
     globals()["downgrade_%s" % engine_name]()
 
 
-def get_sql_from_file(file):
-    with open(os.path.join('sql', file)) as f:
-        return f.read()
-
-
 def upgrade_():
-    op.execute(extension_plproxy)
+    op.execute('CREATE EXTENSION IF NOT EXISTS plproxy')
     # op.execute("DROP FOREIGN DATA WRAPPER IF EXISTS plproxy")
     # op.execute("CREATE FOREIGN DATA WRAPPER plproxy")
     op.execute("""
@@ -43,16 +36,16 @@ def upgrade_():
          p1 'dbname=receiver_02 host=127.0.0.1')
      """)
     op.execute("CREATE USER MAPPING FOR PUBLIC SERVER hqcluster")
-    op.execute(get_sql_from_file('proxy_fn_get_case_by_id.sql'))
-    op.execute(get_sql_from_file('proxy_fn_insert_case.sql'))
 
 
 def downgrade_():
-    pass
+    op.execute("DROP USER MAPPING IF EXISTS FOR PUBLIC SERVER hqcluster")
+    op.execute("DROP SERVER IF EXISTS hqcluster")
+    op.execute('DROP EXTENSION IF EXISTS plproxy')
 
 
 def upgrade_db02():
-    op.execute(get_sql_from_file('fn_insert_case.sql'))
+    pass
 
 
 def downgrade_db02():
@@ -60,7 +53,7 @@ def downgrade_db02():
 
 
 def upgrade_db01():
-    op.execute(get_sql_from_file('fn_insert_case.sql'))
+    pass
 
 
 def downgrade_db01():

@@ -6,8 +6,7 @@ CREATE OR REPLACE FUNCTION insert_case(
   server_modified_on timestamp,
   version integer,
   case_json jsonb,
-  attachments jsonb)
-RETURNS integer AS $$
+  attachments jsonb) AS $$
        INSERT INTO case_data (
            id,
            domain,
@@ -18,5 +17,4 @@ RETURNS integer AS $$
            case_json,
            attachments)
        VALUES ($1::uuid, $2, $3, $4::uuid, $5, $6, $7, $8);
-       SELECT 1;
 $$ LANGUAGE SQL;
