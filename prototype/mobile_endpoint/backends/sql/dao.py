@@ -24,7 +24,24 @@ class SQLDao(AbsctractDao):
             new_form, xform_sql = cls_for_doc_type(xform.doc_type).from_generic(xform)
             case_docs = map(lambda doc: CaseData.from_generic(doc, xform_sql), cases)
 
-            combined = [(new_form, xform_sql)] + case_docs + list(get_indices())
+            for is_new, case in case_docs:
+                if is_new:
+                    sel = text(
+                        'select insert_case(:case_id, :domain, :closed, :owner_id, :server_modified_on, :version, :case_json, :attachments)'
+                    )
+                    sel = sel.bindparams(
+                        case_id=id,
+                        domain=case.domain,
+                        closed=case.closed,
+                        owner_id=case.owner_id,
+                        server_modified_on=case.server_modified_on,
+                        version=0,
+                        case_json=case.case_json,
+                        attachments=case.attachments
+                    )
+                    print list(db.session.execute(sel))
+
+            combined = [(new_form, xform_sql)] + list(get_indices())
             if synclog:
                 combined.append(Synclog.from_generic(synclog))
 
