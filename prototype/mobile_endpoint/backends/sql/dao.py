@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm import contains_eager, defer
 from sqlalchemy.sql import exists, text
 from mobile_endpoint.backends.sql.db_accessors import get_case_by_id, get_form_by_id, create_form, \
-    create_or_update_case, create_or_update_case_indices
+    create_or_update_case, create_or_update_case_indices, get_cases, get_open_case_ids
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -32,7 +32,6 @@ class SQLDao(AbsctractDao):
 
             if case_result:
                 case_result.commit_dirtiness_flags()
-
 
     def commit_restore(self, restore_state):
         synclog_generic = restore_state.current_sync_log
@@ -71,7 +70,7 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def get_cases(self, case_ids, ordered=False):
-        cases = CaseData.query.filter(CaseData.id.in_(case_ids)).all()
+        cases = get_cases(case_ids)
         if ordered:
             # SQL won't return the rows in any particular order so we need to order them ourselves
             index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
@@ -93,11 +92,7 @@ class SQLDao(AbsctractDao):
         ).all()
 
     def get_open_case_ids(self, domain, owner_id):
-        return [row[0] for row in CaseData.query.with_entities(CaseData.id).filter(
-            CaseData.domain == domain,
-            CaseData.owner_id == owner_id,
-            CaseData.closed == False
-        )]
+        return get_open_case_ids(domain, owner_id)
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
         return [row[0] for row in CaseData.query.with_entities(CaseData.id).filter(

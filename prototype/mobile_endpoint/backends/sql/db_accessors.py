@@ -30,8 +30,7 @@ def get_case_by_id(case_id):
     res = db.session.execute(sel)
     rows = list(res)
     if rows:
-        kwargs = dict(rows[0].items())
-        return CaseData(**kwargs)
+        return _row_to_case(rows[0])
 
 
 def create_form(form):
@@ -88,3 +87,25 @@ def create_or_update_case_indices(case):
             **params
         )
         db.session.execute(sel)
+
+
+def get_cases(case_ids):
+    params = {'case_id{}'.format(i): case_id for i, case_id in enumerate(case_ids)}
+    name = [':{}'.format(name) for name in params.keys()]
+    sel = text("select * from get_cases({{{}}})".format(','.join(name)))
+    print sel
+    sel = sel.bindparams(**params)
+    res = db.session.execute(sel)
+    return [_row_to_case(row) for row in res]
+
+
+def get_open_case_ids(domain, owner_id):
+    sel = text("select * from get_open_case_ids(:domain, :owner_id)")
+    sel = sel.bindparams(domain=domain, owner_id=owner_id)
+    res = db.session.execute(sel)
+    return [row[0] for row in res]
+
+
+def _row_to_case(row):
+    kwargs = dict(row.items())
+    return CaseData(**kwargs)

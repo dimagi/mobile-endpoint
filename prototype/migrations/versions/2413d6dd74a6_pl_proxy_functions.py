@@ -25,12 +25,15 @@ PROXY_FILES = [
     'proxy_fn_get_form_by_id.sql',
     'proxy_fn_get_form_by_id.sql',
     'proxy_fn_create_or_update_case_indices.sql',
+    'proxy_fn_get_cases.sql',
+    'proxy_fn_get_open_case_ids.sql',
 ]
 
 SHARD_FILES = [
     'fn_create_or_update_case.sql',
     'fn_insert_form.sql',
     'fn_create_or_update_case_indices.sql',
+    'fn_get_cases.sql',
 ]
 
 
