@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm import contains_eager, defer
 from sqlalchemy.sql import exists, text
 from mobile_endpoint.backends.sql.db_accessors import get_case_by_id, get_form_by_id, create_form, \
-    create_or_update_case, create_or_update_case_indices, get_cases, get_open_case_ids
+    create_or_update_case, create_or_update_case_indices, get_cases, get_open_case_ids, get_reverse_indexed_cases
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -84,12 +84,7 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def get_reverse_indexed_cases(self, domain, case_ids):
-        return CaseData.query.join('indices')\
-            .filter(CaseIndex.domain == domain, CaseIndex.referenced_id.in_(case_ids))\
-            .options(
-                contains_eager('indices'),
-                defer(CaseData.case_json)
-        ).all()
+        return get_reverse_indexed_cases(domain, case_ids)
 
     def get_open_case_ids(self, domain, owner_id):
         return get_open_case_ids(domain, owner_id)

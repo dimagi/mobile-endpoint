@@ -1,5 +1,6 @@
 import json
-from sqlalchemy.sql import text
+from sqlalchemy import Text
+from sqlalchemy.sql import text, bindparam
 from mobile_endpoint.models import CaseData, db, FormData
 
 
@@ -80,7 +81,6 @@ def create_or_update_case_indices(case):
                 :case_id, ARRAY[{}]
             )
         """.format(','.join(rows)))
-        print sel
         sel = sel.bindparams(
             case_id=case.id,
             domain=case.domain,
@@ -90,10 +90,8 @@ def create_or_update_case_indices(case):
 
 
 def get_cases(case_ids):
-    params = {'case_id{}'.format(i): case_id for i, case_id in enumerate(case_ids)}
-    name = [':{}'.format(name) for name in params.keys()]
-    sel = text("select * from get_cases({{{}}})".format(','.join(name)))
-    print sel
+    params, names = _get_array_params('case_id', case_ids)
+    sel = text("select * from get_cases(ARRAY[{}])".format(names))
     sel = sel.bindparams(**params)
     res = db.session.execute(sel)
     return [_row_to_case(row) for row in res]
@@ -106,6 +104,27 @@ def get_open_case_ids(domain, owner_id):
     return [row[0] for row in res]
 
 
+def get_reverse_indexed_cases(domain, case_ids):
+    params, names = _get_array_params('case_id', case_ids)
+    sel = text("select * from get_reverse_index_case_ids(:domain, ARRAY[{}]::uuid[])".format(names))
+    sel = sel.bindparams(
+        bindparam('domain', domain, type_=Text()),
+        **params
+    )
+    res = db.session.execute(sel)
+    indexed_case_ids = [row[0] for row in res]
+    if indexed_case_ids:
+        return get_cases(indexed_case_ids)
+    else:
+        return []
+
+
 def _row_to_case(row):
     kwargs = dict(row.items())
     return CaseData(**kwargs)
+
+
+def _get_array_params(slug, args):
+    params = {'{}{}'.format(slug, i): arg for i, arg in enumerate(args)}
+    names = [':{}'.format(name) for name in params.keys()]
+    return params, ','.join(names)
