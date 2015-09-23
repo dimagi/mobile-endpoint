@@ -7,10 +7,10 @@ SQLALCHEMY_ECHO = False
 
 SECRET_KEY = 'testkey'
 
-SQLALCHEMY_DATABASE_URI= 'postgresql://skelly@localhost/receiver_proxy'
+SQLALCHEMY_DATABASE_URI= 'postgresql://postgres@localhost/receiver_proxy'
 SQLALCHEMY_BINDS = {
-    'db01': 'postgresql://skelly@localhost/receiver_01',
-    'db02': 'postgresql://skelly@localhost/receiver_02'
+    'db01': 'postgresql://postgres@localhost/receiver_01',
+    'db02': 'postgresql://postgres@localhost/receiver_02'
 }
 
 REDIS_URL = "redis://localhost:6379/0"
