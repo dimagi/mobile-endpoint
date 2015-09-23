@@ -41,7 +41,7 @@ def upgrade_():
 def downgrade_():
     op.execute("DROP USER MAPPING IF EXISTS FOR PUBLIC SERVER hqcluster")
     op.execute("DROP SERVER IF EXISTS hqcluster")
-    op.execute('DROP EXTENSION IF EXISTS plproxy')
+    op.execute('DROP EXTENSION IF EXISTS plproxy CASCADE')
 
 
 def upgrade_db02():
