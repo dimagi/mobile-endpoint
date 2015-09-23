@@ -220,11 +220,10 @@ class CaseIndex(db.Model, ToFromGeneric):
     case_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
     domain = db.Column(db.Text(), nullable=False)
     identifier = db.Column(db.Text(), primary_key=True)
-    referenced_id = db.Column(UUID(), db.ForeignKey('case_data.id'))
+    referenced_id = db.Column(UUID(), nullable=False)
     referenced_type = db.Column(db.Text(), nullable=False)
 
     case = db.relationship("CaseData", foreign_keys=[case_id], backref=db.backref('indices'))
-    referenced_case = db.relationship("CaseData", foreign_keys=[referenced_id], backref='reverse_indices')
 
     def to_generic(self):
         index = CommCareCaseIndex.from_case_index_update(self)

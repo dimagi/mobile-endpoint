@@ -1,7 +1,7 @@
 """proxy setup
 
 Revision ID: 448a844e393f
-Revises: e1935c99018
+Revises: e0fe5591b30
 Create Date: 2015-09-22 14:58:18.621661
 
 """
@@ -10,7 +10,7 @@ Create Date: 2015-09-22 14:58:18.621661
 import os
 
 revision = '448a844e393f'
-down_revision = 'e1935c99018'
+down_revision = 'e0fe5591b30'
 branch_labels = None
 depends_on = None
 
