@@ -10,6 +10,7 @@ from mobile_endpoint.backends.couch.models import CouchForm, CouchCase, \
 
 from mobile_endpoint.views import ota_mod
 from mobile_endpoint.models import db, migrate
+from mobile_endpoint.shardedmodels import shard_manager
 from mobile_endpoint.extensions import redis_store
 
 
@@ -30,6 +31,7 @@ def create_app(extra_config=None):
 
     redis_store.init_app(app)
     db.init_app(app)
+    shard_manager.init_app(app)
     migrate.init_app(app, db)
 
     connect(host=app.config.get('MONGO_URI'))

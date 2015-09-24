@@ -1,4 +1,3 @@
-from couchdbkit import ResourceNotFound
 from flask import current_app
 from flask.ext.migrate import upgrade
 from mongoengine import connect
@@ -6,7 +5,7 @@ import pytest
 from patch_path import patch_path
 patch_path()
 
-from mobile_endpoint import create_app
+from mobile_endpoint import create_app, shard_manager
 from mobile_endpoint.models import db
 import mobile_endpoint.backends.couch.db
 
@@ -100,6 +99,11 @@ def client(testapp):
 
 
 def delete_all_data():
+    from mobile_endpoint.shardedmodels import Base
+
     with db.session.begin():
         for table in reversed(db.Model.metadata.sorted_tables):
             db.session.execute(table.delete())
+    for session in shard_manager.sessions.values():
+        for table in reversed(Base.metadata.sorted_tables):
+            session.execute(table.delete())
