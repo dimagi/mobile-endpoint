@@ -7,7 +7,7 @@ from mobile_endpoint.models import CaseData, db, FormData
 def create_or_update_case(case):
     sel = text("""
         select create_or_update_case(
-            :case_id, :domain, :closed, :owner_id, :server_modified_on, :version, :case_json, :attachments, :is_new
+            :domain, :case_id, :closed, :owner_id, :server_modified_on, :version, :case_json, :attachments, :is_new
         )
     """)
     params = {'case_id': case.id, 'version': 0, 'attachments': None, 'is_new': not hasattr(case, '_self')}
@@ -22,12 +22,12 @@ def create_or_update_case(case):
     db.session.execute(sel)
 
 
-def get_case_by_id(case_id):
+def get_case_by_id(domain, case_id):
     sel = text("""
-        select id, domain, closed, owner_id, server_modified_on, version, case_json, attachments
-        from get_case_by_id(:case_id)
+        select id, closed, owner_id, server_modified_on, version, case_json, attachments
+        from get_case_by_id(:domain, :case_id)
     """)
-    sel = sel.bindparams(case_id=case_id)
+    sel = sel.bindparams(doamin=domain, case_id=case_id)
     res = db.session.execute(sel)
     rows = list(res)
     if rows:
@@ -52,12 +52,12 @@ def create_form(form):
     db.session.execute(sel)
 
 
-def get_form_by_id(form_id):
+def get_form_by_id(domain, form_id):
     sel = text("""
         select id, domain, received_on, user_id, md5, synclog_id, attachments
-        from get_form_by_id(:form_id)
+        from get_form_by_id(:domain, :form_id)
     """)
-    sel = sel.bindparams(form_id=form_id)
+    sel = sel.bindparams(domain=domain, form_id=form_id)
     res = db.session.execute(sel)
     rows = list(res)
     if rows:
@@ -67,7 +67,7 @@ def get_form_by_id(form_id):
 
 def create_or_update_case_indices(case):
     if case.indices:
-        index_template = "ROW(:domain, :identifier{i}, cast(:referenced_id{i} as uuid), :referenced_type{i}, :is_new{i})::case_index_row"
+        index_template = "ROW(:identifier{i}, cast(:referenced_id{i} as uuid), :referenced_type{i}, :is_new{i})::case_index_row"
         rows = []
         params = {}
         for i, index in enumerate(case.indices):
@@ -78,21 +78,21 @@ def create_or_update_case_indices(case):
 
         sel = text("""
             select create_or_update_case_indices(
-                :case_id, ARRAY[{}]
+                :domain, :case_id, ARRAY[{}]
             )
         """.format(','.join(rows)))
         sel = sel.bindparams(
-            case_id=case.id,
             domain=case.domain,
+            case_id=case.id,
             **params
         )
         db.session.execute(sel)
 
 
-def get_cases(case_ids):
+def get_cases(domain, case_ids):
     params, names = _get_array_params('case_id', case_ids)
-    sel = text("select * from get_cases(ARRAY[{}])".format(names))
-    sel = sel.bindparams(**params)
+    sel = text("select * from get_cases(:domain, ARRAY[{}])".format(names))
+    sel = sel.bindparams(domain=domain, **params)
     res = db.session.execute(sel)
     return [_row_to_case(row) for row in res]
 
@@ -114,7 +114,7 @@ def get_reverse_indexed_cases(domain, case_ids):
     res = db.session.execute(sel)
     indexed_case_ids = [row[0] for row in res]
     if indexed_case_ids:
-        return get_cases(indexed_case_ids)
+        return get_cases(domain, indexed_case_ids)
     else:
         return []
 

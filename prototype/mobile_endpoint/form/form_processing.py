@@ -97,7 +97,7 @@ def create_xform(instance_xml, attachments, request_meta, dao):
                 except ValueError:
                     raise INVALID_ID(form_id)
                 else:
-                    existing_form = dao.get_form(form_id)
+                    existing_form = dao.get_form(request_meta['domain'], form_id)
                     if existing_form:
                         raise DuplicateFormException(existing_form)
     except DuplicateFormException as e:

@@ -52,14 +52,14 @@ class CouchDao(AbsctractDao):
         synclog.save()
 
     @to_generic
-    def get_form(self, id):
+    def get_form(self, domain, id):
         try:
             return CouchForm.get(id)
         except ResourceNotFound:
             return None
 
     @to_generic
-    def get_case(self, id, lock=False):
+    def get_case(self, domain, id, lock=False):
         def _get_case(id):
             try:
                 return CouchCase.get(id)
@@ -75,7 +75,7 @@ class CouchDao(AbsctractDao):
         return CouchCase.get_db().doc_exist(id)
 
     @to_generic
-    def get_cases(self, case_ids, ordered=False):
+    def get_cases(self, domain, case_ids, ordered=False):
         for row in CouchCase.view('_all_docs', keys=case_ids, include_docs=True):
             yield row
 

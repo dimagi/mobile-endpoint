@@ -55,22 +55,22 @@ class SQLDao(AbsctractDao):
             db.session.add(synclog)
 
     @to_generic
-    def get_form(self, id):
-        return get_form_by_id(id)
+    def get_form(self, domain, id):
+        return get_form_by_id(domain, id)
 
     @to_generic
-    def get_case(self, id, lock=False):
+    def get_case(self, domain, id, lock=False):
         if lock:
-            return get_with_lock('case_lock_{}'.format(id), lambda: get_case_by_id(id))
+            return get_with_lock('case_lock_{}'.format(id), lambda: get_case_by_id(domain, id))
         else:
-            None, get_case_by_id(id)
+            None, get_case_by_id(domain, id)
 
     def case_exists(self, id):
         return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()
 
     @to_generic
-    def get_cases(self, case_ids, ordered=False):
-        cases = get_cases(case_ids)
+    def get_cases(self, domain, case_ids, ordered=False):
+        cases = get_cases(domain, case_ids)
         if ordered:
             # SQL won't return the rows in any particular order so we need to order them ourselves
             index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}

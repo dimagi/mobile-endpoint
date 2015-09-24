@@ -1,1 +1,1 @@
-DROP FUNCTION IF EXISTS get_cases(case_ids text[]);
+DROP FUNCTION IF EXISTS get_cases(domain text, case_ids text[]);

@@ -40,7 +40,7 @@ class MongoDao(AbsctractDao):
 
 
     @to_generic
-    def get_form(self, id):
+    def get_form(self, domain, id):
         try:
             return MongoForm.objects.get(id=id)
         except DoesNotExist:
@@ -48,7 +48,7 @@ class MongoDao(AbsctractDao):
 
 
     @to_generic
-    def get_case(self, id, lock=False):
+    def get_case(self, domain, id, lock=False):
         def _get_case(id):
             try:
                 return MongoCase.objects.get(id=id)
@@ -64,7 +64,7 @@ class MongoDao(AbsctractDao):
         return MongoCase.objects(id=UUID(id)).limit(1) is not None
 
     @to_generic
-    def get_cases(self, case_ids, ordered=False):
+    def get_cases(self, domain, case_ids, ordered=False):
         # Assumes case_ids are strings.
         cases = MongoCase.objects(id__in=case_ids)
 
