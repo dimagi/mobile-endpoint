@@ -8,7 +8,8 @@ patch_path()
 from flask.ext.script import Manager, Server
 from flask.ext.script.commands import ShowUrls, Clean
 from mobile_endpoint import create_app
-from mobile_endpoint.models import db, FormData, CaseData, CaseIndex, Synclog, OwnershipCleanlinessFlag
+from mobile_endpoint.models import db, FormData, Synclog, OwnershipCleanlinessFlag
+from mobile_endpoint.shardedmodels import CaseData, CaseIndex
 from mobile_endpoint.backends.mongo.models import MongoForm, MongoCase, MongoSynclog
 
 app = create_app()
