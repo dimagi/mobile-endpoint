@@ -1,6 +1,7 @@
 import pytest
 from mobile_endpoint.backends.manager import BACKEND_SQL
-from mobile_endpoint.models import FormData, CaseData, Synclog
+from mobile_endpoint.models import FormData, Synclog
+from mobile_endpoint import shardedmodels
 from mobile_endpoint.synclog.checksum import Checksum
 from tests.conftest import sql
 from tests.test_receiver import ReceiverTestMixin, DOMAIN
@@ -24,7 +25,7 @@ class TestPostgresReceiver(ReceiverTestMixin):
             assert sql_form.synclog_id is None
 
     def _assert_case(self, domain, case_id, owner_id, num_forms=1, closed=False, indices=None):
-        sql_case = CaseData.query.get(case_id)
+        sql_case = shardedmodels.CaseData.get_case(domain, case_id)
         assert sql_case is not None
         assert sql_case.domain == DOMAIN
         assert sql_case.closed == closed
