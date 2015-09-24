@@ -355,37 +355,3 @@ class OwnershipCleanlinessFlag(db.Model):
 def gen_default(mapper, connection, instance):
     if object_session(instance).is_modified(instance, include_collections=False):
         instance.last_checked = datetime.utcnow()
-
-
-class Cluster(db.Model):
-    __tablename__ = 'cluster'
-    name = db.Column(db.Text(), primary_key=True, nullable=False)
-    version = db.Column(db.Integer(), nullable=False)
-
-
-class PhysicalPartition(db.Model):
-    __tablename__ = 'physical_partition'
-    name = db.Column(db.Text(), primary_key=True, nullable=False)
-    cluster_name = db.Column(db.Text(), db.ForeignKey('cluster.name'))
-    host = db.Column(db.Text(), nullable=False)
-    port = db.Column(db.Text(), nullable=False)
-    dbname = db.Column(db.Text(), nullable=False)
-    # remote_user = db.Column(db.Text(), nullable=False)
-    # password = db.Column(db.Text(), nullable=False)
-
-
-db.Index(
-    'ix_unique_physical_partition',
-    PhysicalPartition.cluster_name,
-    PhysicalPartition.host,
-    PhysicalPartition.port,
-    PhysicalPartition.dbname,
-    unique=True
-)
-
-
-class LogicalPartition(db.Model):
-    __tablename__ = 'logical_partition'
-    id = db.Column(db.Integer(), primary_key=True)
-    group = db.Column(db.Integer(), nullable=False)
-    physical_partition = db.Column(db.Text(), db.ForeignKey('physical_partition.name'))
