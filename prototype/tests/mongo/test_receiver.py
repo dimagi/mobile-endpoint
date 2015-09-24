@@ -26,7 +26,7 @@ class TestMongoReceiver(ReceiverTestMixin):
         else:
             assert form.synclog_id is None
 
-    def _assert_case(self, case_id, owner_id, num_forms=1, closed=False, indices=None):
+    def _assert_case(self, domain, case_id, owner_id, num_forms=1, closed=False, indices=None):
         mongo_case = MongoCase.objects.get(id=case_id)
         assert mongo_case is not None
         assert mongo_case.domain == DOMAIN

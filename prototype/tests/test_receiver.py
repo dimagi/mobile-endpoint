@@ -25,7 +25,7 @@ class ReceiverTestMixin(object):
         pass
 
     @abstractmethod
-    def _assert_case(self, case_id, owner_id, num_forms=1, closed=False, indices=None):
+    def _assert_case(self, domain, case_id, owner_id, num_forms=1, closed=False, indices=None):
         pass
 
     @abstractmethod
@@ -96,7 +96,7 @@ class ReceiverTestMixin(object):
             })
 
         self._assert_form(form_id, user_id, synclog_id)
-        self._assert_case(case_id, user_id)
+        self._assert_case(DOMAIN, case_id, user_id)
         self._assert_synclog(synclog_id, case_ids=[case_id])
         assert get_dao(self._get_backend()).case_exists(DOMAIN, case_id) is True
 
@@ -124,7 +124,7 @@ class ReceiverTestMixin(object):
                 CaseStructure(case_id, attrs={'create': True}),
             ])
 
-            self._assert_case(case_id, user_id)
+            self._assert_case(DOMAIN, case_id, user_id)
             self._assert_synclog(synclog_id, case_ids=[case_id])
 
             updated_case, = factory.create_or_update_case(
@@ -133,7 +133,7 @@ class ReceiverTestMixin(object):
 
             assert updated_case.identity == 'mallard'
             assert updated_case.closed is True
-            self._assert_case(case_id, user_id, num_forms=2, closed=True)
+            self._assert_case(DOMAIN, case_id, user_id, num_forms=2, closed=True)
             self._assert_synclog(synclog_id, case_ids=[])
 
     def test_case_index(self, testapp, client):
@@ -155,8 +155,8 @@ class ReceiverTestMixin(object):
                     ])
             )
 
-            self._assert_case(parent.id, owner_id)
-            self._assert_case(child.id, owner_id, indices={
+            self._assert_case(DOMAIN, parent.id, owner_id)
+            self._assert_case(DOMAIN, child.id, owner_id, indices={
                 'parent': {
                     'referenced_type': 'duck',
                     'referenced_id': parent.id,

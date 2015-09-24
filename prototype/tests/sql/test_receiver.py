@@ -23,7 +23,7 @@ class TestPostgresReceiver(ReceiverTestMixin):
         else:
             assert sql_form.synclog_id is None
 
-    def _assert_case(self, case_id, owner_id, num_forms=1, closed=False, indices=None):
+    def _assert_case(self, domain, case_id, owner_id, num_forms=1, closed=False, indices=None):
         sql_case = CaseData.query.get(case_id)
         assert sql_case is not None
         assert sql_case.domain == DOMAIN
