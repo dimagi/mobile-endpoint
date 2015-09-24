@@ -3,7 +3,7 @@ CREATE TYPE case_index_row AS (identifier text, referenced_id uuid, referenced_t
 
 CREATE OR REPLACE FUNCTION create_or_update_case_indices(domain text, case_id text, indices case_index_row[]) RETURNS integer AS $$
 DECLARE
-    i int:
+    i int;
     cnt int := 0;
     index case_index_row;
 BEGIN
@@ -16,11 +16,11 @@ BEGIN
                 identifier,
                 referenced_id,
                 referenced_type)
-            VALUES ($1::uuid, index.domain, index.identifier, index.referenced_id, index.referenced_type);
+            VALUES ($2::uuid, $1, index.identifier, index.referenced_id, index.referenced_type);
         ELSE
             UPDATE case_index
             SET identifier= index.identifier, referenced_id = index.referenced_id, referenced_type = index.referenced_type
-            WHERE case_id = $1::uuid;
+            WHERE domain = $1 and case_id = $2::uuid;
         END IF;
         GET DIAGNOSTICS i = ROW_COUNT;
         cnt := cnt + i;

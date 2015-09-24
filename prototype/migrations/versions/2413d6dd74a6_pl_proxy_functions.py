@@ -19,6 +19,7 @@ import sqlalchemy as sa
 
 
 PROXY_FILES = [
+    'proxy_fn_cluster_for_domain.sql',
     'proxy_fn_get_case_by_id.sql',
     'proxy_fn_create_or_update_case.sql',
     'proxy_fn_insert_form.sql',

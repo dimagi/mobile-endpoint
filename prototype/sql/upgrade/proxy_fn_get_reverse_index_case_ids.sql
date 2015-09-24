@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION get_reverse_index_case_ids(domain text, case_ids uuid[]) RETURNS SETOF uuid AS $$
-    CLUSTER 'hqcluster';
+    CLUSTER cluster_for_domain(domain);
     RUN ON ALL;
     SELECT case_id FROM case_index WHERE case_index.domain = $1 and case_index.referenced_id = ANY($2);
 $$ LANGUAGE plproxy;

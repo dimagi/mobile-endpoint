@@ -17,6 +17,9 @@ depends_on = None
 from alembic import op
 import sqlalchemy as sa
 
+NUM_CLUSTERS = 2**7
+SHARDS_PER_SERVER = 2**7
+
 def upgrade(engine_name):
     globals()["upgrade_%s" % engine_name]()
 
@@ -27,20 +30,29 @@ def downgrade(engine_name):
 
 def upgrade_():
     op.execute('CREATE EXTENSION IF NOT EXISTS plproxy')
-    # op.execute("DROP FOREIGN DATA WRAPPER IF EXISTS plproxy")
-    # op.execute("CREATE FOREIGN DATA WRAPPER plproxy")
-    op.execute("""
-    CREATE SERVER hqcluster FOREIGN DATA WRAPPER plproxy
-    OPTIONS (connection_lifetime '1800',
-         p0 'dbname=receiver_01 host=127.0.0.1',
-         p1 'dbname=receiver_02 host=127.0.0.1')
-     """)
-    op.execute("CREATE USER MAPPING FOR PUBLIC SERVER hqcluster")
+
+    def get_db(server, shard):
+        return '01' if server < (NUM_CLUSTERS /2) else '02'
+
+    for server_id in range(NUM_CLUSTERS):
+        partitions = [
+            "p{shard} 'dbname=receiver_{db} host=127.0.0.1'".format(shard=shard, db=get_db(server_id, shard))
+            for shard in range(SHARDS_PER_SERVER)
+        ]
+        sql = """
+        CREATE SERVER cluster_{id} FOREIGN DATA WRAPPER plproxy
+        OPTIONS (connection_lifetime '1800',
+             {partitions}
+        )
+         """.format(id=server_id, partitions=',\n'.join(partitions))
+        op.execute(sql)
+        op.execute("CREATE USER MAPPING FOR PUBLIC SERVER cluster_{}".format(server_id))
 
 
 def downgrade_():
-    op.execute("DROP USER MAPPING IF EXISTS FOR PUBLIC SERVER hqcluster")
-    op.execute("DROP SERVER IF EXISTS hqcluster")
+    for server_id in range(NUM_CLUSTERS):
+        op.execute("DROP USER MAPPING IF EXISTS FOR PUBLIC SERVER cluster_{}".format(server_id))
+        op.execute("DROP SERVER IF EXISTS cluster_{}".format(server_id))
     op.execute('DROP EXTENSION IF EXISTS plproxy CASCADE')
 
 

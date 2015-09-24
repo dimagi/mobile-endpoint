@@ -8,6 +8,6 @@ CREATE OR REPLACE FUNCTION create_or_update_case(
     case_json jsonb,
     attachments jsonb,
     is_new boolean) RETURNS integer AS $$
-        CLUSTER 'hqcluster';
+        CLUSTER cluster_for_domain(domain);
         RUN ON hashtext(case_id);
 $$ LANGUAGE plproxy;

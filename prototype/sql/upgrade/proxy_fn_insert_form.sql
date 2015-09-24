@@ -7,6 +7,6 @@ CREATE OR REPLACE FUNCTION insert_form(
   synclog_id text,
   attachments jsonb)
 RETURNS integer AS $$
-    CLUSTER 'hqcluster';
+    CLUSTER cluster_for_domain(domain);
     RUN ON hashtext(form_id);
 $$ LANGUAGE plproxy;
