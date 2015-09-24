@@ -3,7 +3,8 @@ CREATE TYPE case_index_row AS (domain text, identifier text, referenced_id uuid,
 
 CREATE OR REPLACE FUNCTION create_or_update_case_indices(case_id text, indices case_index_row[]) RETURNS integer AS $$
 DECLARE
-    count int;
+    i int:
+    cnt int := 0;
     index case_index_row;
 BEGIN
     FOREACH index IN ARRAY indices
@@ -21,8 +22,9 @@ BEGIN
             SET identifier= index.identifier, referenced_id = index.referenced_id, referenced_type = index.referenced_type
             WHERE case_id = $1::uuid;
         END IF;
-        count := count + 1;
+        GET DIAGNOSTICS i = ROW_COUNT;
+        cnt := cnt + i;
     END LOOP;
-    RETURN count;
+    RETURN cnt;
 END;
 $$ LANGUAGE plpgsql;

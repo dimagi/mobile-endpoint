@@ -8,6 +8,8 @@ CREATE OR REPLACE FUNCTION create_or_update_case(
     case_json jsonb,
     attachments jsonb,
     is_new boolean) RETURNS integer AS $$
+    DECLARE
+        cnt int;
     BEGIN
         IF is_new THEN
             INSERT INTO case_data (
@@ -25,6 +27,7 @@ CREATE OR REPLACE FUNCTION create_or_update_case(
             SET closed = $3, owner_id = $4::uuid, server_modified_on = $5, version = $6, case_json = $7, attachments = $8
             WHERE id = $1::uuid;
         END IF;
-        RETURN 1;
+        GET DIAGNOSTICS cnt = ROW_COUNT;
+        RETURN cnt;
     END;
 $$ LANGUAGE plpgsql;
