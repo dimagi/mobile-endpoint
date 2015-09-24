@@ -17,7 +17,7 @@ CREATE OR REPLACE FUNCTION insert_form(
             md5,
             synclog_id,
             attachments)
-        VALUES ($1::uuid, $2, $3, $4::uuid, $5::bytea, $6::uuid, $7);
+        VALUES ($2::uuid, $1, $3, $4::uuid, $5::bytea, $6::uuid, $7);
         GET DIAGNOSTICS cnt = ROW_COUNT;
         RETURN cnt;
     END;

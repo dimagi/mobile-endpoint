@@ -55,7 +55,7 @@ class FormData(db.Model, ToFromGeneric):
             last_sync_token=str(self.synclog_id)
         )
         generic._self = self
-        generic._md5 = self.md5
+        generic._md5 = str(self.md5)
         return generic
 
     @classmethod

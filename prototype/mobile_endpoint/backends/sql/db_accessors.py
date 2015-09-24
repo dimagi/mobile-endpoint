@@ -37,12 +37,12 @@ def get_case_by_id(domain, case_id):
 def create_form(form):
     sel = text("""
         select insert_form(
-            :form_id, :domain, :received_on, :user_id, :md5, :synclog_id, :attachments
+            :domain, :form_id, :received_on, :user_id, :md5, :synclog_id, :attachments
         )
     """)
     sel = sel.bindparams(
-        form_id=form.id,
         domain=form.domain,
+        form_id=form.id,
         received_on=form.received_on,
         user_id=form.metadata.userID,
         md5=str(form._md5),
@@ -53,10 +53,7 @@ def create_form(form):
 
 
 def get_form_by_id(domain, form_id):
-    sel = text("""
-        select id, domain, received_on, user_id, md5, synclog_id, attachments
-        from get_form_by_id(:domain, :form_id)
-    """)
+    sel = text("select * from get_form_by_id(:domain, :form_id)")
     sel = sel.bindparams(domain=domain, form_id=form_id)
     res = db.session.execute(sel)
     rows = list(res)
