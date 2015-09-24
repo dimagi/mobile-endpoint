@@ -24,11 +24,6 @@ class ToFromGeneric(object):
         raise NotImplementedError()
 
 
-case_form_link = db.Table('case_form', db.Model.metadata,
-    db.Column('case_id', UUID(), db.ForeignKey('case_data.id'), primary_key=True),
-    db.Column('form_id', UUID(), db.ForeignKey('form_data.id'), primary_key=True)
-)
-
 
 def cls_for_doc_type(doc_type):
     return FormData if doc_type == 'XFormInstance' else FormError
@@ -142,124 +137,6 @@ class FormError(db.Model, ToFromGeneric):
                 "duplicate_id='{f.duplicate_id}', "
                 ")"
         ).format(f=self)
-
-
-class CaseData(db.Model, ToFromGeneric):
-    __tablename__ = 'case_data'
-    id = db.Column(UUID(), primary_key=True)
-    domain = db.Column(db.Text(), nullable=False)
-    closed = db.Column(db.Boolean(), default=False, nullable=False)
-    owner_id = db.Column(UUID(), nullable=False)
-    server_modified_on = db.Column(db.DateTime(), nullable=False)
-    version = db.Column(db.Integer(), default=0)
-    case_json = db.Column(JSONB(), nullable=False)
-    attachments = db.Column(JSONB())
-
-    forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
-
-    def to_generic(self):
-        if self.case_json:
-            generic = CommCareCase.wrap(self.case_json)
-            generic.indices = []
-        else:
-            generic = CommCareCase()
-
-        generic.id = self.id
-        generic.owner_id = self.owner_id
-        generic.closed = self.closed
-        generic.domain = self.domain
-        generic.server_modified_on = self.server_modified_on
-        for index in self.indices:
-            generic.indices.append(index.to_generic())
-        generic._self = self
-        return generic
-
-    @classmethod
-    def from_generic(cls, generic, xform=None, **kwargs):
-        if hasattr(generic, '_self'):
-            self = generic._self
-            new = False
-        else:
-            self = cls(id=generic.id)
-            new = True
-
-        json = generic.to_json()
-        json.pop('indices')  # drop indices since they are stored separately
-        for att in ['domain', 'owner_id', 'closed', 'server_modified_on']:
-            setattr(self, att, getattr(generic, att))
-            json.pop(att)
-        self.case_json = json
-
-        if xform:
-            self.forms.append(xform)
-
-        return new, self
-
-    def __repr__(self):
-        return (
-            "CaseData("
-                "id='{c.id}', "
-                "domain='{c.domain}', "
-                "closed={c.closed}, "
-                "owner_id='{c.owner_id}', "
-                "server_modified_on='{c.server_modified_on}')"
-        ).format(c=self)
-
-
-@event.listens_for(CaseData, "before_update")
-def update_version(mapper, connection, instance):
-    if object_session(instance).is_modified(instance):
-        instance.version = (instance.version or 0) + 1
-
-db.Index('ix_case_data_domain_owner', CaseData.domain, CaseData.owner_id)
-db.Index('ix_case_data_domain_closed_modified', CaseData.domain, CaseData.closed, CaseData.server_modified_on)
-
-
-class CaseIndex(db.Model, ToFromGeneric):
-    __tablename__ = 'case_index'
-    case_id = db.Column(UUID(), db.ForeignKey('case_data.id'), primary_key=True)
-    domain = db.Column(db.Text(), nullable=False)
-    identifier = db.Column(db.Text(), primary_key=True)
-    referenced_id = db.Column(UUID(), db.ForeignKey('case_data.id'))
-    referenced_type = db.Column(db.Text(), nullable=False)
-
-    case = db.relationship("CaseData", foreign_keys=[case_id], backref=db.backref('indices'))
-    referenced_case = db.relationship("CaseData", foreign_keys=[referenced_id], backref='reverse_indices')
-
-    def to_generic(self):
-        index = CommCareCaseIndex.from_case_index_update(self)
-        index._self = self
-        return index
-
-    @classmethod
-    def from_generic(cls, generic, domain=None, case_id=None, **kwargs):
-        if hasattr(generic, '_self'):
-            self = generic._self
-            new = False
-        else:
-            self = cls(case_id=case_id, domain=domain)
-            new = True
-
-        for att in ['identifier', 'referenced_type', 'referenced_id', 'referenced_type']:
-            setattr(self, att, getattr(generic, att))
-
-        return new, self
-
-    def __repr__(self):
-        return (
-            "CaseIndex("
-                "case_id='{case_id}', "
-                "domain='{domain}', "
-                "identifier='{identifier}', "
-                "referenced_type='{ref_type}', "
-                "referenced_id='{ref_id}')").format(
-            case_id=self.case_id,
-            domain=self.domain,
-            identifier=self.identifier,
-            ref_type=self.referenced_type,
-            ref_id=self.referenced_id)
-
-db.Index('ix_case_index_referenced_id', CaseIndex.domain, CaseIndex.referenced_id)
 
 
 class Synclog(db.Model, ToFromGeneric):
