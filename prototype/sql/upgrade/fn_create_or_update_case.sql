@@ -25,7 +25,7 @@ CREATE OR REPLACE FUNCTION create_or_update_case(
         ELSE
             UPDATE case_data
             SET closed = $3, owner_id = $4::uuid, server_modified_on = $5, version = $6, case_json = $7, attachments = $8
-            WHERE domain = $1 and id = $2::uuid;
+            WHERE case_data.domain = $1 and id = $2::uuid;
         END IF;
         GET DIAGNOSTICS cnt = ROW_COUNT;
         RETURN cnt;

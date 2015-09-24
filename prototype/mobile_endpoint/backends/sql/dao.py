@@ -63,7 +63,7 @@ class SQLDao(AbsctractDao):
         if lock:
             return get_with_lock('case_lock_{}'.format(id), lambda: get_case_by_id(domain, id))
         else:
-            None, get_case_by_id(domain, id)
+            return None, get_case_by_id(domain, id)
 
     def case_exists(self, id):
         return CaseData.query.session.query(exists().where(CaseData.id == id)).scalar()

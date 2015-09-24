@@ -24,10 +24,10 @@ def create_or_update_case(case):
 
 def get_case_by_id(domain, case_id):
     sel = text("""
-        select id, closed, owner_id, server_modified_on, version, case_json, attachments
+        select id, domain, closed, owner_id, server_modified_on, version, case_json, attachments
         from get_case_by_id(:domain, :case_id)
     """)
-    sel = sel.bindparams(doamin=domain, case_id=case_id)
+    sel = sel.bindparams(domain=domain, case_id=case_id)
     res = db.session.execute(sel)
     rows = list(res)
     if rows:
