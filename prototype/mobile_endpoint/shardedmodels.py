@@ -113,6 +113,56 @@ class ShardedModelMixin(object):
 #     Column('form_id', UUID(), ForeignKey('form_data.id'), primary_key=True)
 # )
 
+
+# TODO: add indexes to this table!
+case_form_link = Table('case_form_association', Base.metadata,
+    Column('case_id', UUID),
+    Column('shard_id', SmallInteger),
+    Column('form_id', UUID),
+)
+
+
+class FormRelationship(object):
+    """
+    Use an instance of this class on CaseData to create a many-to-many
+    relationship between Cases and Forms
+    """
+    # TODO: Eventually we would want some sort of generic "ShardedRelationship" class, but this should suffice for this POC
+
+    def __init__(self, case):
+        self.case = case  # The case that owns this relationship instance
+        self.new_forms = []
+
+    def append(self, form):
+        """
+        Add a form to the case that owns this relationship.
+
+        The relationship is not saved to the DB until the owning case is saved.
+        """
+        self.new_forms.append(form)
+
+    def __len__(self):
+        return self._get_num_related_cases() + len(self.new_forms)
+
+    def _get_num_related_cases(self):
+        shard = CaseData.get_shard_id(self.case.domain, self.case.id)
+        session = shard_manager.get_session(CaseData, shard)
+        query = session.query(case_form_link).filter(
+            case_form_link.c.shard_id == shard,
+            case_form_link.c.case_id == self.case.id,
+        )
+        return query.count()
+
+
+class CaseIndexRelationship(object):
+
+    def append(self, case_index):
+        pass
+
+    def __iter__(self):
+        return iter([])
+
+
 class CaseData(Base, ShardedModelMixin, ToFromGeneric):
 
     __tablename__ = 'case_data'
@@ -128,6 +178,18 @@ class CaseData(Base, ShardedModelMixin, ToFromGeneric):
 
     # TODO: Replace the functionality that this relationship provided
     # forms = db.relationship("FormData", secondary=case_form_link, backref="cases")
+
+    def __init__(self, *args, **kwargs):
+        super(CaseData, self).__init__(*args, **kwargs)
+        self.init_on_load()
+
+    @reconstructor
+    def init_on_load(self):
+        self._init_relationships()
+
+    def _init_relationships(self):
+        self.indices = CaseIndexRelationship()
+        self.forms = FormRelationship(self)
 
     def save(self):
         assert self.id
