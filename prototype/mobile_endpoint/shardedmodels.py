@@ -1,11 +1,13 @@
 from collections import defaultdict
 from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy import exists, Column, SmallInteger, Text, Boolean, DateTime, \
-    Integer, create_engine, Index
+    Integer, create_engine, Index, Table
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import event
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, scoped_session, object_session
+from sqlalchemy.orm import sessionmaker, scoped_session, object_session, reconstructor
+from sqlalchemy.orm.exc import NoResultFound
 from mobile_endpoint.case.models import CommCareCase, CommCareCaseIndex
 from mobile_endpoint.models import ToFromGeneric
 
@@ -142,14 +144,23 @@ class CaseData(Base, ShardedModelMixin, ToFromGeneric):
         shard = cls.get_shard_id(domain, id)
         session = shard_manager.get_session(cls, shard)
         query = cls.get_base_query(session, [shard])
-        return query.filter(cls.id == id).one()
+        try:
+            return query.filter(cls.id == id).one()
+        except NoResultFound:
+            return None
 
     @classmethod
     def case_exists(cls, domain, id):
         shard = cls.get_shard_id(domain, id)
         session = shard_manager.get_session(cls, shard)
         query = cls.get_base_query(session, [shard])
-        return query(exists().where(cls.id == id)).scalar()
+
+        # TODO: Do an exists query. (was having trouble making it work)
+        try:
+            query.filter(cls.id == id).one()
+            return True
+        except NoResultFound:
+            return False
 
     @classmethod
     def get_cases(cls, domain, case_ids, ordered=False):
@@ -176,10 +187,10 @@ class CaseData(Base, ShardedModelMixin, ToFromGeneric):
             )
 
         if ordered:
-            index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
+            index_map = {uuid.UUID(id_): index for index, id_ in enumerate(case_ids)}
             ordered_cases = [None] * len(case_ids)
             for case in cases:
-                ordered_cases[index_map[UUID(case.id)]] = case
+                ordered_cases[index_map[uuid.UUID(case.id)]] = case
 
             cases = ordered_cases
 
@@ -324,7 +335,7 @@ class CaseIndex(Base, ShardedModelMixin, ToFromGeneric):
     def save(self):
         assert self.case_id
         assert self.domain
-        self.shard_id = self.get_shard_id(self.domain, self.id)
+        self.shard_id = self.get_shard_id(self.domain, self.case_id)
         session = shard_manager.get_session(self.__class__, self.shard_id)
         with session.begin():
             session.add(self)

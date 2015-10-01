@@ -1,8 +1,3 @@
-from collections import defaultdict
-from uuid import UUID
-
-from sqlalchemy.orm import contains_eager, defer
-from sqlalchemy.sql import exists
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -40,8 +35,9 @@ class SQLDao(AbsctractDao):
 
         # Save the sharded models
         sharded_db_model_instances = case_docs + list(get_indices())
-        for doc in sharded_db_model_instances:
-            doc.save()
+        for is_new, doc in sharded_db_model_instances:
+            if is_new:
+                doc.save()
 
     def commit_restore(self, restore_state):
         synclog_generic = restore_state.current_sync_log
