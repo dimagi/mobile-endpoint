@@ -1,4 +1,5 @@
 import json
+from uuid import UUID
 from sqlalchemy import Text
 from sqlalchemy.sql import text, bindparam
 from mobile_endpoint.models import CaseData, db, FormData
@@ -87,6 +88,7 @@ def create_or_update_case_indices(case):
 
 
 def get_cases(domain, case_ids):
+    case_ids = [UUID(i) for i in case_ids]
     params, names = _get_array_params('case_id', case_ids)
     sel = text("select * from get_cases(:domain, ARRAY[{}])".format(names))
     sel = sel.bindparams(domain=domain, **params)
@@ -101,6 +103,31 @@ def get_open_case_ids(domain, owner_id):
     return [row[0] for row in res]
 
 
+def get_case_ids_modified_with_owner_since(domain, owner_id, reference_date):
+    sel = text("select * from get_case_ids_modified_with_owner_since(:domain, :owner_id, :reference_date)")
+    sel = sel.bindparams(domain=domain, owner_id=owner_id, reference_date=reference_date)
+    res = db.session.execute(sel)
+    return [row[0] for row in res]
+
+
+def get_indexed_case_ids(domain, case_ids):
+    params, names = _get_array_params('case_id', case_ids)
+    sel = text("select * from get_indexed_case_ids(:domain, ARRAY[{}]::uuid[])".format(names))
+    sel = sel.bindparams(domain=domain, **params)
+    res = db.session.execute(sel)
+    return [row[0] for row in res]
+
+
+def get_last_modified_dates(domain, case_ids):
+    case_ids = [UUID(i) for i in case_ids]
+    params, names = _get_array_params('case_id', case_ids)
+    sel = text("select * from get_last_modified_dates(:domain, ARRAY[{}]::uuid[])".format(names))
+    sel = sel.bindparams(domain=domain, **params)
+    res = db.session.execute(sel)
+    ret = [(row[0], row[1]) for row in res]
+    return ret
+
+
 def get_reverse_indexed_cases(domain, case_ids):
     params, names = _get_array_params('case_id', case_ids)
     sel = text("select * from get_reverse_index_case_ids(:domain, ARRAY[{}]::uuid[])".format(names))
@@ -109,7 +136,7 @@ def get_reverse_indexed_cases(domain, case_ids):
         **params
     )
     res = db.session.execute(sel)
-    indexed_case_ids = [row[0] for row in res]
+    indexed_case_ids = [unicode(row[0]) for row in res]
     if indexed_case_ids:
         return get_cases(domain, indexed_case_ids)
     else:

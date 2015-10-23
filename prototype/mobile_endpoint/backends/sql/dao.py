@@ -4,7 +4,9 @@ from uuid import UUID
 from sqlalchemy.orm import contains_eager, defer
 from sqlalchemy.sql import exists, text
 from mobile_endpoint.backends.sql.db_accessors import get_case_by_id, get_form_by_id, create_form, \
-    create_or_update_case, create_or_update_case_indices, get_cases, get_open_case_ids, get_reverse_indexed_cases
+    create_or_update_case, create_or_update_case_indices, get_cases, get_open_case_ids, get_reverse_indexed_cases, \
+    get_case_ids_modified_with_owner_since, get_indexed_case_ids, \
+    get_last_modified_dates
 from mobile_endpoint.dao import AbsctractDao, to_generic
 
 from mobile_endpoint.exceptions import NotFound
@@ -70,13 +72,14 @@ class SQLDao(AbsctractDao):
 
     @to_generic
     def get_cases(self, domain, case_ids, ordered=False):
+        case_ids = [unicode(id) for id in case_ids]
         cases = get_cases(domain, case_ids)
         if ordered:
             # SQL won't return the rows in any particular order so we need to order them ourselves
             index_map = {UUID(id_): index for index, id_ in enumerate(case_ids)}
             ordered_cases = [None] * len(case_ids)
             for case in cases:
-                ordered_cases[index_map[UUID(case.id)]] = case
+                ordered_cases[index_map[case.id]] = case
 
             cases = ordered_cases
 
@@ -90,29 +93,20 @@ class SQLDao(AbsctractDao):
         return get_open_case_ids(domain, owner_id)
 
     def get_case_ids_modified_with_owner_since(self, domain, owner_id, reference_date):
-        return [row[0] for row in CaseData.query.with_entities(CaseData.id).filter(
-            CaseData.domain == domain,
-            CaseData.owner_id == owner_id,
-            CaseData.server_modified_on > reference_date
-        )]
+        return get_case_ids_modified_with_owner_since(domain, owner_id, reference_date)
 
     def get_indexed_case_ids(self, domain, case_ids):
-        return [row[0] for row in CaseIndex.query.with_entities(CaseIndex.referenced_id).filter(
-            CaseIndex.domain == domain,
-            CaseIndex.case_id.in_(case_ids),
-        )]
+        return get_indexed_case_ids(domain, case_ids)
 
     def get_last_modified_dates(self, domain, case_ids):
         """
         Given a list of case IDs, return a dict where the ids are keys and the
         values are the last server modified date of that case.
         """
-        return dict(
-            CaseData.query.with_entities(CaseData.id, CaseData.server_modified_on).filter(
-                CaseData.domain == domain,
-                CaseData.id.in_(case_ids)
-            )
-        )
+        return {
+            unicode(v[0]): v[1]
+            for v in get_last_modified_dates(domain, case_ids)
+        }
 
 
 
