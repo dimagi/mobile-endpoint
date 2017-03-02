@@ -6,7 +6,7 @@
     </clients>
 
     <servers>
-        <server host="{{ host }}" port="{{ port }}" type="tcp"></server>
+        <server host="{{ host }}" port="{{ port }}" type="{{ server_type }}"></server>
     </servers>
 
     <load>
@@ -24,7 +24,41 @@
 
     <sessions>
 
-        <session probability="45" name="form-submission-new-case" type="ts_http">
+        {% if session_probabilities.simple_form > 0 %}
+        <session probability="{{ session_probabilities.simple_form }}" name="form-submission-simple" type="ts_http">
+
+            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
+                <var name="user_id" />
+                <var name="username" />
+                <var name="password" />
+            </setdynvars>
+
+            <setdynvars sourcetype="eval"
+                    code="fun({Pid,DynVars})->
+                              uuid:random_str() end.">
+              <var name="form_instance_id" />
+            </setdynvars>
+
+            <transaction name="submit_simple_form">
+                <request subst="true">
+                    <http
+                        url="{{ submission_url }}"
+                        method="POST"
+                        version="1.1"
+                        contents_from_file="{{ simple_submission }}"
+                    >
+                        {% if do_auth %}
+                        <www_authenticate userid="%%_username%%" passwd="%%_password%%"/>
+                        {% endif %}
+                        <http_header name="Content-Type" value="application/xml"/>
+                    </http>
+                </request>
+            </transaction>
+        </session>
+        {% endif %}
+
+        {% if session_probabilities.create_case > 0 %}
+        <session probability="{{ session_probabilities.create_case }}" name="form-submission-new-case" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -60,8 +94,10 @@
                 </request>
             </transaction>
         </session>
+        {% endif %}
 
-        <session probability="45" name="form-submission-update-case" type="ts_http">
+        {% if session_probabilities.update_case > 0 %}
+        <session probability="{{ session_probabilities.update_case }}" name="form-submission-update-case" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -81,8 +117,6 @@
 
             <transaction name="submit_case_update_form">
                 <request subst="true">
-                    <!-- TODO: Confirm that http tag works on an https url -->
-                    <!-- NOTE: For some reason the couch request above seems to bork the host setting, which is why I need to set the host in the following url explicitly -->
                     <http
                         url="{{ submission_url }}"
                         method="POST"
@@ -97,9 +131,10 @@
                 </request>
             </transaction>
         </session>
+        {% endif %}
 
-
-        <session probability="10" name="restore-session" type="ts_http">
+        {% if session_probabilities.restore > 0 %}
+        <session probability="{{ session_probabilities.restore }}" name="restore-session" type="ts_http">
 
             <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
                 <var name="user_id" />
@@ -123,6 +158,7 @@
             </transaction>
 
         </session>
+        {% endif %}
 
     </sessions>
 </tsung>

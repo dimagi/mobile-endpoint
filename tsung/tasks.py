@@ -1,28 +1,24 @@
-from collections import namedtuple
 import os
 import shutil
 import sys
+from collections import namedtuple
 
-from invoke import task
 import sh
+from invoke import task
 
 import backends
 import settings
 from utils import cd, get_settings_for_readme
-from utils import confirm
 
 Phase = namedtuple('Phase', 'duration, arrival_rate')
 
 
-def _get_backend(backend_name):
+def _get_backend(endpoint):
+    backend_settings = settings.ENDPOINTS[endpoint]
+    backend = backend_settings['BACKEND']
     return {
-        "current": backends.Current,
-        "prototype-sql": backends.PrototypeSQL,
-        "prototype-mongo": backends.PrototypeMongo,
-        "prototype-couch": backends.PrototypeCouch,
-        "raw-sql": backends.RawSQL,
-        "raw-couch": backends.RawCouch,
-    }[backend_name]()
+        'production': backends.Production,
+    }[backend](endpoint, backend_settings)
 
 
 def _render_template(filename, context, searchpath=None):
@@ -64,56 +60,26 @@ def tsung_build(backend_name, user_rate=None, duration=None):
         f.write(_render_template(filename, context))
         print("Built config: {}".format(new_filename))
 
-    if backend.transactions_dir:
-        transactions_dir = os.path.join(settings.BASEDIR, settings.RAW_TRANSACTION_DIR_NAME, backend.transactions_dir)
-        transactions_build_dir = os.path.join(settings.BUILD_DIR, settings.RAW_TRANSACTION_DIR_NAME, backend.transactions_dir)
-        if not os.path.exists(transactions_build_dir):
-            os.makedirs(transactions_build_dir)
-        for transaction in os.listdir(transactions_dir):
-            new_file = os.path.join(transactions_build_dir, transaction)
-            with open(new_file, 'w') as f:
-                f.write(_render_template(transaction, context, [transactions_dir]))
-                print("Built tranasaction {}".format(transaction))
 
 @task
-def load_db(backend_name):
-    clean_build()
-
-    if not os.path.isdir(settings.DB_FILES_DIR):
-        os.makedirs(settings.DB_FILES_DIR)
-
+def load_users(backend_name):
     backend = _get_backend(backend_name)
-    if confirm("Do you want to delete the current database?"):
-        backend.check_ssh_access()
-        backend.stop()
-        backend.reset_db()
-        print('Bootstrapping service with domain and superuser')
-        backend.bootstrap_service()
-
-        backend.start()
-        print('Creating test users')
-        users = backend.create_users(settings.NUM_UNIQUE_USERS)
-
-        user_db = os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name))
-        with open(user_db, "w") as file:
-            for user in users:
-                file.write("{},{},{}\n".format(
-                    user.id, user.username, user.password
-                ))
-
-    backend.load_data(settings.DB_FILES_DIR)
+    users = backend.create_users(settings.NUM_UNIQUE_USERS)
+    user_db = os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(backend_name))
+    with open(user_db, "w") as file:
+        for user in users:
+            file.write("{},{},{}\n".format(
+                user.id, user.username, user.password
+            ))
 
 
 @task
-def awesome_test(backend, user_rate, duration, load=False, notes=None):
-    if load:
-        load_db(backend)
+def awesome_test(endpont, user_rate, duration, notes=None):
+    tsung_build(endpont, user_rate, duration)
 
-    tsung_build(backend, user_rate, duration)
-
-    backend = _get_backend(backend)
+    backend = _get_backend(endpont)
     if not backend.is_running():
-        backend.restart()
+        print("Service is not running!")
 
     log_dir = None
     test_file = "build/{}".format(backend.tsung_test_template[:-3])
@@ -142,8 +108,8 @@ def awesome_test(backend, user_rate, duration, load=False, notes=None):
             f.write(_render_template('README.md.j2', context))
 
         print("Generating report")
-        title = 'Awesome Test: backend={}, user_rate={}, duration={}'.format(
-            backend.name, user_rate, duration
+        title = 'Awesome Test: enpoint={}, backend={}, user_rate={}, duration={}'.format(
+            endpont, backend.name, user_rate, duration
         )
         with cd(log_dir):
             sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)

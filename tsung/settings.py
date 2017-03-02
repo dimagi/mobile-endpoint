@@ -13,74 +13,26 @@ PG_PORT = '5432'
 PG_USERNAME = 'commcarehq'
 PG_PASSWORD = ''
 
-BACKENDS = {
+ENDPOINTS = {
     'current': {
+        'BACKEND': 'production',
         'SUBMISSION_URL': '/a/{domain}/receiver/',
         'RESTORE_URL': '/a/{domain}/phone/restore/',
         'SUBMIT_WITH_AUTH': False,
         'HOST': '10.10.1.28',
-        'PORT': '9010',
-
-        # These must match the values in the Django localsettings.py file
-        'COUCH_HOST': '10.10.1.28',
-        'COUCH_PORT': '5984',
-        'COUCH_DATABASE': 'commcarehq',
-        'COUCH_USERNAME': 'commcarehq',
-        'COUCH_PASSWORD': 'commcarehq',
-
-        # These must match the values in the Django localsettings.py file
-        'PG_DATABASE': 'commcarehq',
+        'PORT': '9010',  # Override the default (80 for HTTP and 443 for HTTPS)
+        'HTTPS': False,
 
         'SUPERUSER_USERNAME': 'load_test@dimagi.com',
         'SUPERUSER_PASSWORD': 'load_test',
 
-        'ENVIRONMENT_ROOT': '/home/cchq/www/tsung_hq_test/code_root',
-        'PYTHON_ENV': '/home/cchq/www/tsung_hq_test/python_env',
-    },
-    'prototype-couch': {
-        'SUBMISSION_URL': '/ota/couch-receiver/{domain}',
-        'RESTORE_URL': '/ota/couch-restore/{domain}',
-        'SUBMIT_WITH_AUTH': True,
-        'HOST': '10.10.1.28',
-        'PORT': '9011',
-
-        'COUCH_HOST': '10.10.1.28',
-        'COUCH_PORT': '5984',
-        'COUCH_USERNAME': 'commcarehq',
-        'COUCH_PASSWORD': 'commcarehq',
-
-        'PG_DATABASE': 'prototype_sql',
-
-        'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
-        'PYTHON_ENV': '/home/cchq/prototype/python_env',
-    },
-    'prototype-sql': {
-        'SUBMISSION_URL': '/ota/receiver/{domain}',
-        'RESTORE_URL': '/ota/restore/{domain}',
-        'SUBMIT_WITH_AUTH': True,
-        'HOST': '10.10.1.28',
-        'PORT': '9011',
-
-        # Must match the values in localconfig.py file
-        'PG_DATABASE': 'prototype_sql',
-
-        'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
-        'PYTHON_ENV': '/home/cchq/prototype/python_env',
-    },
-    'prototype-mongo': {
-        'SUBMISSION_URL': '/ota/mongo-receiver/{domain}',
-        'RESTORE_URL': '/ota/mongo-restore/{domain}',
-        'SUBMIT_WITH_AUTH': True,
-        'HOST': '10.10.1.28',
-        'PORT': '9011',
-
-        'MONGO_URI': 'mongodb://10.10.1.28:27017/mobile_endpoint',
-        # Mongo URI should include the database
-
-        'PG_DATABASE': 'prototype_sql',
-
-        'ENVIRONMENT_ROOT': '/home/cchq/prototype/mobile-endpoint/prototype',
-        'PYTHON_ENV': '/home/cchq/prototype/python_env',
+        'SESSION_PROBABILITIES': {
+            # must add up to 100
+            'simple_form': 0,
+            'create_case': 45,
+            'update_case': 45,
+            'restore': 10
+        }
     },
 }
 

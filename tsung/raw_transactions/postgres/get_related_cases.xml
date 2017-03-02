@@ -1,9 +1,0 @@
-<transaction name="get_related_cases">
-    <request subst="true">
-        <pgsql type="sql">
-            SELECT case_index.referenced_id AS case_index_referenced_id
-            FROM case_index
-            WHERE case_index.domain = '%%_domain%%' AND case_index.case_id IN ('%%_case_id%%')
-        </pgsql>
-    </request>
-</transaction>

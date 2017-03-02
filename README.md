@@ -56,7 +56,7 @@ $ py.test --rowsize <form or case> # run the rowsize form or case tests
 ## Get tsung
 
 ```
-$ sudo git clone https://github.com/processone/tsung.git /usr/local/src/tsung
+$ sudo git clone https://github.com/processone/tsung.git /usr/local/src/tsung --depth=1
 $ cd /usr/local/src/tsung
 $ ./configure
 $ sudo make install
@@ -74,6 +74,7 @@ $ sudo make install
 - erlang-xmerl
 - erlang-dev
 - erlang-asn1
+- gnuplot
 
 
 ## Running tests on indiacloud8
