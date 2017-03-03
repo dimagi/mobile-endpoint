@@ -7,7 +7,14 @@
 DURATION = {{ duration }}
 USER ARRIVAL RATE = {{ user_rate }}
 
-## Data Settings
+## Session weightings
+{% for session, prob in test_run.session_probabilities.iteritems() %}
+{% if prob > 0 %}
+* {{ session }}: {{ prob }}
+{% endif %}
+{% endfor %}
 
-{{ settings }}
-
+## Phases
+{% for phase in test_run.phases %}
+* {{ phase.user_arrival_rate }} users per second for {{ pase.duration }}s
+{% endfor %}

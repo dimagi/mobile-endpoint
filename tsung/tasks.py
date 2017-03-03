@@ -1,14 +1,14 @@
 import os
 import shutil
-import sys
 from collections import namedtuple
 
 import sh
+import sys
 from invoke import task
 
 import backends
 import settings
-from utils import cd, get_settings_for_readme
+from utils import cd
 
 Phase = namedtuple('Phase', 'duration, arrival_rate')
 
@@ -35,24 +35,13 @@ def clean_build():
         shutil.rmtree(settings.BUILD_DIR)
 
 @task
-def tsung_build(backend_name, user_rate=None, duration=None):
+def tsung_build(endpoint, test_run):
     if not os.path.isdir(settings.BUILD_DIR):
         os.makedirs(settings.BUILD_DIR)
 
-    backend = _get_backend(backend_name)
-    duration = int(duration)
-    user_rate = int(user_rate)
-    main_phase = Phase(duration=duration, arrival_rate=user_rate)
-    if duration > 120:
-        phases = [
-            Phase(duration=60, arrival_rate=int(user_rate/4)),
-            Phase(duration=60, arrival_rate=int(user_rate/2)),
-            main_phase,
-        ]
-    else:
-        phases = [main_phase]
-
-    context = backend.tsung_template_context(phases)
+    backend = _get_backend(endpoint)
+    context = backend.tsung_template_context()
+    context.update(settings.TEST_RUNS[test_run])
 
     filename = backend.tsung_test_template
     new_filename = os.path.join(settings.BUILD_DIR, filename[:-3])
@@ -74,10 +63,10 @@ def load_users(backend_name):
 
 
 @task
-def awesome_test(endpont, user_rate, duration, notes=None):
-    tsung_build(endpont, user_rate, duration)
+def awesome_test(endpoint, testrun, notes=None):
+    tsung_build(endpoint, testrun)
 
-    backend = _get_backend(endpont)
+    backend = _get_backend(endpoint)
     if not backend.is_running():
         print("Service is not running!")
 
@@ -100,16 +89,14 @@ def awesome_test(endpont, user_rate, duration, notes=None):
         print("Creating README in log directory")
         context = {
             'notes': notes,
-            'settings': get_settings_for_readme(),
-            'user_rate': user_rate,
-            'duration': duration
+            'test_run': settings.TEST_RUNS[testrun]
         }
         with open(os.path.join(log_dir, 'README.md'), 'w') as f:
             f.write(_render_template('README.md.j2', context))
 
         print("Generating report")
-        title = 'Awesome Test: enpoint={}, backend={}, user_rate={}, duration={}'.format(
-            endpont, backend.name, user_rate, duration
+        title = 'Awesome Test: enpoint={}, backend={}, test_run={}'.format(
+            endpoint, backend.__class__.__name__, testrun
         )
         with cd(log_dir):
             sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)

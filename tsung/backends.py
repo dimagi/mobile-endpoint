@@ -19,33 +19,33 @@ class Backend(object):
     def __init__(self, endpoint_name, config):
         self.endpoint_name = endpoint_name
         self.settings = config
-        self.submission_url = self.settings['SUBMISSION_URL'].format(domain=settings.DOMAIN)
-        self.restore_url = self.settings['RESTORE_URL'].format(domain=settings.DOMAIN)
+        self.submission_url = self.settings['SUBMISSION_URL'].format(domain=self.settings['DOMAIN'])
+        self.restore_url = self.settings['RESTORE_URL'].format(domain=self.settings['DOMAIN'])
         default_port = 443 if self.settings['HTTPS'] else 80
+        self.port = self.settings.get('PORT', default_port)
         proto = 'https' if self.settings['HTTPS'] else 'http'
         self.base_url = '{proto}://{host}:{port}'.format(
             proto=proto,
             host=self.settings['HOST'],
-            port=self.settings.get('PORT', default_port),
+            port=self.port,
         )
 
-    def tsung_template_context(self, phases):
+    def tsung_template_context(self):
         return {
             'dtd_path': settings.TSUNG_DTD_PATH,
-            'phases': phases,
             'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(self.endpoint_name)),
             'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(self.endpoint_name)),
             'host': self.settings['HOST'],
-            'port': self.settings['PORT'],
+            'port': self.port,
             'server_type': 'ssl' if self.settings['HTTPS'] else 'tcp',
-            'submission_url': self.submission_url,
-            'restore_url': self.restore_url,
-            'domain': settings.DOMAIN,
+            'submission_url': '/a/{}/receiver/'.format(self.settings['DOMAIN']),
+            'restore_url': '/a/{}/phone/restore/'.format(self.settings['DOMAIN']),
+            'sso_auth_url': '/a/{}/api/v0.5/sso/'.format(self.settings['DOMAIN']),
+            'domain': self.settings['DOMAIN'],
             'simple_submission': os.path.join(settings.BASEDIR, 'forms', 'nocase.xml'),
             'create_submission': os.path.join(settings.BASEDIR, 'forms', 'create.xml'),
             'update_submission': os.path.join(settings.BASEDIR, 'forms', 'update.xml'),
             'do_auth': self.settings['SUBMIT_WITH_AUTH'],
-            'session_probabilities': self.settings['SESSION_PROBABILITIES']
         }
 
     def is_running(self):
@@ -76,7 +76,7 @@ class Production(Backend):
         }
         auth = HTTPBasicAuth(self.settings['SUPERUSER_USERNAME'], self.settings['SUPERUSER_PASSWORD'])
         result = requests.post('{}/a/{}/api/v0.5/user/'.format(
-            self.base_url, settings.DOMAIN
+            self.base_url, self.settings['DOMAIN']
         ), data=json.dumps(payload), auth=auth, headers={'Content-Type': 'application/json'})
         assert result.status_code == 201, json.dumps(result.json(), indent=True)
         payload['id'] = result.json()['id']
