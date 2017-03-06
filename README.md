@@ -76,6 +76,11 @@ $ sudo make install
 - erlang-asn1
 - gnuplot
 
+Also Perl Template module for generating the reports:
+```
+$ sudo cpan Template
+```
+
 
 ## Running tests against production environment
 
