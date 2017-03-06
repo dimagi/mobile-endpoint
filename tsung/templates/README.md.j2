@@ -16,5 +16,5 @@ USER ARRIVAL RATE = {{ user_rate }}
 
 ## Phases
 {% for phase in test_run.phases %}
-* {{ phase.user_arrival_rate }} users per second for {{ pase.duration }}s
+* {{ phase.user_arrival_rate }} users per second for {{ phase.duration }}s
 {% endfor %}

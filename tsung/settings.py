@@ -35,11 +35,10 @@ TEST_RUNS = {
             'auth': 0
          },
         'phases':[
-            {'duration': 60, 'user_arrival_rate': 5},
-            {'duration': 60, 'user_arrival_rate': 10},
-            {'duration': 60, 'user_arrival_rate': 15},
-            {'duration': 60, 'user_arrival_rate': 20},
-            {'duration': 60, 'user_arrival_rate': 25},
+            {'duration': 60 * 5, 'user_arrival_rate': 20},
+            {'duration': 60 * 5, 'user_arrival_rate': 40},
+            {'duration': 60 * 5, 'user_arrival_rate': 60},
+            {'duration': 60 * 5, 'user_arrival_rate': 80},
         ]
     }
 }

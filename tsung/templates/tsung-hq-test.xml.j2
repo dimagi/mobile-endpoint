@@ -2,24 +2,29 @@
 <!DOCTYPE tsung SYSTEM "{{ dtd_path }}" []>
 <tsung loglevel="info">
     <clients>
-        <client host="localhost" use_controller_vm="true" maxusers="1000"/>
+        <client host="localhost" use_controller_vm="false" maxusers="30000" cpu="4"/>
     </clients>
 
     <servers>
-        <server host="{{ host }}" port="{{ port }}" type="{{ server_type }}"></server>
+        <server host="{{ host }}" port="{{ port }}" type="{{ server_type }}" />
     </servers>
 
     <load>
         {% for phase in phases %}
         <arrivalphase phase="{{ loop.index }}" duration="{{ phase.duration }}" unit="second">
-            <users arrivalrate="{{ phase.user_arrival_rate}}" unit="second"></users>
+            <users arrivalrate="{{ phase.user_arrival_rate}}" unit="second" />
         </arrivalphase>
         {% endfor %}
     </load>
 
     <options>
-        <option name="file_server" id="casedb" value="{{ casedb }}"></option>
-        <option name="file_server" id="userdb" value="{{ userdb }}"></option>
+        <option name="thinktime" value="3" random="true" />
+        <option name="connect_timeout" value="10000" />
+        <option name="retry_timeout" value="500" />
+        <option name="tcp_reuseaddr" value="true" />
+        <option name="ip_transparent" value="true" />
+        <option name="file_server" id="casedb" value="{{ casedb }}" />
+        <option name="file_server" id="userdb" value="{{ userdb }}" />
     </options>
 
     <sessions>
