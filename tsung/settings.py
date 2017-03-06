@@ -25,7 +25,7 @@ ENDPOINTS = {
 }
 
 TEST_RUNS = {
-    'baseline': {
+    'test': {
         'session_probabilities': {
              # must add up to 100
             'simple_form': 100,
@@ -35,10 +35,41 @@ TEST_RUNS = {
             'auth': 0
          },
         'phases':[
-            {'duration': 60 * 5, 'user_arrival_rate': 20},
-            {'duration': 60 * 5, 'user_arrival_rate': 40},
-            {'duration': 60 * 5, 'user_arrival_rate': 60},
-            {'duration': 60 * 5, 'user_arrival_rate': 80},
+            {'duration': 30, 'user_arrival_rate': 10},
+            {'duration': 30, 'user_arrival_rate': 20},
+        ]
+    },
+    'simple_form': {
+        'session_probabilities': {
+            'simple_form': 100,
+         },
+        'phases':[
+            {'duration': 60 * 10, 'user_arrival_rate': 50},
+            {'duration': 60 * 10, 'user_arrival_rate': 100},
+            {'duration': 60 * 10, 'user_arrival_rate': 150},
+            {'duration': 60 * 10, 'user_arrival_rate': 200},
+        ]
+    },
+    'create_case': {
+        'session_probabilities': {
+            'create_case': 100,
+         },
+        'phases':[
+            {'duration': 60 * 10, 'user_arrival_rate': 50},
+            {'duration': 60 * 10, 'user_arrival_rate': 100},
+            {'duration': 60 * 10, 'user_arrival_rate': 150},
+            {'duration': 60 * 10, 'user_arrival_rate': 200},
+        ]
+    },
+    'update_case': {
+        'session_probabilities': {
+            'update_case': 100,
+         },
+        'phases':[
+            {'duration': 60 * 10, 'user_arrival_rate': 50},
+            {'duration': 60 * 10, 'user_arrival_rate': 100},
+            {'duration': 60 * 10, 'user_arrival_rate': 150},
+            {'duration': 60 * 10, 'user_arrival_rate': 200},
         ]
     }
 }
