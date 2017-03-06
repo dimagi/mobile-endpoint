@@ -4,6 +4,8 @@ from collections import namedtuple
 
 import sh
 import sys
+
+from datetime import datetime
 from invoke import task
 
 import backends
@@ -61,6 +63,39 @@ def load_users(backend_name):
                 user.id, user.username, user.password
             ))
 
+@task
+def generate_report(runname, endpoint=None, testrun=None):
+    print("Generating report")
+    backend_name = 'unknown'
+    if endpoint:
+        backend_name = _get_backend(endpoint).__class__.__name__
+
+    title = 'Awesome Test: enpoint={}, backend={}, test_run={}'.format(
+        endpoint or 'Unknown', backend_name, testrun or 'Unknown'
+    )
+    log_dir_root = os.path.join(settings.TSUNG_LOG_DIR, runname)
+    log_dir = os.walk(log_dir_root).next()[1][0]
+    with cd(os.path.join(log_dir_root, log_dir)):
+        sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)
+
+@task
+def archive_logs(runname):
+    log_dir = os.path.join(settings.TSUNG_LOG_DIR, runname)
+    path = "{}.tar.gz".format(log_dir)
+    print("Creating archive: {}".format(path))
+    sh.tar("-czf", path, "--directory={}".format(log_dir), ".")
+
+
+def create_readme(run_name, notes, testrun):
+    print("Creating README in log directory")
+    context = {
+        'notes': notes,
+        'test_run': settings.TEST_RUNS[testrun]
+    }
+    readme_path = os.path.join(settings.TSUNG_LOG_DIR, run_name, 'README.md')
+    with open(readme_path, 'w') as f:
+        f.write(_render_template('README.md.j2', context))
+    return readme_path
 
 @task
 def awesome_test(endpoint, testrun, notes=None):
@@ -70,9 +105,10 @@ def awesome_test(endpoint, testrun, notes=None):
     if not backend.is_running():
         print("Service is not running!")
 
-    log_dir = None
+    run_name = "tsung_run_{}_{:%Y%m%d-%H%M}".format(endpoint, datetime.utcnow())
+    log_dir = os.path.join(settings.TSUNG_LOG_DIR, run_name)
     test_file = "build/{}".format(backend.tsung_test_template[:-3])
-    args = ("-f", test_file, "start")
+    args = ("-l", log_dir, "-f", test_file, "start")
     try:
         for line in sh.tsung(*args, _iter=True):
             sys.stdout.write(line)
@@ -86,19 +122,8 @@ def awesome_test(endpoint, testrun, notes=None):
             raise
 
     if log_dir:
-        print("Creating README in log directory")
-        context = {
-            'notes': notes,
-            'test_run': settings.TEST_RUNS[testrun]
-        }
-        with open(os.path.join(log_dir, 'README.md'), 'w') as f:
-            f.write(_render_template('README.md.j2', context))
-
-        print("Generating report")
-        title = 'Awesome Test: enpoint={}, backend={}, test_run={}'.format(
-            endpoint, backend.__class__.__name__, testrun
-        )
-        with cd(log_dir):
-            sh.Command('/usr/lib/tsung/bin/tsung_stats.pl')('--title', title)
-
-            print(sh.cat('README.md'))
+        generate_report(run_name, endpoint, testrun)
+        readme_path = create_readme(run_name, notes, testrun)
+        archive_logs(run_name)
+        print("RUN COMPLETE")
+        print(sh.cat(readme_path))

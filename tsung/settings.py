@@ -77,6 +77,8 @@ TEST_RUNS = {
 
 MOBILE_USER_PASSWORD = '123'
 
+TSUNG_LOG_DIR = os.path.expanduser('~')
+
 ##### TSUNG CONFIG #####
 TSUNG_DTD_PATH = '/usr/local/src/tsung/tsung-1.0.dtd'
 
