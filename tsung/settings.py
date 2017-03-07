@@ -71,6 +71,18 @@ TEST_RUNS = {
             {'duration': 60 * 10, 'user_arrival_rate': 150},
             {'duration': 60 * 10, 'user_arrival_rate': 200},
         ]
+    },
+    'icds-10000': {
+        'session_probabilities': {
+            'create_case': 25,
+            'update_case': 25,
+            'restore': 5,
+            'app_resource': 45
+        },
+        'phases':[
+            {'duration': 60 * 20, 'user_arrival_rate': 100},
+            {'duration': 60 * 20, 'user_arrival_rate': 150},
+        ]
     }
 }
 
