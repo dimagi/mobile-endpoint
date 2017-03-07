@@ -25,6 +25,7 @@
         <option name="ip_transparent" value="true" />
         <option name="file_server" id="casedb" value="{{ casedb }}" />
         <option name="file_server" id="userdb" value="{{ userdb }}" />
+        <option name="file_server" id="app_resources" value="{{ app_resources }}" />
     </options>
 
     <sessions>
@@ -181,6 +182,26 @@
                         <www_authenticate userid="%%_username%%" passwd="%%_password%%"/>
                         {% endif %}
                         <http_header name="Content-Type" value="application/xml"/>
+                    </http>
+                </request>
+            </transaction>
+
+        </session>
+        {% endif %}
+
+        {% if session_probabilities.app_resource > 0 %}
+        <session probability="{{ session_probabilities.app_resource }}" name="app_resource-session" type="ts_http">
+
+            <setdynvars sourcetype="file" fileid="app_resources" delimiter="," order="random">
+                <var name="resource_url" />
+            </setdynvars>
+
+            <transaction name="download_app_resource">
+                <request subst="true">
+                    <http url="%%_resource_url%%"
+                          method="GET"
+                          version="1.1"
+                    >
                     </http>
                 </request>
             </transaction>

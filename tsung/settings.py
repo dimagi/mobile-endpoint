@@ -32,7 +32,7 @@ TEST_RUNS = {
             'create_case': 0,
             'update_case': 0,
             'restore': 0,
-            'auth': 0
+            'app_resource': 0
          },
         'phases':[
             {'duration': 30, 'user_arrival_rate': 10},

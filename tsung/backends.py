@@ -35,6 +35,7 @@ class Backend(object):
             'dtd_path': settings.TSUNG_DTD_PATH,
             'casedb': os.path.join(settings.DB_FILES_DIR, 'casedb-{}.csv'.format(self.endpoint_name)),
             'userdb': os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(self.endpoint_name)),
+            'app_resources': os.path.join(settings.DB_FILES_DIR, 'resource_urls-{}.csv'.format(self.endpoint_name)),
             'host': self.settings['HOST'],
             'port': self.port,
             'server_type': 'ssl' if self.settings['HTTPS'] else 'tcp',
