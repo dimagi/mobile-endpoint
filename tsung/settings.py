@@ -42,6 +42,10 @@ TEST_RUNS = {
     'simple_form': {
         'session_probabilities': {
             'simple_form': 100,
+            'create_case': 0,
+            'update_case': 0,
+            'restore': 0,
+            'app_resource': 0
          },
         'phases':[
             {'duration': 60 * 10, 'user_arrival_rate': 50},
@@ -52,7 +56,11 @@ TEST_RUNS = {
     },
     'create_case': {
         'session_probabilities': {
+            'simple_form': 0,
             'create_case': 100,
+            'update_case': 0,
+            'restore': 0,
+            'app_resource': 0
          },
         'phases':[
             {'duration': 60 * 10, 'user_arrival_rate': 50},
@@ -63,7 +71,11 @@ TEST_RUNS = {
     },
     'update_case': {
         'session_probabilities': {
+            'simple_form': 0,
+            'create_case': 0,
             'update_case': 100,
+            'restore': 0,
+            'app_resource': 0
          },
         'phases':[
             {'duration': 60 * 10, 'user_arrival_rate': 50},
@@ -74,6 +86,7 @@ TEST_RUNS = {
     },
     'icds-10000': {
         'session_probabilities': {
+            'simple_form': 0,
             'create_case': 25,
             'update_case': 25,
             'restore': 5,
