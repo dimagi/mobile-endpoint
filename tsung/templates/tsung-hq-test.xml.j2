@@ -31,29 +31,6 @@
 
     <sessions>
 
-        {% if session_probabilities.auth > 0 %}
-        <session probability="{{ session_probabilities.auth }}" name="auth" type="ts_http">
-
-            <setdynvars sourcetype="file" fileid="userdb" delimiter="," order="random">
-                <var name="user_id" />
-                <var name="username" />
-                <var name="password" />
-            </setdynvars>
-
-            <transaction name="sso_auth">
-                <request subst="true">
-                    <http
-                        url="{{ sso_auth_url }}"
-                        method="POST"
-                        version="1.1"
-                        contents="username=%%_username%%&amp;password=%%_password%%"
-                    >
-                    </http>
-                </request>
-            </transaction>
-        </session>
-        {% endif %}
-
         {% if session_probabilities.simple_form > 0 %}
         <session probability="{{ session_probabilities.simple_form }}" name="form-submission-simple" type="ts_http">
 
