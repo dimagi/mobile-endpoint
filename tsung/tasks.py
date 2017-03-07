@@ -54,6 +54,7 @@ def tsung_build(endpoint, test_run):
 
 @task
 def load_users(endpoint, numusers):
+    numusers = int(numusers)
     backend = _get_backend(endpoint)
     users = backend.create_users(numusers)
     user_db = os.path.join(settings.DB_FILES_DIR, 'userdb-{}.csv'.format(endpoint))
