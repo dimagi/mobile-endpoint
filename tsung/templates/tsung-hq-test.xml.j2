@@ -2,7 +2,8 @@
 <!DOCTYPE tsung SYSTEM "{{ dtd_path }}" []>
 <tsung loglevel="info">
     <clients>
-        <client host="localhost" use_controller_vm="false" maxusers="30000" cpu="4"/>
+        <client host="django0" use_controller_vm="false" maxusers="30000" cpu="4"/>
+        <client host="django1" use_controller_vm="false" maxusers="30000" cpu="4"/>
     </clients>
 
     <servers>
