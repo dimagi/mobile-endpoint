@@ -84,7 +84,7 @@ def archive_logs(runname):
     log_dir = os.path.join(settings.TSUNG_LOG_DIR, runname)
     path = "{}.tar.gz".format(log_dir)
     print("Creating archive: {}".format(path))
-    sh.tar("-czf", path, "--directory={}".format(log_dir), ".")
+    sh.tar("-czf", path, "--directory={}".format(settings.TSUNG_LOG_DIR), runname)
 
 
 def create_readme(run_name, notes, testrun):
