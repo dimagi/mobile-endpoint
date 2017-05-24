@@ -9,13 +9,13 @@ SQLDIR = os.path.join(BASEDIR, 'sql')
 RAW_TRANSACTION_DIR_NAME = "raw_transactions"
 
 ENDPOINTS = {
-    'icds-cas': {
+    'l10k': {
         'BACKEND': 'production',
         'SUBMISSION_URL': '/a/{domain}/receiver/',
         'RESTORE_URL': '/a/{domain}/phone/restore/',
         'SUBMIT_WITH_AUTH': True,
         'HTTPS': True,
-        'HOST': 'www.icds-cas.gov.in',
+        'HOST': '10.162.36.254',
 
         'SUPERUSER_USERNAME': '',
         'SUPERUSER_PASSWORD': '',
